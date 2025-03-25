@@ -79,7 +79,7 @@ button:hover {
 .game-main {
   display: flex;
   gap: 20px;
-  height: 600px; /* Kiinteä kokonaiskorkeus */
+  height: 50vh; /* Kiinteä kokonaiskorkeus */
 }
 
 /* Vasen paneeli: Penalty Deck & Redraw */

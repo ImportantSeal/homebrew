@@ -24,14 +24,14 @@ function setupEventListeners() {
     card.addEventListener('click', () => selectCard(index));
   });
 
-  // Redraw-nappula toimii
+  // Redraw-nappula: näyttää penaltyn ja 1 sekunnin viiveen jälkeen refreshaa normaalikortit
   document.getElementById('redraw-button').addEventListener('click', () => {
     redrawGame();
     const currentPlayer = state.players[state.currentPlayerIndex];
     log(`${currentPlayer.name} used Redraw to reveal penalty card and refresh cards.`);
   });
-
-  // Myös penalty deckin klikkaus paljastaa penaltyn
+  
+  // Penalty deck: näyttää vain penaltyn (ei refreshing)
   document.getElementById('penalty-deck').addEventListener('click', () => {
     if (!state.penaltyShown) {
       rollPenaltyCard();
@@ -63,7 +63,7 @@ function updateTurn() {
   turnIndicator.textContent = `${currentPlayer.name}'s Turn`;
   updateInventoryDisplay();
   resetCards();
-  hidePenaltyCard();
+  // Tässä ei kutsuta hidePenaltyCard()-funktiota, jotta penaltyn tila säilyy, mikäli pelaaja klikkaa pelkästään penalty deckiä.
 }
 
 function updateInventoryDisplay() {
@@ -85,9 +85,8 @@ function updateInventoryDisplay() {
 }
 
 function resetCards() {
-  state.redrawUsed = false;
   state.currentCards = [];
-  // Arvotaan 3 korttia normalDeckistä/itemDeckistä
+  // Arvotaan kolme korttia normalDeckistä tai itemCardsistä
   for (let i = 0; i < 3; i++) {
     let card = randomFromArray(state.normalDeck);
     if (Math.random() < 0.3) {
@@ -115,6 +114,7 @@ function resetCards() {
     }
     cards[i].onclick = () => selectCard(i);
   }
+  // Resetissa penalty piilotetaan (jos redraw-toiminto ei ole aktiivinen, tämä toimii normaalina)
   hidePenaltyCard();
 }
 
@@ -124,9 +124,12 @@ function selectCard(index) {
     document.getElementById('card1'),
     document.getElementById('card2')
   ];
+  
+  // Jos penalty on näkyvissä, piilota se (tämä toimii sekä redraw- että penalty deck -tilanteessa)
   if (state.penaltyShown) {
     hidePenaltyCard();
   }
+  
   cards.forEach(card => card.onclick = null);
   const currentPlayer = state.players[state.currentPlayerIndex];
 
@@ -196,7 +199,7 @@ function hidePenaltyCard() {
 }
 
 function redrawGame() {
-  // Molemmat toiminnot: penalty paljastuu ja kortit refreshataan
+  // Redraw: paljastaa penaltyn ja 1 sekunnin viiveen jälkeen uudistaa normaalikortit
   rollPenaltyCard();
   setTimeout(() => {
     resetCards();

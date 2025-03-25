@@ -3,5 +3,5 @@ export function addHistoryEntry(message) {
   const entry = document.createElement('p');
   entry.textContent = message;
   historyContainer.appendChild(entry);
-  historyContainer.scrollTop = historyContainer.scrollHeight;
+  entry.scrollIntoView({ behavior: "smooth", block: "end" });
 }
