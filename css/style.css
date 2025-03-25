@@ -18,8 +18,8 @@ body {
 
 /* Kontainerit */
 .container {
-  width: 95%;
-  max-width: 1000px;
+  width: 130%;
+  max-width: 120vh;
   background-color: rgba(46, 64, 83, 0.95);
   border-radius: 10px;
   padding: 20px;
@@ -93,7 +93,7 @@ button:hover {
 }
 
 .penalty-deck-container {
-  margin-top: 60px; /* Asetetaan samalla tasolla kuin keskikortit */
+  margin-top: 5.5vh; 
   text-align: center;
 }
 
@@ -182,7 +182,7 @@ button:hover {
 
 /* Oikea paneeli: Korttihistoria */
 .right-panel {
-  flex: 0 0 250px;
+  flex: 0 0 30vh;
   border-left: 1px solid rgba(255,255,255,0.3);
   padding-left: 10px;
   display: flex;
