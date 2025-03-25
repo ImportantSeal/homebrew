@@ -8,13 +8,13 @@ export function initSetup() {
   const playerList = document.getElementById('player-list');
   const startGameButton = document.getElementById('start-game-button');
 
-  addPlayerButton.addEventListener('click', () => {
-    const name = playerInput.value.trim();
-    if (name && !state.players.some(p => p.name === name)) {
-      state.players.push({ name: name, inventory: [] });
-      updatePlayerList();
-      playerInput.value = "";
-      startGameButton.disabled = state.players.length === 0;
+  // Lisää pelaaja kun Add Player -nappia klikataan
+  addPlayerButton.addEventListener('click', addPlayer);
+
+  // Lisää pelaaja, kun Enter-näppäintä painetaan syötekentässä
+  playerInput.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter') {
+      addPlayer();
     }
   });
 
@@ -24,6 +24,16 @@ export function initSetup() {
       startGame();
     }
   });
+
+  function addPlayer() {
+    const name = playerInput.value.trim();
+    if (name && !state.players.some(p => p.name === name)) {
+      state.players.push({ name: name, inventory: [] });
+      updatePlayerList();
+      playerInput.value = "";
+      startGameButton.disabled = state.players.length === 0;
+    }
+  }
 
   function updatePlayerList() {
     playerList.innerHTML = "";
