@@ -24,11 +24,20 @@ function setupEventListeners() {
     card.addEventListener('click', () => selectCard(index));
   });
 
-  // Redraw-nappula: näyttää penaltyn ja sen jälkeen uudistaa kortit
+  // Redraw-nappula toimii
   document.getElementById('redraw-button').addEventListener('click', () => {
     redrawGame();
     const currentPlayer = state.players[state.currentPlayerIndex];
     log(`${currentPlayer.name} used Redraw to reveal penalty card and refresh cards.`);
+  });
+
+  // Myös penalty deckin klikkaus paljastaa penaltyn
+  document.getElementById('penalty-deck').addEventListener('click', () => {
+    if (!state.penaltyShown) {
+      rollPenaltyCard();
+      const currentPlayer = state.players[state.currentPlayerIndex];
+      log(`${currentPlayer.name} clicked Penalty Deck and revealed penalty card.`);
+    }
   });
 }
 
@@ -78,7 +87,7 @@ function updateInventoryDisplay() {
 function resetCards() {
   state.redrawUsed = false;
   state.currentCards = [];
-  // Arvotaan 3 korttia normalDeckistä tai itemDeckistä
+  // Arvotaan 3 korttia normalDeckistä/itemDeckistä
   for (let i = 0; i < 3; i++) {
     let card = randomFromArray(state.normalDeck);
     if (Math.random() < 0.3) {
@@ -187,6 +196,7 @@ function hidePenaltyCard() {
 }
 
 function redrawGame() {
+  // Molemmat toiminnot: penalty paljastuu ja kortit refreshataan
   rollPenaltyCard();
   setTimeout(() => {
     resetCards();
@@ -224,7 +234,6 @@ function useItem(itemIndex) {
       log(`${currentPlayer.name} used Extra Life! You get another turn.`);
       break;
     case "Redraw":
-      // Käytetään Redraw-itemiä samaan tapaan kuin Redraw-nappula
       redrawGame();
       log(`${currentPlayer.name} used Redraw! Penalty card revealed and cards refreshed.`);
       break;
