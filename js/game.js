@@ -94,11 +94,17 @@ function updateInventoryDisplay() {
 
 function resetCards() {
   state.currentCards = [];
-  // Arvotaan kolme korttia normalDeckistä tai itemCardsistä
   for (let i = 0; i < 3; i++) {
+    // Aloitetaan normaalista kortista
     let card = randomFromArray(state.normalDeck);
-    if (Math.random() < 0.3) {
-      card = randomFromArray(state.itemCards);
+    const r = Math.random();
+    if (r < 0.25) {
+      // 25 % mahdollisuus saada Immunity‐kortti
+      card = "Immunity";
+    } else if (r < 0.3) {
+      // Muilla itemeillä on yhteensä 5 % mahdollisuus ilmestyä
+      const otherItems = state.itemCards.filter(item => item !== "Immunity");
+      card = randomFromArray(otherItems);
     }
     state.currentCards.push(card);
   }
@@ -122,7 +128,6 @@ function resetCards() {
     }
     cards[i].onclick = () => selectCard(i);
   }
-  // Resetissa penalty piilotetaan (jos redraw-toiminto ei ole aktiivinen, tämä toimii normaalina)
   hidePenaltyCard();
 }
 
@@ -133,7 +138,7 @@ function selectCard(index) {
     document.getElementById('card2')
   ];
   
-  // Jos penalty on näkyvissä, piilota se (tämä toimii sekä redraw- että penalty deck -tilanteessa)
+  // Jos penalty on näkyvissä, piilota se ennen normaalin kortin käsittelyä
   if (state.penaltyShown) {
     hidePenaltyCard();
   }
@@ -149,16 +154,19 @@ function selectCard(index) {
     }, 700);
     return;
   }
-
+  
   if (state.dittoActive[index]) {
     log(`${currentPlayer.name} confirmed Ditto card.`);
+    // Nollataan ditto-tila ja palauta tyylit
+    state.dittoActive[index] = false;
     cards[index].style.backgroundColor = "white";
     cards[index].style.borderColor = "black";
     nextPlayer();
     return;
   }
-
-  const revealedValue = cards[index].textContent;
+  
+  const revealedValue = cards[index].dataset.value || cards[index].textContent;
+  
   if (state.itemCards.includes(revealedValue)) {
     log(`${currentPlayer.name} acquired item: ${revealedValue}`);
     currentPlayer.inventory.push(revealedValue);
@@ -167,9 +175,10 @@ function selectCard(index) {
     nextPlayer();
     return;
   }
-
+  
   if (Math.random() < 0.25) {
     state.dittoActive[index] = true;
+    cards[index].dataset.value = "Ditto";
     cards[index].textContent = "Ditto";
     cards[index].style.borderColor = "purple";
     cards[index].style.backgroundColor = "#E6E6FA";
@@ -177,7 +186,7 @@ function selectCard(index) {
     cards[index].onclick = () => selectCard(index);
     return;
   }
-
+  
   log(`${currentPlayer.name} selected ${revealedValue}`);
   flashElement(cards[index]);
   nextPlayer();
