@@ -1,3 +1,9 @@
+:root {
+  --container-max-width: 120vh;
+  --container-padding: 20px;
+  --base-font-size: 16px;
+}
+
 /* Reset */
 * {
   box-sizing: border-box;
@@ -10,20 +16,22 @@ body {
   background: linear-gradient(135deg, #1C2833, #2E4053);
   font-family: 'Montserrat', sans-serif;
   color: #ECF0F1;
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  font-size: var(--base-font-size);
 }
 
-/* Kontainerit */
+/* Pelialustan kontaineri */
 .container {
-  width: 130%;
-  max-width: 120vh;
+  width: 100%;
+  max-width: var(--container-max-width);
   background-color: rgba(46, 64, 83, 0.95);
   border-radius: 10px;
-  padding: 20px;
+  padding: var(--container-padding);
   box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+  overflow: hidden; /* Estää sisältöä ylittymästä */
 }
 
 /* Setup-näkymä */
@@ -34,7 +42,7 @@ body {
 input[type="text"] {
   width: 80%;
   padding: 12px;
-  font-size: 16px;
+  font-size: 1rem;
   border: 2px solid #4682B4;
   border-radius: 5px;
   margin-bottom: 10px;
@@ -51,7 +59,7 @@ button {
   border: none;
   color: white;
   padding: 12px 24px;
-  font-size: 16px;
+  font-size: 1rem;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s, transform 0.2s;
@@ -75,11 +83,11 @@ button:hover {
   margin-bottom: 20px;
 }
 
-/* Kolmiosainen layout */
+/* Pääasettelu: Kolme paneelia */
 .game-main {
   display: flex;
   gap: 20px;
-  height: 50vh; /* Kiinteä kokonaiskorkeus */
+  height: 50vh;
 }
 
 /* Vasen paneeli: Penalty Deck & Redraw */
@@ -93,7 +101,7 @@ button:hover {
 }
 
 .penalty-deck-container {
-  margin-top: 5.5vh; 
+  margin-top: 5.5vh;
   text-align: center;
 }
 
@@ -106,7 +114,7 @@ button:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: 1.5rem;
   color: #FF4136;
   margin-bottom: 10px;
   transition: transform 0.3s, border-color 0.3s;
@@ -116,7 +124,7 @@ button:hover {
   transform: scale(1.05);
 }
 
-/* Keskipaneeli: Vuoron ilmoitus, kortit ja inventaario */
+/* Keskipaneeli: Vuoron ilmoitus, kortit & inventaario */
 .center-panel {
   flex: 1;
   display: flex;
@@ -126,7 +134,7 @@ button:hover {
 }
 
 .turn-indicator {
-  font-size: 22px;
+  font-size: 1.375rem;
   margin-bottom: 20px;
 }
 
@@ -135,20 +143,20 @@ button:hover {
   justify-content: center;
   gap: 20px;
   margin-bottom: 20px;
-  height: 220px; /* Kiinteä tila korttialueelle */
+  height: 220px;
 }
 
 .card {
   width: 150px;
   height: 200px;
   background-color: #FFFFFF;
-  border: 3px solid #000000;
+  border: 3px solid #000;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
-  color: #000000;
+  font-size: 1.5rem;
+  color: #000;
   cursor: pointer;
   transition: transform 0.3s, border-color 0.3s, background-color 0.3s;
   perspective: 1000px;
@@ -177,7 +185,7 @@ button:hover {
 .inventory ul {
   list-style: none;
   padding: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
 }
 
 /* Oikea paneeli: Korttihistoria */
@@ -189,11 +197,13 @@ button:hover {
   flex-direction: column;
   align-items: center;
   height: 100%;
+  overflow: hidden; /* Varmistetaan, että se pysyy containerin sisällä */
 }
 
 .history-section {
   width: 100%;
-  height: 100%; /* Pitää history-alueen oikeassa paneelissa */
+  height: 100%;
+  max-height: 100%;
   overflow-y: auto;
   border: 1px solid rgba(255,255,255,0.3);
   padding: 10px;
@@ -212,5 +222,31 @@ button:hover {
   }
   .history-section {
     max-height: 200px;
+  }
+}
+
+/* 4K-näytöt */
+@media (min-width: 2560px) {
+  body {
+    font-size: 20px;
+  }
+  .container {
+    padding: 2rem;
+  }
+  .penalty-deck {
+    width: 200px;
+    height: 270px;
+    font-size: 2rem;
+  }
+  .card {
+    width: 200px;
+    height: 270px;
+    font-size: 2rem;
+  }
+  .right-panel {
+    flex: 0 0 35vh;
+  }
+  .game-main {
+    gap: 2rem;
   }
 }
