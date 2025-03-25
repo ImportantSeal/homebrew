@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Smart Card Game Beta</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Pelaajien asetukset -->
+  <div id="setup-container" class="container">
+    <h1>Player Setup</h1>
+    <input type="text" id="player-input" placeholder="Enter player name" />
+    <button id="add-player-button">Add Player</button>
+    <ul id="player-list"></ul>
+    <button id="start-game-button" disabled>Start Game</button>
+  </div>
+
+  <!-- Peli-näkymä -->
+  <div id="game-container" class="container" style="display:none;">
+    <header class="game-header">
+      <h1>Smart Card Game Beta</h1>
+      <div id="turn-indicator" class="turn-indicator"></div>
+    </header>
+    <main class="game-main">
+      <!-- Vasen sarake: Deckit, kortit, penalty & inventaario -->
+      <section class="cards-section">
+        <!-- Deckit -->
+        <div class="decks">
+          <div class="deck" id="normal-deck">
+            <p>Normal Deck</p>
+          </div>
+          <div class="deck" id="penalty-deck">
+            <p>Penalty Deck</p>
+          </div>
+        </div>
+
+        <!-- Korttialue -->
+        <div class="card-container">
+          <div class="card" id="card0" data-index="0"></div>
+          <div class="card" id="card1" data-index="1"></div>
+          <div class="card" id="card2" data-index="2"></div>
+        </div>
+        
+        <!-- Toiminnot -->
+        <div class="controls">
+          <button id="roll-button">Roll Penalty</button>
+          <button id="redraw-button">Redraw (Penalty)</button>
+          <div id="penalty-display" class="penalty-display"></div>
+        </div>
+        
+        <!-- Inventaario -->
+        <div class="inventory">
+          <h2>Inventory</h2>
+          <ul id="inventory-list"></ul>
+        </div>
+      </section>
+
+      <!-- Oikea sarake: Korttihistoria -->
+      <aside class="history-section">
+        <h2>Card History</h2>
+        <div id="card-history" class="card-history"></div>
+      </aside>
+    </main>
+  </div>
+  
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
