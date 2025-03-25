@@ -11,6 +11,7 @@ export function startGame() {
 function initGameView() {
   const gameContainer = document.getElementById('game-container');
   gameContainer.style.display = "block";
+  hidePenaltyCard();
 }
 
 function setupEventListeners() {
@@ -19,24 +20,19 @@ function setupEventListeners() {
     document.getElementById('card1'),
     document.getElementById('card2')
   ];
-
   cards.forEach((card, index) => {
     card.addEventListener('click', () => selectCard(index));
   });
 
-  // Napit toiminnoille
-  document.getElementById('roll-button').addEventListener('click', rollPenalty);
-  document.getElementById('redraw-button').addEventListener('click', redrawCards);
-  
-  // Deck-alueiden klikkaustapahtumat
-  document.getElementById('normal-deck').addEventListener('click', () => {
-    resetCards();
+  // Redraw-nappula: näyttää penaltyn ja sen jälkeen uudistaa kortit
+  document.getElementById('redraw-button').addEventListener('click', () => {
+    redrawGame();
+    const currentPlayer = state.players[state.currentPlayerIndex];
+    log(`${currentPlayer.name} used Redraw to reveal penalty card and refresh cards.`);
   });
-  document.getElementById('penalty-deck').addEventListener('click', rollPenalty);
 }
 
 function log(message) {
-  // Päivitetään korttihistoriaa (ei enää lokia korttien alta)
   addHistoryEntry(message);
 }
 
@@ -58,6 +54,7 @@ function updateTurn() {
   turnIndicator.textContent = `${currentPlayer.name}'s Turn`;
   updateInventoryDisplay();
   resetCards();
+  hidePenaltyCard();
 }
 
 function updateInventoryDisplay() {
@@ -80,9 +77,8 @@ function updateInventoryDisplay() {
 
 function resetCards() {
   state.redrawUsed = false;
-  document.getElementById('penalty-display').textContent = "";
   state.currentCards = [];
-  // Vedä 3 uutta korttia normalDeckistä/itemDeckistä
+  // Arvotaan 3 korttia normalDeckistä tai itemDeckistä
   for (let i = 0; i < 3; i++) {
     let card = randomFromArray(state.normalDeck);
     if (Math.random() < 0.3) {
@@ -100,8 +96,6 @@ function resetCards() {
     document.getElementById('card1'),
     document.getElementById('card2')
   ];
-  
-  // Animoidaan kaikkien korttien flip, mikäli kortti on piilotettu näytetään "???"
   for (let i = 0; i < 3; i++) {
     cards[i].style.borderColor = "black";
     cards[i].style.backgroundColor = "white";
@@ -112,6 +106,7 @@ function resetCards() {
     }
     cards[i].onclick = () => selectCard(i);
   }
+  hidePenaltyCard();
 }
 
 function selectCard(index) {
@@ -120,7 +115,9 @@ function selectCard(index) {
     document.getElementById('card1'),
     document.getElementById('card2')
   ];
-  // Poistetaan hetkellisesti klikkaustapahtumat
+  if (state.penaltyShown) {
+    hidePenaltyCard();
+  }
   cards.forEach(card => card.onclick = null);
   const currentPlayer = state.players[state.currentPlayerIndex];
 
@@ -166,7 +163,8 @@ function selectCard(index) {
   nextPlayer();
 }
 
-function rollPenalty() {
+function rollPenaltyCard() {
+  if (state.penaltyShown) return;
   const currentPlayer = state.players[state.currentPlayerIndex];
   if (currentPlayer.shield) {
     log(`${currentPlayer.name}'s Shield protected against the penalty!`);
@@ -174,33 +172,31 @@ function rollPenalty() {
     return;
   }
   const penalty = randomFromArray(state.penaltyDeck);
+  state.penaltyCard = penalty;
+  state.penaltyShown = true;
+  const penaltyDeckEl = document.getElementById('penalty-deck');
+  flipCardAnimation(penaltyDeckEl, penalty);
   log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
-  const penaltyDisplay = document.getElementById('penalty-display');
-  penaltyDisplay.textContent = penalty;
-  penaltyDisplay.style.backgroundColor = "#F4D03F";
-  setTimeout(() => {
-    penaltyDisplay.style.backgroundColor = "#F9E79F";
-  }, 200);
 }
 
-function redrawCards() {
-  if (state.redrawUsed) {
-    log("Redraw is already used this turn.");
-    return;
-  }
-  const currentPlayer = state.players[state.currentPlayerIndex];
-  const penalty = randomFromArray(state.penaltyDeck);
-  log(`${currentPlayer.name} drew penalty card: ${penalty}`);
-  document.getElementById('penalty-display').textContent = penalty;
-  resetCards();
-  state.redrawUsed = true;
+function hidePenaltyCard() {
+  state.penaltyShown = false;
+  state.penaltyCard = null;
+  const penaltyDeckEl = document.getElementById('penalty-deck');
+  flipCardAnimation(penaltyDeckEl, "Penalty Deck");
+}
+
+function redrawGame() {
+  rollPenaltyCard();
+  setTimeout(() => {
+    resetCards();
+  }, 1000);
 }
 
 function useItem(itemIndex) {
   const currentPlayer = state.players[state.currentPlayerIndex];
   const item = currentPlayer.inventory[itemIndex];
   if (!item) return;
-  
   currentPlayer.inventory.splice(itemIndex, 1);
   updateInventoryDisplay();
   
@@ -226,6 +222,11 @@ function useItem(itemIndex) {
     case "Extra Life":
       currentPlayer.extraLife = true;
       log(`${currentPlayer.name} used Extra Life! You get another turn.`);
+      break;
+    case "Redraw":
+      // Käytetään Redraw-itemiä samaan tapaan kuin Redraw-nappula
+      redrawGame();
+      log(`${currentPlayer.name} used Redraw! Penalty card revealed and cards refreshed.`);
       break;
     default:
       log(`${currentPlayer.name} used ${item}. (No effect)`);

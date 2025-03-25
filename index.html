@@ -22,46 +22,38 @@
   <div id="game-container" class="container" style="display:none;">
     <header class="game-header">
       <h1>Smart Card Game Beta</h1>
-      <div id="turn-indicator" class="turn-indicator"></div>
     </header>
     <main class="game-main">
-      <!-- Vasen sarake: Deckit, kortit, penalty & inventaario -->
-      <section class="cards-section">
-        <!-- Deckit -->
-        <div class="decks">
-          <div class="deck" id="normal-deck">
-            <p>Normal Deck</p>
-          </div>
-          <div class="deck" id="penalty-deck">
+      <!-- Vasen paneeli: Penalty Deck & Redraw -->
+      <aside class="left-panel">
+        <div class="penalty-deck-container">
+          <div class="penalty-deck" id="penalty-deck">
             <p>Penalty Deck</p>
           </div>
+          <button id="redraw-button">Redraw</button>
         </div>
+      </aside>
 
-        <!-- Korttialue -->
+      <!-- Keskipaneeli: Vuoron ilmoitus, kortit ja inventaario -->
+      <section class="center-panel">
+        <div class="turn-indicator" id="turn-indicator">Player's Turn</div>
         <div class="card-container">
           <div class="card" id="card0" data-index="0"></div>
           <div class="card" id="card1" data-index="1"></div>
           <div class="card" id="card2" data-index="2"></div>
         </div>
-        
-        <!-- Toiminnot -->
-        <div class="controls">
-          <button id="roll-button">Roll Penalty</button>
-          <button id="redraw-button">Redraw (Penalty)</button>
-          <div id="penalty-display" class="penalty-display"></div>
-        </div>
-        
-        <!-- Inventaario -->
         <div class="inventory">
           <h2>Inventory</h2>
           <ul id="inventory-list"></ul>
         </div>
       </section>
 
-      <!-- Oikea sarake: Korttihistoria -->
-      <aside class="history-section">
-        <h2>Card History</h2>
-        <div id="card-history" class="card-history"></div>
+      <!-- Oikea paneeli: Korttihistoria -->
+      <aside class="right-panel">
+        <div class="history-section">
+          <h2>Card History</h2>
+          <div id="card-history" class="card-history"></div>
+        </div>
       </aside>
     </main>
   </div>

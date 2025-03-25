@@ -1,5 +1,4 @@
 export function flipCardAnimation(cardElement, finalText) {
-  // Tyhjennetään ensin kortin sisältö, sitten ajetaan flip-animaatio
   cardElement.textContent = "";
   cardElement.classList.add('flip');
   setTimeout(() => {
