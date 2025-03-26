@@ -216,18 +216,6 @@ function selectCard(index) {
           }
       },
       () => {
-          log("Ditto revealed all hidden cards!");
-          const cards = [
-              document.getElementById('card0'),
-              document.getElementById('card1'),
-              document.getElementById('card2')
-          ];
-          state.revealed = [true, true, true];
-          cards.forEach((card, i) => {
-              flipCardAnimation(card, state.currentCards[i]);
-          });
-      },
-      () => {
           log("Ditto granted you Penalty Immunity! Your next penalty will be negated.");
           state.players[state.currentPlayerIndex].penaltyImmunity = true;
       }
