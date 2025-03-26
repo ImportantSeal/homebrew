@@ -2,6 +2,14 @@ import { state } from './state.js';
 import { addHistoryEntry } from './cardHistory.js';
 import { flipCardAnimation, flashElement } from './animations.js';
 
+// Apufunktio, joka palauttaa kortin näytettävän arvon
+function getCardDisplayValue(card) {
+  if (typeof card === 'object' && card !== null) {
+    return card.name || "";
+  }
+  return card;
+}
+
 export function startGame() {
   initGameView();
   setupEventListeners();
@@ -24,7 +32,7 @@ function setupEventListeners() {
     card.addEventListener('click', () => selectCard(index));
   });
 
-  // Redraw-nappula: näyttää penaltyn ja 1 sekunnin viiveen jälkeen refreshaa normaalikortit
+  // Redraw-nappula: näyttää penaltyn ja 1 sekunnin viiveen jälkeen refreshaa kortit
   document.getElementById('redraw-button').addEventListener('click', () => {
     redrawGame();
     const currentPlayer = state.players[state.currentPlayerIndex];
@@ -94,17 +102,29 @@ function updateInventoryDisplay() {
 function resetCards() {
   state.currentCards = [];
   for (let i = 0; i < 3; i++) {
-    // Aloitetaan normaalista kortista
-    let card = randomFromArray(state.normalDeck);
+    let card;
+    const cardTypeChance = Math.random();
+    
+    // Määritellään todennäköisyydet eri korttityypeille:
+    if (cardTypeChance < 0.2) {
+      card = randomFromArray(state.socialCards);
+    } else if (cardTypeChance < 0.3) {
+      card = state.crowdChallenge;
+    } else if (cardTypeChance < 0.4) {
+      card = state.special;
+    } else {
+      card = randomFromArray(state.normalDeck);
+    }
+    
+    // Mahdollisuus Immunity- tai item-kortille:
     const r = Math.random();
     if (r < 0.25) {
-      // 25 % mahdollisuus saada Immunity‐kortti
       card = "Immunity";
     } else if (r < 0.3) {
-      // Muilla itemeillä on yhteensä 5 % mahdollisuus ilmestyä
       const otherItems = state.itemCards.filter(item => item !== "Immunity");
       card = randomFromArray(otherItems);
     }
+    
     state.currentCards.push(card);
   }
   state.hiddenIndex = Math.floor(Math.random() * 3);
@@ -123,7 +143,8 @@ function resetCards() {
     if (!state.revealed[i]) {
       flipCardAnimation(cards[i], "???");
     } else {
-      flipCardAnimation(cards[i], state.currentCards[i]);
+      // Käytetään apufunktiota, jotta varmistetaan oikea näytettävä arvo
+      flipCardAnimation(cards[i], getCardDisplayValue(state.currentCards[i]));
     }
     cards[i].onclick = () => selectCard(i);
   }
@@ -137,26 +158,42 @@ function selectCard(index) {
     document.getElementById('card2')
   ];
   
-  // Jos penalty on näkyvissä, piilota se ennen normaalin kortin käsittelyä
   if (state.penaltyShown) {
     hidePenaltyCard();
   }
   
+  // Poistetaan click-listenerit väliaikaisesti
   cards.forEach(card => card.onclick = null);
   const currentPlayer = state.players[state.currentPlayerIndex];
 
+  // Jos korttia ei ole vielä paljastettu, paljasta se
   if (!state.revealed[index]) {
     state.revealed[index] = true;
-    flipCardAnimation(cards[index], state.currentCards[index]);
+    flipCardAnimation(cards[index], getCardDisplayValue(state.currentCards[index]));
     setTimeout(() => {
       cards[index].onclick = () => selectCard(index);
     }, 700);
     return;
   }
   
+  const cardData = state.currentCards[index];
+  // Jos kortilla on subcategories (esim. Challenge, Crowd Challenge, Special Card)
+  if (typeof cardData === 'object' && cardData.subcategories) {
+    const challengeEvent = randomFromArray(cardData.subcategories);
+    let challengeText;
+    if (typeof challengeEvent === 'object') {
+      challengeText = challengeEvent.instruction || challengeEvent.name;
+    } else {
+      challengeText = challengeEvent;
+    }
+    flipCardAnimation(cards[index], challengeText);
+    log(`${currentPlayer.name} drew ${getCardDisplayValue(cardData)}: ${challengeText}`);
+    nextPlayer();
+    return;
+  }
+  
   if (state.dittoActive[index]) {
     log(`${currentPlayer.name} confirmed Ditto card.`);
-    // Nollataan ditto-tila ja palauta tyylit
     state.dittoActive[index] = false;
     cards[index].style.backgroundColor = "white";
     cards[index].style.borderColor = "black";
@@ -179,15 +216,14 @@ function selectCard(index) {
   if (Math.random() < 0.25) {
     state.dittoActive[index] = true;
     cards[index].dataset.value = "Ditto";
-    cards[index].textContent = ""; // Clear text content to avoid overlap with the image
+    cards[index].textContent = "";
     cards[index].style.borderColor = "purple";
     cards[index].style.backgroundColor = "#E6E6FA";
-    cards[index].style.backgroundImage = "url('images/ditto.png')"; // Add the Ditto image
-    cards[index].style.backgroundSize = "cover"; // Ensure the image covers the card
-    cards[index].style.backgroundPosition = "center"; // Center the image
+    cards[index].style.backgroundImage = "url('images/ditto.png')";
+    cards[index].style.backgroundSize = "cover";
+    cards[index].style.backgroundPosition = "center";
     log("Ditto effect activated! Click again to confirm.");
 
-    // Define a pool of Ditto-specific events
     const dittoEvents = [
       () => {
         log("Ditto transformed into a Shield! You gain a Shield.");
@@ -220,11 +256,9 @@ function selectCard(index) {
       }
     ];
 
-    // Randomly select and execute a Ditto event
     const randomEvent = randomFromArray(dittoEvents);
     randomEvent();
 
-    // Allow the player to confirm the Ditto card
     cards[index].onclick = () => selectCard(index);
     return;
   }
@@ -258,7 +292,6 @@ function hidePenaltyCard() {
 }
 
 function redrawGame() {
-  // Redraw: paljastaa penaltyn ja 1 sekunnin viiveen jälkeen uudistaa normaalikortit
   rollPenaltyCard();
   setTimeout(() => {
     resetCards();
@@ -285,7 +318,7 @@ function useItem(itemIndex) {
           document.getElementById('card2')
         ];
         state.revealed[state.hiddenIndex] = true;
-        flipCardAnimation(cards[state.hiddenIndex], state.currentCards[state.hiddenIndex]);
+        flipCardAnimation(cards[state.hiddenIndex], getCardDisplayValue(state.currentCards[state.hiddenIndex]));
         log(`${currentPlayer.name} used Reveal Free! Hidden card revealed.`);
       } else {
         log("No hidden card to reveal.");

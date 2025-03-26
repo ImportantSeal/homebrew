@@ -265,12 +265,12 @@ body {
 
 /* Flip-out: kortti kääntyy 0° -> 90° myötäpäivään */
 .flip-out {
-  animation: flipOut 0.5s forwards;
+  animation: flipOut 0.4s forwards;
 }
 
 /* Flip-in: uusi sisältö ilmestyy kääntyen -90° -> 0° vastapäivään */
 .flip-in {
-  animation: flipIn 0.5s forwards;
+  animation: flipIn 0.4s forwards;
 }
 
 @keyframes flipOut {
