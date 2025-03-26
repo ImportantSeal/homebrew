@@ -62,17 +62,17 @@ function updateTurn() {
   const currentPlayer = state.players[state.currentPlayerIndex];
   turnIndicator.textContent = `${currentPlayer.name}'s Turn`;
 
-  // Päivitetään vuorojärjestys overlay
-  const turnOrderOverlay = document.getElementById('turn-order-overlay');
-  const playerNames = state.players.map((p, index) => {
-    return index === state.currentPlayerIndex ? `<strong>${p.name}</strong>` : p.name;
-  });
-  turnOrderOverlay.innerHTML = 'Turn Order: ' + playerNames.join(' &rarr; ');
-
+  // Päivitetään vuorojärjestys turn-order -elementtiin
+  const turnOrderElem = document.getElementById('turn-order');
+  const order = state.players.map((p, index) => 
+    index === state.currentPlayerIndex ? `<strong>${p.name}</strong>` : p.name
+  );
+  turnOrderElem.innerHTML = 'Turn Order: ' + order.join(' → ');
+  
   updateInventoryDisplay();
   resetCards();
-  // Jos redrawa ei haluta automaattisesti piilottaa penaltyä, hidePenaltyCard() voidaan kutsua normaalin kortin valinnassa.
 }
+
 
 function updateInventoryDisplay() {
   const inventoryList = document.getElementById('inventory-list');
