@@ -1,7 +1,7 @@
 export function flipCardAnimation(cardElement, finalText) {
   // Aloitetaan flip-out-animaatio
   cardElement.classList.add('flip-out');
-  
+
   // Flip-out puolessa välissä: vaihdetaan sisältö kortin selkäpuoleen
   setTimeout(() => {
     cardElement.innerHTML = `<img src="images/cardback.png" alt="Card Back" style="width:100%; height:100%; object-fit: cover;">`;
@@ -11,6 +11,9 @@ export function flipCardAnimation(cardElement, finalText) {
   setTimeout(() => {
     if (finalText === "Immunity") {
       cardElement.innerHTML = `<img src="images/immunity.png" alt="Immunity" style="width:100%; height:100%; object-fit: contain;">`;
+    } else if (finalText === "???") {
+      // Näytetään kortin takakansi, jos kyseessä on piilotettu kortti
+      cardElement.innerHTML = `<img src="images/cardback.png" alt="Card Back" style="width:100%; height:100%; object-fit: cover;">`;
     } else {
       cardElement.textContent = finalText;
     }
