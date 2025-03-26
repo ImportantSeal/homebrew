@@ -73,7 +73,6 @@ function updateTurn() {
   resetCards();
 }
 
-
 function updateInventoryDisplay() {
   const inventoryList = document.getElementById('inventory-list');
   const currentPlayer = state.players[state.currentPlayerIndex];
@@ -191,35 +190,35 @@ function selectCard(index) {
     // Define a pool of Ditto-specific events
     const dittoEvents = [
       () => {
-          log("Ditto transformed into a Shield! You gain a Shield.");
-          state.players[state.currentPlayerIndex].shield = true;
+        log("Ditto transformed into a Shield! You gain a Shield.");
+        state.players[state.currentPlayerIndex].shield = true;
       },
       () => {
-          log("Ditto caused chaos! All players lose one item.");
-          state.players.forEach(player => {
-              if (player.inventory.length > 0) {
-                  player.inventory.pop();
-              }
-          });
-          updateInventoryDisplay();
-      },
-      () => {
-          const otherPlayers = state.players.filter((_, i) => i !== state.currentPlayerIndex);
-          const targetPlayer = randomFromArray(otherPlayers);
-          if (targetPlayer.inventory.length > 0) {
-              const stolenItem = targetPlayer.inventory.pop();
-              state.players[state.currentPlayerIndex].inventory.push(stolenItem);
-              log(`Ditto stole ${stolenItem} from ${targetPlayer.name}!`);
-              updateInventoryDisplay();
-          } else {
-              log("Ditto tried to steal, but the target player had no items.");
+        log("Ditto caused chaos! All players lose one item.");
+        state.players.forEach(player => {
+          if (player.inventory.length > 0) {
+            player.inventory.pop();
           }
+        });
+        updateInventoryDisplay();
       },
       () => {
-          log("Ditto granted you Penalty Immunity! Your next penalty will be negated.");
-          state.players[state.currentPlayerIndex].penaltyImmunity = true;
+        const otherPlayers = state.players.filter((_, i) => i !== state.currentPlayerIndex);
+        const targetPlayer = randomFromArray(otherPlayers);
+        if (targetPlayer.inventory.length > 0) {
+          const stolenItem = targetPlayer.inventory.pop();
+          state.players[state.currentPlayerIndex].inventory.push(stolenItem);
+          log(`Ditto stole ${stolenItem} from ${targetPlayer.name}!`);
+          updateInventoryDisplay();
+        } else {
+          log("Ditto tried to steal, but the target player had no items.");
+        }
+      },
+      () => {
+        log("Ditto granted you Penalty Immunity! Your next penalty will be negated.");
+        state.players[state.currentPlayerIndex].penaltyImmunity = true;
       }
-  ];
+    ];
 
     // Randomly select and execute a Ditto event
     const randomEvent = randomFromArray(dittoEvents);
@@ -227,15 +226,13 @@ function selectCard(index) {
 
     // Allow the player to confirm the Ditto card
     cards[index].onclick = () => selectCard(index);
-
     return;
-}
+  }
   
   log(`${currentPlayer.name} selected ${revealedValue}`);
   flashElement(cards[index]);
   nextPlayer();
 }
-
 
 function rollPenaltyCard() {
   if (state.penaltyShown) return;
@@ -275,7 +272,7 @@ function useItem(itemIndex) {
   currentPlayer.inventory.splice(itemIndex, 1);
   updateInventoryDisplay();
   
-  switch(item) {
+  switch (item) {
     case "Shield":
       currentPlayer.shield = true;
       log(`${currentPlayer.name} used Shield! Your next penalty will be negated.`);
@@ -291,7 +288,7 @@ function useItem(itemIndex) {
         flipCardAnimation(cards[state.hiddenIndex], state.currentCards[state.hiddenIndex]);
         log(`${currentPlayer.name} used Reveal Free! Hidden card revealed.`);
       } else {
-        log(`No hidden card to reveal.`);
+        log("No hidden card to reveal.");
       }
       break;
     case "Extra Life":

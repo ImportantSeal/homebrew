@@ -21,10 +21,7 @@
 
   <!-- Peli-näkymä -->
   <div id="game-container" class="container" style="display:none;">
-    <header class="game-header">
-      <h1>Smart Card Game Beta</h1>
-      <div id="turn-order" class="turn-order"></div>
-    </header>
+   
     
     <main class="game-main">
 
@@ -40,6 +37,11 @@
 
       <!-- Keskipaneeli: Vuoron ilmoitus, kortit ja inventaario -->
       <section class="center-panel">
+
+        <header class="game-header">
+          <h1>Smart Card Game Beta</h1>
+          <div id="turn-order" class="turn-order"></div>
+        </header>
         <div class="turn-indicator" id="turn-indicator">Player's Turn</div>
         
         <div class="card-container">
@@ -55,8 +57,8 @@
 
       <!-- Oikea paneeli: Korttihistoria -->
       <aside class="right-panel">
+        <h2>Card History</h2>
         <div class="history-section">
-          <h2>Card History</h2>
           <div id="card-history" class="card-history"></div>
         </div>
       </aside>

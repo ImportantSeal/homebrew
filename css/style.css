@@ -1,5 +1,5 @@
 :root {
-  --container-max-width: 75rem;
+  --container-max-width: 80%;
   --container-padding: 1.25rem;  
   --base-font-size: 1rem;        
   --panel-gap: 1.25rem;          
@@ -25,6 +25,9 @@ body {
   /* Turn order overlay on body: ei clipata */
   position: relative;
 }
+
+
+
 
 /* Vuorojärjestys overlay – sijoitetaan suoraan bodyyn */
 .turn-order-overlay {
@@ -58,7 +61,7 @@ body {
 }
 
 #setup-container input[type="text"] {
-  width: 80%;
+  width: 60%;
   padding: 0.75rem;
   font-size: 1rem;
   border: 0.125rem solid #4682B4;
@@ -113,10 +116,15 @@ body {
   margin: 0.625rem 0;
 }
 
-/* Peli-header */
+#game-container {
+  position: relative;
+}
 .game-header {
+  position: absolute;
+  top: 1rem;
+  left: calc(12.5rem + var(--panel-gap));
+  right: calc(50vh + var(--panel-gap));
   text-align: center;
-  margin-bottom: 1.25rem;
 }
 
 /* Pääasettelu: Kolme paneelia */
@@ -254,6 +262,27 @@ body {
   background-color: rgba(0,0,0,0.2);
 
 }
+
+/* Flip-out: kortti kääntyy 0° -> 90° myötäpäivään */
+.flip-out {
+  animation: flipOut 0.5s forwards;
+}
+
+/* Flip-in: uusi sisältö ilmestyy kääntyen -90° -> 0° vastapäivään */
+.flip-in {
+  animation: flipIn 0.5s forwards;
+}
+
+@keyframes flipOut {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(90deg); }
+}
+
+@keyframes flipIn {
+  from { transform: rotateY(-90deg); }
+  to { transform: rotateY(0deg); }
+}
+
 
 /* Responsiivisuus */
 @media (max-width: 768px) {
