@@ -1,5 +1,5 @@
 export const state = {
-  players: [], // Pelaajat esim. { name: string, inventory: [] }
+  players: [],
   currentPlayerIndex: 0,
   normalDeck: [
     "Drink 1",
@@ -14,7 +14,6 @@ export const state = {
     "Penalty Drink 2",
     "Penalty Drink 3"
   ],
-  // Lisää myös Redraw-item, jota voidaan käyttää penaltyn kääntämiseen
   itemCards: ["Shield", "Reveal Free", "Extra Life", "Mystery Boost", "Redraw"],
   currentCards: [],
   revealed: [true, true, true],
@@ -22,7 +21,6 @@ export const state = {
   hiddenIndex: null,
   redrawUsed: false,
   cardHistory: [],
-  // Uusi tila penalty-kortille:
   penaltyCard: null,
   penaltyShown: false
 };
