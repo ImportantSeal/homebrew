@@ -192,6 +192,7 @@ function selectCard(index) {
   nextPlayer();
 }
 
+
 function rollPenaltyCard() {
   if (state.penaltyShown) return;
   const currentPlayer = state.players[state.currentPlayerIndex];

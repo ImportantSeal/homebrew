@@ -3,7 +3,7 @@ export function flipCardAnimation(cardElement, finalText) {
   cardElement.classList.add('flip');
   setTimeout(() => {
     if (finalText === "Immunity") {
-      cardElement.innerHTML = '<img src="/images/immunity.png" alt="Immunity" style="width:100%; height:100%; object-fit: contain;">';
+      cardElement.innerHTML = '<img src="images/immunity.png" alt="Immunity" style="width:100%; height:100%; object-fit: contain;">';
     } else {
       cardElement.textContent = finalText;
     }
