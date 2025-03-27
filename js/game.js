@@ -118,9 +118,9 @@ function resetCards() {
     
     // Mahdollisuus Immunity- tai item-kortille:
     const r = Math.random();
-    if (r < 0.25) {
+    if (r < 0.01) {
       card = "Immunity";
-    } else if (r < 0.3) {
+    } else if (r < 0.02) {
       const otherItems = state.itemCards.filter(item => item !== "Immunity");
       card = randomFromArray(otherItems);
     }
@@ -157,11 +157,11 @@ function selectCard(index) {
     document.getElementById('card1'),
     document.getElementById('card2')
   ];
-  
+
   if (state.penaltyShown) {
     hidePenaltyCard();
   }
-  
+
   // Poistetaan click-listenerit väliaikaisesti
   cards.forEach(card => card.onclick = null);
   const currentPlayer = state.players[state.currentPlayerIndex];
@@ -175,9 +175,10 @@ function selectCard(index) {
     }, 700);
     return;
   }
-  
+
   const cardData = state.currentCards[index];
-  // Jos kortilla on subcategories (esim. Challenge, Crowd Challenge, Special Card)
+
+  // Jos kyseessä on haastekortti (esim. Challenge, Crowd Challenge, Special Card)
   if (typeof cardData === 'object' && cardData.subcategories) {
     const challengeEvent = randomFromArray(cardData.subcategories);
     let challengeText;
@@ -191,19 +192,10 @@ function selectCard(index) {
     nextPlayer();
     return;
   }
-  
-  if (state.dittoActive[index]) {
-    log(`${currentPlayer.name} confirmed Ditto card.`);
-    state.dittoActive[index] = false;
-    cards[index].style.backgroundColor = "white";
-    cards[index].style.borderColor = "black";
-    cards[index].style.backgroundImage = "";
-    nextPlayer();
-    return;
-  }
-  
+
   const revealedValue = cards[index].dataset.value || cards[index].textContent;
-  
+
+  // Jos paljastunut kortti on item (kuten Immunity), käsitellään se samalla tavalla kuin muut itemit
   if (state.itemCards.includes(revealedValue)) {
     log(`${currentPlayer.name} acquired item: ${revealedValue}`);
     currentPlayer.inventory.push(revealedValue);
@@ -212,8 +204,27 @@ function selectCard(index) {
     nextPlayer();
     return;
   }
-  
-  if (Math.random() < 0.25) {
+
+  // Tarkistetaan, onko Ditto-tila jo aktiivinen
+  if (state.dittoActive[index]) {
+    // Käytetään aikaleimaa: jos aktivointi on alle 1 sekunnin takaa, ei vahvisteta
+    const activationTime = parseInt(cards[index].dataset.dittoTime || "0", 10);
+    if (Date.now() - activationTime < 1000) {
+      // Liian nopea klikkaus; odotetaan vahvistusklikkausta myöhemmin
+      cards[index].onclick = () => selectCard(index);
+      return;
+    }
+    log(`${currentPlayer.name} confirmed Ditto card.`);
+    state.dittoActive[index] = false;
+    cards[index].style.backgroundColor = "white";
+    cards[index].style.borderColor = "black";
+    cards[index].style.backgroundImage = "";
+    nextPlayer();
+    return;
+  }
+
+  // Aktivoidaan Ditto-efekti satunnaisesti
+  if (Math.random() < 0.03) {
     state.dittoActive[index] = true;
     cards[index].dataset.value = "Ditto";
     cards[index].textContent = "";
@@ -223,12 +234,11 @@ function selectCard(index) {
     cards[index].style.backgroundSize = "cover";
     cards[index].style.backgroundPosition = "center";
     log("Ditto effect activated! Click again to confirm.");
+    
+    // Tallennetaan aktivointiaika
+    cards[index].dataset.dittoTime = Date.now();
 
     const dittoEvents = [
-      () => {
-        log("Ditto transformed into a Shield! You gain a Shield.");
-        state.players[state.currentPlayerIndex].shield = true;
-      },
       () => {
         log("Ditto caused chaos! All players lose one item.");
         state.players.forEach(player => {
@@ -251,22 +261,48 @@ function selectCard(index) {
         }
       },
       () => {
-        log("Ditto granted you Penalty Immunity! Your next penalty will be negated.");
-        state.players[state.currentPlayerIndex].penaltyImmunity = true;
+        log("Ditto says: Drink 3!");
+      },
+      () => {
+        log("Ditto started a Waterfall!");
+      },
+      () => {
+        log("Ditto ordered a Shot! Take a shot now.");
+      },
+      () => {
+        log("Ditto started challenge! Prepare for a random challenge.");
+        const challenges = [
+          "Challenge: Truth or Drink",
+          "Challenge: Dare",
+          "Challenge: Mini King",
+          "Categories"
+        ];
+        const challenge = randomFromArray(challenges);
+        log(challenge);
+      },
+      () => {
+        log("Ditto wants to roll the penalty deck for everyone! The penalty applies to all players.");
+        //rollPenaltyCard();
       }
     ];
 
     const randomEvent = randomFromArray(dittoEvents);
-    randomEvent();
+    if (randomEvent) {
+      randomEvent();
+    } else {
+      log("No Ditto event triggered.");
+    }
 
+    // Palautetaan click-toiminto heti, sillä vahvistus tarkistetaan seuraavalla klikkauksella
     cards[index].onclick = () => selectCard(index);
     return;
   }
-  
+
   log(`${currentPlayer.name} selected ${revealedValue}`);
   flashElement(cards[index]);
   nextPlayer();
 }
+
 
 function rollPenaltyCard() {
   if (state.penaltyShown) return;
@@ -332,10 +368,14 @@ function useItem(itemIndex) {
       redrawGame();
       log(`${currentPlayer.name} used Redraw! Penalty card revealed and cards refreshed.`);
       break;
+    case "Immunity":
+      log(`${currentPlayer.name} used Immunity and dodged challenge!`);
+      break;
     default:
       log(`${currentPlayer.name} used ${item}. (No effect)`);
   }
 }
+
 
 function randomFromArray(arr) {
   return arr[Math.floor(Math.random() * arr.length)];

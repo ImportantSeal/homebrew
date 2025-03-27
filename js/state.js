@@ -4,8 +4,6 @@ export const state = {
 
   // Sosiaaliset ja Challenge-kortit
   socialCards: [
-    { name: "Social", instruction: "Everyone drinks one." },
-    { name: "Double Social", instruction: "Everyone drinks two." },
     { 
       name: "Challenge", 
       subcategories: [
@@ -38,7 +36,6 @@ export const state = {
     "Drink 3, Give 2",
     "Drink 1, Give 3",
     "Drink 1, Give 1",
-    "Color Call: Call out a color. Anyone not wearing that color drinks."
   ],
 
   // Crowd Challenge -kortti, jossa alaluokkana satunnaisesti arvottava tehtävä
@@ -48,7 +45,7 @@ export const state = {
       "Waterfall", 
       "Trivia Master", 
       "Categories", 
-      "Red or Black"
+      "Red or Black",
     ]
   },
 
@@ -60,23 +57,34 @@ export const state = {
       "Even Drink", 
       "Odds Give", 
       "Even Give",
+      { name: "Fun Time", instruction: "Roll the penalty deck. The penalty applies to all players." },
+      { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
       { name: "Mini King", instruction: "Drink the Kings Cup – a mix of everyone's drinks." },
+      { name: "Social", instruction: "Everyone drinks one." },
+      { name: "Double Social", instruction: "Everyone drinks two." },
+      { name: "Youngest Drinks", instruction: "The youngest player drinks one." },
+      { name: "Oldest Drinks", instruction: "The oldest player drinks one." },
+      { name: "Least Drunk Drinks", instruction: "The player with the fewest drinks so far drinks one." },
+      { name: "Most Drunk Gives 3", instruction: "The player with the most drinks gives out three drinks." },
+      { name: "Singles Drink", instruction: "All single players drink one." },
+      { name: "In Relationship Drink Two", instruction: "All players in a relationship drink two." },
+      { name: "Last Bathroom", instruction: "The player who last used the bathroom drinks one." },
 
     ]
   },
 
   // Penalty-kortit
   penaltyDeck: [
-    "Drink 1",
     "Drink 2",
     "Drink 3",
     "Drink 4",
+    "Drink 5",
     "Shot",
-    "Shotgun"
+    "Shotgun",
   ],
 
   // Item-kortit, joita pelaajat voivat hankkia
-  itemCards: ["Shield", "Reveal Free", "Extra Life", "Mystery Boost", "Redraw"],
+  itemCards: ["Shield", "Reveal Free", "Mirror", "Immunity"],
 
   // Pelin aikana käytettävät tilat
   currentCards: [],

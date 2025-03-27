@@ -199,8 +199,8 @@ body {
 }
 
 .card {
-  width: 9.375rem;  /* 150px */
-  height: 12.5rem;  /* 200px */
+  width: 9.375rem;  
+  height: 12.5rem;  
   background-color: #fff;
   border: 0.188rem solid #000;
   border-radius: 0.625rem;
@@ -212,6 +212,7 @@ body {
   cursor: pointer;
   transition: transform 0.3s, border-color 0.3s, background-color 0.3s;
   perspective: 1000px;
+  text-align: center;
 }
 
 .card:hover {
