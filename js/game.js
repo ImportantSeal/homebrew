@@ -224,7 +224,7 @@ function selectCard(index) {
   }
 
   // Aktivoidaan Ditto-efekti satunnaisesti
-  if (Math.random() < 0.03) {
+  if (Math.random() < 0.06) {
     state.dittoActive[index] = true;
     cards[index].dataset.value = "Ditto";
     cards[index].textContent = "";

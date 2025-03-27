@@ -12,7 +12,7 @@ export const state = {
         { name: "Compliment", instruction: "Everyone gives you a compliment; the worst one drinks three." },
         { name: "Would You Rather", instruction: "" },
         { name: "Two Truths and a Lie", instruction: "" },
-        { name: "Rock, Paper, Scissors", instruction: "Play against someone; loser drinks three." },
+        { name: "Rock, Paper, Scissors", instruction: "Play R,P,S against someone; loser drinks three." },
         { name: "Random Fact", instruction: "Share an interesting fact – a boring fact means a drink." },
         { name: "Bucket List Share", instruction: "Everyone shares a bucket list item; the dullest drinks." },
         { name: "Dream Date", instruction: "Everyone describes their ideal date; the most unoriginal drinks." },
