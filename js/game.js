@@ -70,33 +70,70 @@ function updateTurn() {
   const currentPlayer = state.players[state.currentPlayerIndex];
   turnIndicator.textContent = `${currentPlayer.name}'s Turn`;
 
-  // Päivitetään vuorojärjestys turn-order -elementtiin
-  const turnOrderElem = document.getElementById('turn-order');
-  const order = state.players.map((p, index) => 
-    index === state.currentPlayerIndex ? `<strong>${p.name}</strong>` : p.name
-  );
-  turnOrderElem.innerHTML = 'Turn Order: ' + order.join(' → ');
-  
-  updateInventoryDisplay();
+  updateTurnOrder(); // Päivitetään vuorojärjestys dropdown-valikoilla (jossa inventaariot näkyvät)
   resetCards();
 }
 
-function updateInventoryDisplay() {
-  const inventoryList = document.getElementById('inventory-list');
-  const currentPlayer = state.players[state.currentPlayerIndex];
-  inventoryList.innerHTML = "";
-  if (currentPlayer.inventory.length === 0) {
-    const li = document.createElement('li');
-    li.textContent = "No items";
-    inventoryList.appendChild(li);
-  } else {
-    currentPlayer.inventory.forEach((item, index) => {
+function updateTurnOrder() {
+  const turnOrderElem = document.getElementById('turn-order');
+  turnOrderElem.innerHTML = ""; // Tyhjennetään edellinen sisältö
+
+  // Luodaan flex-kontaineri, joka mahdollistaa rivinvaihdon
+  state.players.forEach((player, index) => {
+    // Kääre-elementti pelaajalle
+    const playerDiv = document.createElement('div');
+    playerDiv.classList.add('turn-player-wrapper');
+
+    // Pelaajan nimi; nykyisellä pelaajalla käytetään vahvistettua muotoilua
+    const nameSpan = document.createElement('span');
+    nameSpan.classList.add('turn-player-name');
+    if (index === state.currentPlayerIndex) {
+      nameSpan.innerHTML = `<strong>${player.name}</strong>`;
+    } else {
+      nameSpan.textContent = player.name;
+    }
+    playerDiv.appendChild(nameSpan);
+
+    // Dropdown-valikko pelaajan inventaariolle (piilotettu oletuksena)
+    const dropdownDiv = document.createElement('div');
+    dropdownDiv.classList.add('player-dropdown');
+
+    const ul = document.createElement('ul');
+    if (player.inventory.length === 0) {
       const li = document.createElement('li');
-      li.textContent = `${item} (click to use)`;
-      li.addEventListener('click', () => useItem(index));
-      inventoryList.appendChild(li);
+      li.textContent = "No items";
+      ul.appendChild(li);
+    } else {
+      player.inventory.forEach(item => {
+        const li = document.createElement('li');
+        li.textContent = item;
+        ul.appendChild(li);
+      });
+    }
+    dropdownDiv.appendChild(ul);
+    playerDiv.appendChild(dropdownDiv);
+
+    // Klikkaamalla pelaajan nimeä toggletaan dropdown näkyviin/piiloon
+    nameSpan.addEventListener('click', (e) => {
+      dropdownDiv.classList.toggle('show');
+      e.stopPropagation();
     });
-  }
+
+    turnOrderElem.appendChild(playerDiv);
+
+    // Lisätään erotin nuoli, jos ei ole viimeinen pelaaja
+    if (index < state.players.length - 1) {
+      const arrowSpan = document.createElement('span');
+      arrowSpan.textContent = " → ";
+      turnOrderElem.appendChild(arrowSpan);
+    }
+  });
+
+  // Klikkaamalla dokumentin muuta kohtaa, piilotetaan kaikki dropdown-valikot
+  document.addEventListener('click', () => {
+    const dropdowns = document.querySelectorAll('.player-dropdown');
+    dropdowns.forEach(dropdown => dropdown.classList.remove('show'));
+  });
 }
 
 function resetCards() {
@@ -143,7 +180,6 @@ function resetCards() {
     if (!state.revealed[i]) {
       flipCardAnimation(cards[i], "???");
     } else {
-      // Käytetään apufunktiota, jotta varmistetaan oikea näytettävä arvo
       flipCardAnimation(cards[i], getCardDisplayValue(state.currentCards[i]));
     }
     cards[i].onclick = () => selectCard(i);
@@ -200,17 +236,15 @@ function selectCard(index) {
     log(`${currentPlayer.name} acquired item: ${revealedValue}`);
     currentPlayer.inventory.push(revealedValue);
     flashElement(cards[index]);
-    updateInventoryDisplay();
+    updateTurnOrder();
     nextPlayer();
     return;
   }
-
+  
   // Tarkistetaan, onko Ditto-tila jo aktiivinen
   if (state.dittoActive[index]) {
-    // Käytetään aikaleimaa: jos aktivointi on alle 1 sekunnin takaa, ei vahvisteta
     const activationTime = parseInt(cards[index].dataset.dittoTime || "0", 10);
     if (Date.now() - activationTime < 1000) {
-      // Liian nopea klikkaus; odotetaan vahvistusklikkausta myöhemmin
       cards[index].onclick = () => selectCard(index);
       return;
     }
@@ -235,7 +269,6 @@ function selectCard(index) {
     cards[index].style.backgroundPosition = "center";
     log("Ditto effect activated! Click again to confirm.");
     
-    // Tallennetaan aktivointiaika
     cards[index].dataset.dittoTime = Date.now();
 
     const dittoEvents = [
@@ -246,7 +279,7 @@ function selectCard(index) {
             player.inventory.pop();
           }
         });
-        updateInventoryDisplay();
+        updateTurnOrder();
       },
       () => {
         const otherPlayers = state.players.filter((_, i) => i !== state.currentPlayerIndex);
@@ -255,7 +288,7 @@ function selectCard(index) {
           const stolenItem = targetPlayer.inventory.pop();
           state.players[state.currentPlayerIndex].inventory.push(stolenItem);
           log(`Ditto stole ${stolenItem} from ${targetPlayer.name}!`);
-          updateInventoryDisplay();
+          updateTurnOrder();
         } else {
           log("Ditto tried to steal, but the target player had no items.");
         }
@@ -282,7 +315,6 @@ function selectCard(index) {
       },
       () => {
         log("Ditto wants to roll the penalty deck for everyone! The penalty applies to all players.");
-        //rollPenaltyCard();
       }
     ];
 
@@ -293,7 +325,6 @@ function selectCard(index) {
       log("No Ditto event triggered.");
     }
 
-    // Palautetaan click-toiminto heti, sillä vahvistus tarkistetaan seuraavalla klikkauksella
     cards[index].onclick = () => selectCard(index);
     return;
   }
@@ -302,7 +333,6 @@ function selectCard(index) {
   flashElement(cards[index]);
   nextPlayer();
 }
-
 
 function rollPenaltyCard() {
   if (state.penaltyShown) return;
@@ -334,17 +364,18 @@ function redrawGame() {
   }, 1000);
 }
 
-function useItem(itemIndex) {
-  const currentPlayer = state.players[state.currentPlayerIndex];
-  const item = currentPlayer.inventory[itemIndex];
+function useItem(playerIndex, itemIndex) {
+  const player = state.players[playerIndex];
+  const item = player.inventory[itemIndex];
   if (!item) return;
-  currentPlayer.inventory.splice(itemIndex, 1);
-  updateInventoryDisplay();
+  // Poistetaan käytetty esine
+  player.inventory.splice(itemIndex, 1);
+  updateTurnOrder();
   
   switch (item) {
     case "Shield":
-      currentPlayer.shield = true;
-      log(`${currentPlayer.name} used Shield! Your next penalty will be negated.`);
+      player.shield = true;
+      log(`${player.name} used Shield! Your next penalty will be negated.`);
       break;
     case "Reveal Free":
       if (state.hiddenIndex !== null && !state.revealed[state.hiddenIndex]) {
@@ -355,27 +386,30 @@ function useItem(itemIndex) {
         ];
         state.revealed[state.hiddenIndex] = true;
         flipCardAnimation(cards[state.hiddenIndex], getCardDisplayValue(state.currentCards[state.hiddenIndex]));
-        log(`${currentPlayer.name} used Reveal Free! Hidden card revealed.`);
+        log(`${player.name} used Reveal Free! Hidden card revealed.`);
       } else {
         log("No hidden card to reveal.");
       }
       break;
     case "Extra Life":
-      currentPlayer.extraLife = true;
-      log(`${currentPlayer.name} used Extra Life! You get another turn.`);
+      player.extraLife = true;
+      log(`${player.name} used Extra Life! You get another turn.`);
       break;
     case "Redraw":
       redrawGame();
-      log(`${currentPlayer.name} used Redraw! Penalty card revealed and cards refreshed.`);
+      log(`${player.name} used Redraw! Penalty card revealed and cards refreshed.`);
       break;
     case "Immunity":
-      log(`${currentPlayer.name} used Immunity and dodged challenge!`);
+      log(`${player.name} used Immunity and dodged challenge!`);
       break;
     default:
-      log(`${currentPlayer.name} used ${item}. (No effect)`);
+      log(`${player.name} used ${item}. (No effect)`);
+  }
+  
+  if (playerIndex === state.currentPlayerIndex) {
+    nextPlayer();
   }
 }
-
 
 function randomFromArray(arr) {
   return arr[Math.floor(Math.random() * arr.length)];

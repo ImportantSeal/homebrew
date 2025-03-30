@@ -274,6 +274,50 @@ body {
   animation: flipIn 0.4s forwards;
 }
 
+.turn-order {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Pelaajan nimen kääre vuorojärjestyksessä */
+.turn-player-wrapper {
+  position: relative;
+  margin: 0.25rem;
+  cursor: pointer;
+}
+
+/* Dropdown-valikko, joka sisältää pelaajan inventaarion esineet */
+.player-dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background: rgba(46, 64, 83, 0.95);
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 0.3125rem;
+  padding: 0.5rem;
+  z-index: 1000;
+  min-width: 150px;
+}
+
+.player-dropdown.show {
+  display: block;
+}
+
+.player-dropdown ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.player-dropdown li {
+  padding: 0.25rem 0.5rem;
+  white-space: nowrap;
+}
+
+
 @keyframes flipOut {
   from { transform: rotateY(0deg); }
   to { transform: rotateY(90deg); }
