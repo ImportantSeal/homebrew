@@ -1,8 +1,8 @@
 :root {
   --container-max-width: 80%;
-  --container-padding: 1.25rem;  
-  --base-font-size: 1rem;        
-  --panel-gap: 1.25rem;          
+  --container-padding: 2.25rem;  
+  --base-font-size: 1.5rem;        
+  --panel-gap: 2.25rem;          
 }
 
 /* Reset */
@@ -132,7 +132,7 @@ body {
   display: flex;
   gap: var(--panel-gap);
   height: 70vh;
-  margin-top: 10vh;
+  margin-top: 12vh;
 }
 
 /* Vasen paneeli: Penalty Deck & Redraw */
@@ -216,7 +216,7 @@ body {
 }
 
 .card:hover {
-  transform: scale(1.08);
+  transform: scale(1.04);
 }
 
 /* Flip-animaatio */
@@ -245,7 +245,7 @@ body {
 .right-panel {
   flex: 0 0 50vh;
   border-left: 1px solid rgba(255,255,255,0.3);
-  padding-left: 0.625rem;
+  padding-left: 1.625rem;
   display: flex;
   flex-direction: column;
   align-items: center;
