@@ -16,7 +16,12 @@ export const state = {
         { name: "Random Fact", instruction: "Share an interesting fact – a boring fact means a drink." },
         { name: "Bucket List Share", instruction: "Everyone shares a bucket list item; the dullest drinks." },
         { name: "Dream Date", instruction: "Everyone describes their ideal date; the most unoriginal drinks." },
-        { name: "This or That", instruction: "Ask someone 'this or that'; hesitation means two drinks." }
+        { name: "This or That", instruction: "Ask someone 'this or that'; hesitation means two drinks." },
+        { name: "Share a Secret", instruction: "Everyone must share a secret. If your secret is voted lame, take 1 drink. If you refuse to share, take 3 drinks." },
+        { name: "On your feet!", instruction: "Everyone stands up, and the last person standing must drink."},
+        { name: "Hear me out", instruction: "Everyone must reveal their Hear me out crush"},
+
+
       ]
     }
   ],
@@ -37,6 +42,9 @@ export const state = {
     "Drink 3, Give 2",
     "Drink 1, Give 3",
     "Drink 1, Give 1",
+    "Everybody drinks 1",
+    "Everybody drinks 2",
+    "Everybody drinks 3"
   ],
 
   // Crowd Challenge -kortti, jossa alaluokkana satunnaisesti arvottava tehtävä
@@ -70,6 +78,11 @@ export const state = {
       { name: "Singles Drink", instruction: "All single players drink one." },
       { name: "In Relationship Drink Two", instruction: "All players in a relationship drink two." },
       { name: "Last Bathroom", instruction: "The player who last used the bathroom drinks one." },
+      { name: "Speed Round", instruction: "Name five items in a category within 10 seconds. Failure means a drink." },
+      { name: "Lilo and Stitch", instruction: "If you have siblings, drink as many sips as the total number of your siblings." },
+      { name: "Sloth", instruction: "Lie on your back and drink."},
+      { name: "To The Western Sky", instruction: "The player to your left must drinks."}
+      
 
     ]
   },
