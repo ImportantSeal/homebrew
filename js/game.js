@@ -155,9 +155,9 @@ function resetCards() {
     
     // Mahdollisuus Immunity- tai item-kortille:
     const r = Math.random();
-    if (r < 0.01) {
+    if (r < 0.02) {
       card = "Immunity";
-    } else if (r < 0.02) {
+    } else if (r < 0.04) {
       const otherItems = state.itemCards.filter(item => item !== "Immunity");
       card = randomFromArray(otherItems);
     }
@@ -218,13 +218,24 @@ function selectCard(index) {
   if (typeof cardData === 'object' && cardData.subcategories) {
     const challengeEvent = randomFromArray(cardData.subcategories);
     let challengeText;
+    let subName = "";
+    let subInstruction = "";
     if (typeof challengeEvent === 'object') {
-      challengeText = challengeEvent.instruction || challengeEvent.name;
+      subName = challengeEvent.name || "";
+      subInstruction = challengeEvent.instruction || "";
+      challengeText = subInstruction || subName; // what is shown on the card face
     } else {
-      challengeText = challengeEvent;
+      subName = String(challengeEvent);
+      challengeText = subName;
     }
+
+    // Show the instruction/name on the card
     flipCardAnimation(cards[index], challengeText);
-    log(`${currentPlayer.name} drew ${getCardDisplayValue(cardData)}: ${challengeText}`);
+
+    // Log with both subcategory name and instruction when available
+    const parentName = getCardDisplayValue(cardData);
+    const details = subInstruction ? `${subName} — ${subInstruction}` : `${subName}`;
+    log(`${currentPlayer.name} drew ${parentName}: ${details}`);
     nextPlayer();
     return;
   }

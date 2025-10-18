@@ -29,7 +29,7 @@ export const state = {
         { name: "Simon Says", instruction: "Lead 5 commands. Anyone who messes up drinks one." },
         { name: "Speed Math", instruction: "Give someone a quick sum (e.g., 7×6−5). Wrong answer drinks one; right lets them give one." },
         { name: "Guess the Number", instruction: "Hold 1–5 fingers behind your back. Closest gives one; exact gives two." },
-        { name: "Left or Right", instruction: "Hide a coin in one hand. Guesser picks; wrong drinks one, right gives one." },
+        { name: "Left or Right", instruction: "Hide a coin in one hand. Guesser picks; wrong drinks one, right gives one." }
 
 
       ]
@@ -70,7 +70,13 @@ export const state = {
       { name: "Human Bingo (Speed)", instruction: "Leader calls quick traits (e.g., 'has a pet'); fewest hands raised drink." },
       { name: "Reverse Waterfall", instruction: "Everyone starts drinking; you can stop anytime, but your right neighbor must stop after you." },
       { name: "Fizz Buzz", instruction: "Count up; say 'Fizz' for multiples of 3, 'Buzz' for 5, 'FizzBuzz' for both—mistakes drink." },
-      
+      { name: "Silent Count", instruction: "Without speaking, count up from 1—only one person may speak at a time; overlaps reset and both speakers drink." },
+      { name: "Sum to Ten", instruction: "On three, everyone shows 0–5 fingers; if the total equals 10, drawer gives 2, otherwise all drink 1." },
+      { name: "Seat Shuffle Sprint", instruction: "On 'Go', everyone shifts one seat left, then right; last to sit each round drinks." },
+      { name: "Red Light, Green Light", instruction: "Leader faces away; move on 'green', stop on 'red'; anyone caught moving drinks." },
+      { name: "Last Letter Chain", instruction: "Pick a category; each item must start with the last letter of the previous; first repeat or miss drinks." },
+      { name: "Finger Total 21", instruction: "Without talking, on three everyone shows 0–10 fingers; if the total equals 21, drawer gives 3, else all drink 1." }
+
 
       
     ]
@@ -80,10 +86,10 @@ export const state = {
   special: {
     name: "Special Card",
     subcategories: [
-      { name: "Odds Drink", instruction: "Roll a die; if the result is odd, you drink the number shown." }, 
-      { name: "Even Drink", instruction: "Roll a die; if the result is even, you drink the number shown." }, 
-      { name: "Odds Give", instruction: "Roll a die; if the result is odd, you give out the number of drinks shown." }, 
-      { name: "Even Give", instruction: "Roll a die; if the result is even, you give out the number of drinks shown." },
+      { name: "Odds Drink", instruction: "Roll 0-9; if the result is odd, you drink the number shown." }, 
+      { name: "Even Drink", instruction: "Roll 0-9; if the result is even, you drink the number shown." }, 
+      { name: "Odds Give", instruction: "Roll 0-9; if the result is odd, you give out the number of drinks shown." }, 
+      { name: "Even Give", instruction: "Roll 0-9; if the result is even, you give out the number of drinks shown." },
       { name: "Fun Time", instruction: "Roll the penalty deck. The penalty applies to all players." },
       { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
       { name: "Mini King", instruction: "Everyone adds to the Kings cup. Drink the Kings Cup." },
@@ -99,7 +105,12 @@ export const state = {
       { name: "Speed Round", instruction: "Name five items in a category within 10 seconds. Failure means a drink." },
       { name: "Lilo and Stitch", instruction: "If you have siblings, drink as many sips as the total number of your siblings." },
       { name: "Sloth", instruction: "Lie on your back and drink."},
-      { name: "To The Western Sky", instruction: "The player to your left must drinks."}
+      { name: "To The Western Sky", instruction: "The player to your left must drinks."},
+      { name: "Social Distancing", instruction: "Everyone drinks if they are sitting less than 1 meter apart." },
+      { name: "For All Ages", instruction: "Roll 0-9; players whose age ends with that digit give 1; others drink 1." },
+      
+
+
       
 
     ]
@@ -112,7 +123,7 @@ export const state = {
     "Drink 4",
     "Drink 5",
     "Shot",
-    "Shotgun",
+    "Shotgun"
   ],
 
   // Item-kortit, joita pelaajat voivat hankkia
