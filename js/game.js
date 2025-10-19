@@ -71,6 +71,7 @@ function updateTurn() {
   turnIndicator.textContent = `${currentPlayer.name}'s Turn`;
 
   updateTurnOrder(); // Päivitetään vuorojärjestys dropdown-valikoilla (jossa inventaariot näkyvät)
+  renderItemsBoard(); // Päivitetään oikean ylänurkan items board
   resetCards();
 }
 
@@ -136,6 +137,83 @@ function updateTurnOrder() {
   });
 }
 
+function enableMirrorTargetSelection() {
+  const nameEls = document.querySelectorAll('.turn-player-name');
+  const cleanup = () => {
+    nameEls.forEach(el => el.removeEventListener('click', onClick));
+  };
+
+  const onClick = (e) => {
+    // Find which player was clicked
+    const clickedName = e.currentTarget.textContent.replace(/\s+/g, ' ').replace(/^\*|\*$/g, '');
+    const targetIndex = state.players.findIndex(p => p.name === clickedName || `**${p.name}**` === clickedName);
+    if (targetIndex === -1) return;
+
+    const sourceIndex = state.mirror.sourceIndex;
+    const sourcePlayer = state.players[sourceIndex];
+    const targetPlayer = state.players[targetIndex];
+
+    // Apply mirror (log-only behavior for now)
+    const parent = state.mirror.parentName;
+    const subName = state.mirror.subName;
+    const subInstr = state.mirror.subInstruction;
+    const detail = subInstr ? `${subName} — ${subInstr}` : subName || state.mirror.displayText;
+    log(`${sourcePlayer.name} used Mirror on ${targetPlayer.name}: ${parent}${detail ? ' | ' + detail : ''}`);
+
+    // Reset mirror state
+    state.mirror = { active: false, sourceIndex: null, selectedCardIndex: null, parentName: '', subName: '', subInstruction: '', displayText: '' };
+    cleanup();
+
+    // Advance turn after mirror use
+    nextPlayer();
+  };
+
+  nameEls.forEach(el => {
+    el.addEventListener('click', onClick, { once: true });
+  });
+}
+
+// Renderöi kaikkien pelaajien itemit oikean paneelin Items-alueeseen.
+function renderItemsBoard() {
+  const board = document.getElementById('items-board');
+  if (!board) return;
+  board.innerHTML = '';
+
+  state.players.forEach((player, pIndex) => {
+    const row = document.createElement('div');
+    row.className = 'player-row';
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'player-name';
+    nameSpan.textContent = player.name + ':';
+    row.appendChild(nameSpan);
+
+    if (!player.inventory || player.inventory.length === 0) {
+      const none = document.createElement('span');
+      none.textContent = ' No items';
+      row.appendChild(none);
+    } else {  
+      player.inventory.forEach((item, iIndex) => {
+        const badge = document.createElement('span');
+        badge.className = 'item-badge';
+        badge.textContent = item;
+        // Klikattavissa vain jos on nykyisen pelaajan vuoro
+        if (pIndex === state.currentPlayerIndex) {
+          badge.classList.add('clickable');
+          badge.title = 'Use this item';
+          badge.addEventListener('click', () => {
+            useItem(pIndex, iIndex);
+            renderItemsBoard(); // Päivitä näkymä käytön jälkeen
+          });
+        }
+        row.appendChild(badge);
+      });
+    }
+
+    board.appendChild(row);
+  });
+}
+
 function resetCards() {
   state.currentCards = [];
   for (let i = 0; i < 3; i++) {
@@ -155,9 +233,9 @@ function resetCards() {
     
     // Mahdollisuus Immunity- tai item-kortille:
     const r = Math.random();
-    if (r < 0.02) {
+    if (r < 0.04) {
       card = "Immunity";
-    } else if (r < 0.04) {
+    } else if (r < 0.06) {
       const otherItems = state.itemCards.filter(item => item !== "Immunity");
       card = randomFromArray(otherItems);
     }
@@ -214,6 +292,47 @@ function selectCard(index) {
 
   const cardData = state.currentCards[index];
 
+  // If Mirror mode is active and a card is clicked, capture this card to mirror
+  if (state.mirror && state.mirror.active && state.mirror.selectedCardIndex === null) {
+    // Reveal if hidden first
+    if (!state.revealed[index]) {
+      state.revealed[index] = true;
+      flipCardAnimation(cards[index], getCardDisplayValue(state.currentCards[index]));
+    }
+
+    let displayText = '';
+    let parentName = getCardDisplayValue(cardData);
+    let subName = '';
+    let subInstruction = '';
+
+    if (typeof cardData === 'object' && cardData.subcategories) {
+      const chosen = randomFromArray(cardData.subcategories);
+      if (typeof chosen === 'object') {
+        subName = chosen.name || '';
+        subInstruction = chosen.instruction || '';
+        displayText = subInstruction || subName;
+      } else {
+        subName = String(chosen);
+        displayText = subName;
+      }
+    } else {
+      // Normal/item card: just use its text
+      displayText = getCardDisplayValue(cardData);
+    }
+
+    state.mirror.selectedCardIndex = index;
+    state.mirror.parentName = parentName;
+    state.mirror.subName = subName;
+    state.mirror.subInstruction = subInstruction;
+    state.mirror.displayText = displayText;
+
+    log(`Mirror primed with: ${parentName}${subName ? ' - ' + subName : ''}${subInstruction ? ' — ' + subInstruction : ''}. Now click a player's name to target.`);
+
+    // Enable target selection: clicking on turn-order names will apply mirror
+    enableMirrorTargetSelection();
+    return;
+  }
+
   // Jos kyseessä on haastekortti (esim. Challenge, Crowd Challenge, Special Card)
   if (typeof cardData === 'object' && cardData.subcategories) {
     const challengeEvent = randomFromArray(cardData.subcategories);
@@ -248,8 +367,22 @@ function selectCard(index) {
     currentPlayer.inventory.push(revealedValue);
     flashElement(cards[index]);
     updateTurnOrder();
+    renderItemsBoard();
     nextPlayer();
     return;
+  }
+  
+  // If Immunity is active and this is a self- or everyone-drink normal card, consume it
+  if (state.players[state.currentPlayerIndex].immunity) {
+    const txt = String(revealedValue).trim();
+    if (/^(Drink\b|Everybody drinks\b)/i.test(txt)) {
+      const p = state.players[state.currentPlayerIndex];
+      delete p.immunity;
+      log(`${p.name}'s Immunity prevented drinking from: ${txt}`);
+      flashElement(cards[index]);
+      nextPlayer();
+      return;
+    }
   }
   
   // Tarkistetaan, onko Ditto-tila jo aktiivinen
@@ -291,6 +424,7 @@ function selectCard(index) {
           }
         });
         updateTurnOrder();
+        renderItemsBoard();
       },
       () => {
         const otherPlayers = state.players.filter((_, i) => i !== state.currentPlayerIndex);
@@ -300,12 +434,19 @@ function selectCard(index) {
           state.players[state.currentPlayerIndex].inventory.push(stolenItem);
           log(`Ditto stole ${stolenItem} from ${targetPlayer.name}!`);
           updateTurnOrder();
+          renderItemsBoard();
         } else {
           log("Ditto tried to steal, but the target player had no items.");
         }
       },
       () => {
-        log("Ditto says: Drink 3!");
+        const p = state.players[state.currentPlayerIndex];
+        if (p.immunity) {
+          delete p.immunity;
+          log(`${p.name}'s Immunity prevented 'Drink 3!'`);
+        } else {
+          log("Ditto says: Drink 3!");
+        }
       },
       () => {
         log("Ditto started a Waterfall!");
@@ -353,6 +494,11 @@ function rollPenaltyCard() {
     delete currentPlayer.shield;
     return;
   }
+  if (currentPlayer.immunity) {
+    log(`${currentPlayer.name}'s Immunity prevented drinking from the penalty!`);
+    delete currentPlayer.immunity;
+    return;
+  }
   const penalty = randomFromArray(state.penaltyDeck);
   state.penaltyCard = penalty;
   state.penaltyShown = true;
@@ -384,10 +530,21 @@ function useItem(playerIndex, itemIndex) {
   updateTurnOrder();
   
   switch (item) {
-    case "Shield":
-      player.shield = true;
-      log(`${player.name} used Shield! Your next penalty will be negated.`);
-      break;
+    case "Mirror":
+      state.mirror = {
+        active: true,
+        sourceIndex: playerIndex,
+        selectedCardIndex: null,
+        parentName: "",
+        subName: "",
+        subInstruction: "",
+        displayText: ""
+      };
+      log(`${player.name} activated Mirror. Click one of the current cards to mirror its effect to a target.`);
+      // Do not auto-advance turn; wait for user to select a card
+      renderItemsBoard();
+      return;
+    
     case "Reveal Free":
       if (state.hiddenIndex !== null && !state.revealed[state.hiddenIndex]) {
         const cards = [
@@ -398,21 +555,33 @@ function useItem(playerIndex, itemIndex) {
         state.revealed[state.hiddenIndex] = true;
         flipCardAnimation(cards[state.hiddenIndex], getCardDisplayValue(state.currentCards[state.hiddenIndex]));
         log(`${player.name} used Reveal Free! Hidden card revealed.`);
+        if (typeof renderItemsBoard === 'function') { try { renderItemsBoard(); } catch {}
+        }
+        return; // Do not skip the turn; allow player to choose a card now
       } else {
         log("No hidden card to reveal.");
+        if (typeof renderItemsBoard === 'function') { try { renderItemsBoard(); } catch {}
+        }
+        return; // Still do not skip the turn
       }
       break;
-    case "Extra Life":
-      player.extraLife = true;
-      log(`${player.name} used Extra Life! You get another turn.`);
-      break;
-    case "Redraw":
-      redrawGame();
-      log(`${player.name} used Redraw! Penalty card revealed and cards refreshed.`);
-      break;
+    case "Skip Turn":
+      // Skip the current player's own turn: immediately pass to the next player
+      const nextIndex = (state.currentPlayerIndex + 1) % state.players.length;
+      const nextPlayerName = state.players[nextIndex].name;
+      log(`${player.name} used Skip Turn and passes their turn to ${nextPlayerName}.`);
+      state.currentPlayerIndex = nextIndex;
+      updateTurn();
+      return; // turn already advanced
     case "Immunity":
-      log(`${player.name} used Immunity and dodged challenge!`);
-      break;
+      if (player.immunity) {
+        log(`${player.name} already has Immunity active.`);
+      } else {
+        player.immunity = true;
+        log(`${player.name} activated Immunity! Your next drink will be prevented.`);
+      }
+      if (typeof renderItemsBoard === 'function') { try { renderItemsBoard(); } catch {} }
+      return; // Do not end the turn; immunity is armed
     default:
       log(`${player.name} used ${item}. (No effect)`);
   }

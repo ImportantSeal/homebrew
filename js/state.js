@@ -108,7 +108,7 @@ export const state = {
       { name: "To The Western Sky", instruction: "The player to your left must drinks."},
       { name: "Social Distancing", instruction: "Everyone drinks if they are sitting less than 1 meter apart." },
       { name: "For All Ages", instruction: "Roll 0-9; players whose age ends with that digit give 1; others drink 1." },
-      
+
 
 
       
@@ -127,7 +127,7 @@ export const state = {
   ],
 
   // Item-kortit, joita pelaajat voivat hankkia
-  itemCards: ["Shield", "Reveal Free", "Mirror", "Immunity"],
+  itemCards: ["Shield", "Reveal Free", "Mirror", "Immunity", "Skip Turn"],
 
   // Pelin aikana käytettävät tilat
   currentCards: [],
@@ -137,5 +137,15 @@ export const state = {
   redrawUsed: false,
   cardHistory: [],
   penaltyCard: null,
-  penaltyShown: false
+  penaltyShown: false,
+  // Mirror item temporary state
+  mirror: {
+    active: false,
+    sourceIndex: null,
+    selectedCardIndex: null,
+    parentName: "",
+    subName: "",
+    subInstruction: "",
+    displayText: ""
+  }
 };
