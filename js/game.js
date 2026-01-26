@@ -11,8 +11,13 @@ function getCardDisplayValue(card) {
 }
 
 export function startGame() {
-  // UI-lock (estää tuplaklikkaukset / animaation aikana spämmin)
   state.uiLocked = false;
+
+  // Penalty: 1. klikki paljastaa, 2. klikki vahvistaa + nextPlayer
+  state.penaltyConfirmArmed = false;
+
+  // Ditto: tallennetaan pending-efekti per kortti, ja ajetaan confirmissa
+  state.dittoPending = [null, null, null];
 
   initGameView();
   setupEventListeners();
@@ -26,23 +31,38 @@ function initGameView() {
 }
 
 function setupEventListeners() {
-  // Redraw-nappula: näyttää penaltyn ja 1 sekunnin viiveen jälkeen refreshaa kortit
+  // Redraw: penalty + 1s jälkeen uudet kortit (ei vaihda vuoroa)
   document.getElementById('redraw-button').addEventListener('click', () => {
     redrawGame();
     const currentPlayer = state.players[state.currentPlayerIndex];
     log(`${currentPlayer.name} used Redraw to reveal penalty card and refresh cards.`);
   });
 
-  // Penalty deck: näyttää vain penaltyn (ei refreshing)
+  // Penalty Deck:
+  // 1) click -> reveal
+  // 2) click -> confirm + next turn
   document.getElementById('penalty-deck').addEventListener('click', () => {
-    if (!state.penaltyShown) {
-      rollPenaltyCard();
-      const currentPlayer = state.players[state.currentPlayerIndex];
-      log(`${currentPlayer.name} clicked Penalty Deck and revealed penalty card.`);
+    if (state.uiLocked) return;
+
+    if (state.penaltyShown && state.penaltyConfirmArmed) {
+      state.uiLocked = true;
+      hidePenaltyCard();
+      nextPlayer(); // <-- PELI JATKUU
+      state.uiLocked = false;
+      return;
     }
+
+    if (!state.penaltyShown) {
+      state.uiLocked = true;
+      rollPenaltyCard();
+      setTimeout(() => { state.uiLocked = false; }, 350);
+      return;
+    }
+
+    hidePenaltyCard();
   });
 
-  // Dropdownit kiinni kun klikataan muualle (TÄRKEÄ: lisätään vain kerran, ei joka vuoro)
+  // Dropdownit kiinni kun klikataan muualle
   document.addEventListener('click', () => {
     document.querySelectorAll('.player-dropdown.show')
       .forEach(d => d.classList.remove('show'));
@@ -55,12 +75,14 @@ function log(message) {
 
 function nextPlayer() {
   const currentPlayer = state.players[state.currentPlayerIndex];
+
   if (currentPlayer.extraLife) {
     log(`${currentPlayer.name} uses Extra Life to keep their turn.`);
     delete currentPlayer.extraLife;
     updateTurn();
     return;
   }
+
   state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
   updateTurn();
 }
@@ -96,7 +118,7 @@ function updateTurnOrder() {
     dropdownDiv.classList.add('player-dropdown');
 
     const ul = document.createElement('ul');
-    if (player.inventory.length === 0) {
+    if (!player.inventory || player.inventory.length === 0) {
       const li = document.createElement('li');
       li.textContent = "No items";
       ul.appendChild(li);
@@ -110,7 +132,6 @@ function updateTurnOrder() {
     dropdownDiv.appendChild(ul);
     playerDiv.appendChild(dropdownDiv);
 
-    // Klikkaamalla pelaajan nimeä toggletaan dropdown näkyviin/piiloon
     nameSpan.addEventListener('click', (e) => {
       dropdownDiv.classList.toggle('show');
       e.stopPropagation();
@@ -129,7 +150,13 @@ function updateTurnOrder() {
 function enableMirrorTargetSelection() {
   const nameEls = document.querySelectorAll('.turn-player-name');
 
+  const cleanup = () => {
+    nameEls.forEach(el => el.removeEventListener('click', onClick));
+  };
+
   const onClick = (e) => {
+    e.stopPropagation();
+
     const clickedName = e.currentTarget.textContent.trim();
     const targetIndex = state.players.findIndex(p => p.name === clickedName);
     if (targetIndex === -1) return;
@@ -145,25 +172,22 @@ function enableMirrorTargetSelection() {
 
     log(`${sourcePlayer.name} used Mirror on ${targetPlayer.name}: ${parent}${detail ? ' | ' + detail : ''}`);
 
-    state.mirror = {
-      active: false,
-      sourceIndex: null,
-      selectedCardIndex: null,
-      parentName: '',
-      subName: '',
-      subInstruction: '',
-      displayText: ''
-    };
+    state.mirror = { active: false, sourceIndex: null, selectedCardIndex: null, parentName: '', subName: '', subInstruction: '', displayText: '' };
+    cleanup();
 
-    nextPlayer();
+    // Jos käytettiin omalla vuorolla, päätetään vuoro. Muuten ei sotketa vuoroa.
+    if (sourceIndex === state.currentPlayerIndex) {
+      nextPlayer();
+    } else {
+      updateTurnOrder();
+      renderItemsBoard();
+    }
   };
 
-  nameEls.forEach(el => {
-    el.addEventListener('click', onClick, { once: true });
-  });
+  nameEls.forEach(el => el.addEventListener('click', onClick));
 }
 
-// Renderöi kaikkien pelaajien itemit oikean paneelin Items-alueeseen.
+// Itemit käytettävissä aina (myös muiden vuoroilla)
 function renderItemsBoard() {
   const board = document.getElementById('items-board');
   if (!board) return;
@@ -185,18 +209,16 @@ function renderItemsBoard() {
     } else {
       player.inventory.forEach((item, iIndex) => {
         const badge = document.createElement('span');
-        badge.className = 'item-badge';
+        badge.className = 'item-badge clickable';
         badge.textContent = item;
+        badge.title = 'Use this item';
 
-        // Klikattavissa vain jos on nykyisen pelaajan vuoro
-        if (pIndex === state.currentPlayerIndex) {
-          badge.classList.add('clickable');
-          badge.title = 'Use this item';
-          badge.addEventListener('click', () => {
-            useItem(pIndex, iIndex);
-            renderItemsBoard();
-          });
-        }
+        badge.addEventListener('click', (e) => {
+          e.stopPropagation();
+          useItem(pIndex, iIndex);
+          renderItemsBoard();
+        });
+
         row.appendChild(badge);
       });
     }
@@ -207,6 +229,7 @@ function renderItemsBoard() {
 
 function resetCards() {
   state.currentCards = [];
+  state.dittoPending = [null, null, null];
 
   for (let i = 0; i < 3; i++) {
     let card;
@@ -222,7 +245,6 @@ function resetCards() {
       card = randomFromArray(state.normalDeck);
     }
 
-    // Mahdollisuus Immunity- tai item-kortille:
     const r = Math.random();
     if (r < 0.04) {
       card = "Immunity";
@@ -234,6 +256,7 @@ function resetCards() {
     state.currentCards.push(card);
   }
 
+  // AINA yksi mystery ja kaksi näkyvää (turnin alussa)
   state.hiddenIndex = Math.floor(Math.random() * 3);
   state.revealed = [true, true, true];
   state.revealed[state.hiddenIndex] = false;
@@ -258,7 +281,7 @@ function resetCards() {
       flipCardAnimation(cards[i], getCardDisplayValue(state.currentCards[i]));
     }
 
-    // Käytetään onclick (ja UI-lock estää spämmin)
+    // Yksi handler
     cards[i].onclick = () => selectCard(i);
   }
 
@@ -269,33 +292,57 @@ function selectCard(index) {
   if (state.uiLocked) return;
   state.uiLocked = true;
 
-  const unlock = (ms = 0) => {
-    setTimeout(() => { state.uiLocked = false; }, ms);
-  };
-
   const cards = [
     document.getElementById('card0'),
     document.getElementById('card1'),
     document.getElementById('card2')
   ];
 
+  // Jos penalty on auki ja klikataan kortteja, piilota penalty (ei vaihda vuoroa)
   if (state.penaltyShown) {
     hidePenaltyCard();
   }
 
   const currentPlayer = state.players[state.currentPlayerIndex];
 
-  // Jos korttia ei ole vielä paljastettu, paljasta se
+  // 1) Mystery: eka klikki vain paljastaa. (EI ADVANCE)
   if (!state.revealed[index]) {
     state.revealed[index] = true;
     flipCardAnimation(cards[index], getCardDisplayValue(state.currentCards[index]));
-    unlock(700);
+    // vapauta lukko flipin jälkeen -> toinen klikki voi valita
+    setTimeout(() => { state.uiLocked = false; }, 700);
+    return;
+  }
+
+  // Ditto confirm (täällä koska kortti on jo “paljastettu”)
+  if (state.dittoActive[index]) {
+    const activationTime = parseInt(cards[index].dataset.dittoTime || "0", 10);
+    if (Date.now() - activationTime < 1000) {
+      state.uiLocked = false;
+      return;
+    }
+
+    log(`${currentPlayer.name} confirmed Ditto card.`);
+
+    // Aja pending-efekti nyt
+    runDittoEffect(index);
+
+    // Reset ditto state + ulkoasu
+    state.dittoActive[index] = false;
+    state.dittoPending[index] = null;
+    cards[index].style.backgroundColor = "white";
+    cards[index].style.borderColor = "black";
+    cards[index].style.backgroundImage = "";
+    cards[index].dataset.value = "";
+
+    nextPlayer();
+    state.uiLocked = false;
     return;
   }
 
   const cardData = state.currentCards[index];
 
-  // Mirror mode: valitaan kortti jota peilataan
+  // Mirror mode: primetetään kortti
   if (state.mirror && state.mirror.active && state.mirror.selectedCardIndex === null) {
     let displayText = '';
     let parentName = getCardDisplayValue(cardData);
@@ -325,16 +372,16 @@ function selectCard(index) {
     log(`Mirror primed with: ${parentName}${subName ? ' - ' + subName : ''}${subInstruction ? ' — ' + subInstruction : ''}. Now click a player's name to target.`);
     enableMirrorTargetSelection();
 
-    unlock(0);
+    state.uiLocked = false;
     return;
   }
 
-  // Haastekortit (objekti + subcategories)
+  // Haastekortit
   if (typeof cardData === 'object' && cardData.subcategories) {
     const challengeEvent = randomFromArray(cardData.subcategories);
-    let challengeText;
     let subName = "";
     let subInstruction = "";
+    let challengeText = "";
 
     if (typeof challengeEvent === 'object') {
       subName = challengeEvent.name || "";
@@ -352,53 +399,37 @@ function selectCard(index) {
     log(`${currentPlayer.name} drew ${parentName}: ${details}`);
 
     nextPlayer();
-    unlock(0);
+    state.uiLocked = false;
     return;
   }
 
-  const revealedValue = cards[index].dataset.value || cards[index].textContent;
+  // Normaalikortit / itemit: käytä suoraan cardDataa (ei datasetin varassa)
+  const value = getCardDisplayValue(cardData);
 
   // Item-kortit
-  if (state.itemCards.includes(revealedValue)) {
-    log(`${currentPlayer.name} acquired item: ${revealedValue}`);
-    currentPlayer.inventory.push(revealedValue);
+  if (state.itemCards.includes(value)) {
+    log(`${currentPlayer.name} acquired item: ${value}`);
+    currentPlayer.inventory.push(value);
     flashElement(cards[index]);
     updateTurnOrder();
     renderItemsBoard();
     nextPlayer();
-    unlock(0);
+    state.uiLocked = false;
     return;
   }
 
-  // Immunity kulutus tietyissä korteissa
+  // Immunity kulutus
   if (state.players[state.currentPlayerIndex].immunity) {
-    const txt = String(revealedValue).trim();
+    const txt = String(value).trim();
     if (/^(Drink\b|Everybody drinks\b)/i.test(txt)) {
       const p = state.players[state.currentPlayerIndex];
       delete p.immunity;
       log(`${p.name}'s Immunity prevented drinking from: ${txt}`);
       flashElement(cards[index]);
       nextPlayer();
-      unlock(0);
+      state.uiLocked = false;
       return;
     }
-  }
-
-  // Ditto confirm
-  if (state.dittoActive[index]) {
-    const activationTime = parseInt(cards[index].dataset.dittoTime || "0", 10);
-    if (Date.now() - activationTime < 1000) {
-      unlock(0);
-      return;
-    }
-    log(`${currentPlayer.name} confirmed Ditto card.`);
-    state.dittoActive[index] = false;
-    cards[index].style.backgroundColor = "white";
-    cards[index].style.borderColor = "black";
-    cards[index].style.backgroundImage = "";
-    nextPlayer();
-    unlock(0);
-    return;
   }
 
   // Ditto aktivointi satunnaisesti
@@ -415,65 +446,123 @@ function selectCard(index) {
 
     cards[index].dataset.dittoTime = Date.now();
 
-    const dittoEvents = [
-      () => {
-        log("Ditto caused chaos! All players lose one item.");
-        state.players.forEach(player => {
-          if (player.inventory.length > 0) {
-            player.inventory.pop();
-          }
-        });
-        updateTurnOrder();
-        renderItemsBoard();
-      },
-      () => {
-        const otherPlayers = state.players.filter((_, i) => i !== state.currentPlayerIndex);
-        const targetPlayer = randomFromArray(otherPlayers);
-        if (targetPlayer.inventory.length > 0) {
-          const stolenItem = targetPlayer.inventory.pop();
-          state.players[state.currentPlayerIndex].inventory.push(stolenItem);
-          log(`Ditto stole ${stolenItem} from ${targetPlayer.name}!`);
-          updateTurnOrder();
-          renderItemsBoard();
-        } else {
-          log("Ditto tried to steal, but the target player had no items.");
-        }
-      },
-      () => {
-        const p = state.players[state.currentPlayerIndex];
-        if (p.immunity) {
-          delete p.immunity;
-          log(`${p.name}'s Immunity prevented 'Drink 3!'`);
-        } else {
-          log("Ditto says: Drink 3!");
-        }
-      },
-      () => { log("Ditto started a Waterfall!"); },
-      () => { log("Ditto ordered a Shot! Take a shot now."); },
-      () => {
-        log("Ditto started challenge! Prepare for a random challenge.");
-        const challenges = [
-          "Challenge: Truth or Drink",
-          "Challenge: Dare",
-          "Challenge: Mini King",
-          "Categories"
-        ];
-        log(randomFromArray(challenges));
-      },
-      () => {
-        log("Ditto wants to roll the penalty deck for everyone! The penalty applies to all players.");
-      }
-    ];
+    // valitse efekti, mutta aja vasta confirmissa
+    state.dittoPending[index] = randomFromArray(getDittoEventPool());
 
-    randomFromArray(dittoEvents)();
-    unlock(0);
+    state.uiLocked = false;
     return;
   }
 
-  log(`${currentPlayer.name} selected ${revealedValue}`);
+  log(`${currentPlayer.name} selected ${value}`);
   flashElement(cards[index]);
   nextPlayer();
-  unlock(0);
+  state.uiLocked = false;
+}
+
+function getDittoEventPool() {
+  return [
+    { type: 'LOSE_ONE_ITEM_ALL' },
+    { type: 'STEAL_RANDOM_ITEM' },
+    { type: 'DRINK_3' },
+    { type: 'WATERFALL' },
+    { type: 'SHOT' },
+    { type: 'RANDOM_CHALLENGE' },
+    { type: 'PENALTY_ALL' }
+  ];
+}
+
+function runDittoEffect(cardIndex) {
+  const ev = state.dittoPending?.[cardIndex];
+  const currentPlayer = state.players[state.currentPlayerIndex];
+
+  if (!ev) {
+    log("Ditto had no stored effect (unexpected).");
+    return;
+  }
+
+  switch (ev.type) {
+    case 'LOSE_ONE_ITEM_ALL': {
+      log("Ditto caused chaos! All players lose one item.");
+      state.players.forEach(p => {
+        if (p.inventory && p.inventory.length > 0) p.inventory.pop();
+      });
+      updateTurnOrder();
+      renderItemsBoard();
+      return;
+    }
+
+    case 'STEAL_RANDOM_ITEM': {
+      const others = state.players.filter((_, i) => i !== state.currentPlayerIndex);
+      const target = randomFromArray(others);
+      if (target && target.inventory && target.inventory.length > 0) {
+        const stolen = target.inventory.pop();
+        currentPlayer.inventory.push(stolen);
+        log(`Ditto stole ${stolen} from ${target.name}!`);
+      } else {
+        log("Ditto tried to steal, but the target player had no items.");
+      }
+      updateTurnOrder();
+      renderItemsBoard();
+      return;
+    }
+
+    case 'DRINK_3': {
+      if (currentPlayer.immunity) {
+        delete currentPlayer.immunity;
+        log(`${currentPlayer.name}'s Immunity prevented 'Drink 3!'`);
+      } else {
+        log("Ditto says: Drink 3!");
+      }
+      return;
+    }
+
+    case 'WATERFALL': {
+      log("Ditto started a Waterfall!");
+      return;
+    }
+
+    case 'SHOT': {
+      log("Ditto ordered a Shot! Take a shot now.");
+      return;
+    }
+
+    case 'RANDOM_CHALLENGE': {
+      log("Ditto started a challenge! Prepare for a random challenge.");
+      const challenges = [
+        "Challenge: Truth or Drink",
+        "Challenge: Dare",
+        "Challenge: Mini King",
+        "Categories"
+      ];
+      log(randomFromArray(challenges));
+      return;
+    }
+
+    case 'PENALTY_ALL': {
+      const penalty = randomFromArray(state.penaltyDeck);
+      log(`Ditto rolled a penalty for everyone: ${penalty}`);
+
+      state.players.forEach(p => {
+        if (p.shield) {
+          delete p.shield;
+          log(`${p.name}'s Shield blocked the penalty.`);
+        } else if (p.immunity) {
+          delete p.immunity;
+          log(`${p.name}'s Immunity prevented the penalty.`);
+        } else {
+          log(`${p.name} takes penalty: ${penalty}`);
+        }
+      });
+
+      updateTurnOrder();
+      renderItemsBoard();
+      return;
+    }
+
+    default:
+      log("Unknown Ditto effect.");
+      return;
+  }
 }
 
 function rollPenaltyCard() {
@@ -484,17 +573,22 @@ function rollPenaltyCard() {
   if (currentPlayer.shield) {
     log(`${currentPlayer.name}'s Shield protected against the penalty!`);
     delete currentPlayer.shield;
+    state.penaltyConfirmArmed = false;
     return;
   }
+
   if (currentPlayer.immunity) {
     log(`${currentPlayer.name}'s Immunity prevented drinking from the penalty!`);
     delete currentPlayer.immunity;
+    state.penaltyConfirmArmed = false;
     return;
   }
 
   const penalty = randomFromArray(state.penaltyDeck);
   state.penaltyCard = penalty;
   state.penaltyShown = true;
+  state.penaltyConfirmArmed = true;
+
   const penaltyDeckEl = document.getElementById('penalty-deck');
   flipCardAnimation(penaltyDeckEl, penalty);
   log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
@@ -503,6 +597,8 @@ function rollPenaltyCard() {
 function hidePenaltyCard() {
   state.penaltyShown = false;
   state.penaltyCard = null;
+  state.penaltyConfirmArmed = false;
+
   const penaltyDeckEl = document.getElementById('penalty-deck');
   flipCardAnimation(penaltyDeckEl, "Penalty Deck");
 }
@@ -519,23 +615,20 @@ function useItem(playerIndex, itemIndex) {
   const item = player.inventory[itemIndex];
   if (!item) return;
 
-  // Poistetaan käytetty esine
+  // Poista käytetty item
   player.inventory.splice(itemIndex, 1);
   updateTurnOrder();
+  renderItemsBoard();
 
   switch (item) {
-    case "Mirror":
-      state.mirror = {
-        active: true,
-        sourceIndex: playerIndex,
-        selectedCardIndex: null,
-        parentName: "",
-        subName: "",
-        subInstruction: "",
-        displayText: ""
-      };
-      log(`${player.name} activated Mirror. Click one of the current cards to mirror its effect to a target.`);
-      renderItemsBoard();
+    case "Shield":
+      player.shield = true;
+      log(`${player.name} activated Shield! Your next penalty will be blocked.`);
+      return;
+
+    case "Immunity":
+      player.immunity = true;
+      log(`${player.name} activated Immunity! Your next drink will be prevented.`);
       return;
 
     case "Reveal Free":
@@ -547,40 +640,42 @@ function useItem(playerIndex, itemIndex) {
         ];
         state.revealed[state.hiddenIndex] = true;
         flipCardAnimation(cards[state.hiddenIndex], getCardDisplayValue(state.currentCards[state.hiddenIndex]));
-        log(`${player.name} used Reveal Free! Hidden card revealed.`);
-        renderItemsBoard();
-        return;
+        log(`${player.name} used Reveal Free! Mystery card revealed.`);
       } else {
-        log("No hidden card to reveal.");
-        renderItemsBoard();
-        return;
+        log("No mystery card to reveal.");
       }
-
-    case "Skip Turn": {
-      const nextIndex = (state.currentPlayerIndex + 1) % state.players.length;
-      const nextPlayerName = state.players[nextIndex].name;
-      log(`${player.name} used Skip Turn and passes their turn to ${nextPlayerName}.`);
-      state.currentPlayerIndex = nextIndex;
-      updateTurn();
       return;
-    }
 
-    case "Immunity":
-      if (player.immunity) {
-        log(`${player.name} already has Immunity active.`);
-      } else {
-        player.immunity = true;
-        log(`${player.name} activated Immunity! Your next drink will be prevented.`);
+    case "Mirror":
+      state.mirror = {
+        active: true,
+        sourceIndex: playerIndex,
+        selectedCardIndex: null,
+        parentName: "",
+        subName: "",
+        subInstruction: "",
+        displayText: ""
+      };
+      log(`${player.name} activated Mirror. Click one of the current cards to mirror its effect to a target.`);
+      enableMirrorTargetSelection();
+      return;
+
+    case "Skip Turn":
+      if (playerIndex === state.currentPlayerIndex) {
+        const nextIndex = (state.currentPlayerIndex + 1) % state.players.length;
+        const nextName = state.players[nextIndex].name;
+        log(`${player.name} used Skip Turn and passes their turn to ${nextName}.`);
+        state.currentPlayerIndex = nextIndex;
+        updateTurn();
+        return;
       }
-      renderItemsBoard();
+      player.skipNextTurn = true;
+      log(`${player.name} used Skip Turn. Their next turn will be skipped.`);
       return;
 
     default:
       log(`${player.name} used ${item}. (No effect)`);
-  }
-
-  if (playerIndex === state.currentPlayerIndex) {
-    nextPlayer();
+      return;
   }
 }
 
