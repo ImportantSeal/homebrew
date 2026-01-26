@@ -1,8 +1,16 @@
 :root {
-  --container-max-width: 80%;
-  --container-padding: 2.25rem;  
-  --base-font-size: 1.5rem;        
-  --panel-gap: 2.25rem;          
+  /* Container */
+  --container-max-width: 1200px;
+  --container-padding: clamp(1rem, 2vw, 2.25rem);
+
+  /* fontti skaalautuu näytön mukaan */
+  --base-font-size: clamp(1rem, 1.1vw, 1.5rem);
+
+  --panel-gap: clamp(0.75rem, 2vw, 2.25rem);
+
+  /* Paneelileveydet */
+  --left-panel-width: 12.5rem; /* 200px */
+  --right-panel-width: clamp(18rem, 30vw, 26rem); /* ~288px–416px */
 }
 
 /* Reset */
@@ -22,12 +30,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Turn order overlay on body: ei clipata */
   position: relative;
 }
-
-
-
 
 /* Vuorojärjestys overlay – sijoitetaan suoraan bodyyn */
 .turn-order-overlay {
@@ -45,13 +49,16 @@ body {
 
 /* Pelialustan kontaineri */
 .container {
-  width: 100%;
-  max-width: var(--container-max-width);
+  /* TÄRKEÄ: ei voi ylittää viewportia -> ei "vuotoa" ulos */
+  width: min(var(--container-max-width), 94vw);
+
   background-color: rgba(46, 64, 83, 0.95);
   border-radius: 0.625rem;
   padding: var(--container-padding);
   box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3);
-  /* Vältetään overlayn klippaaminen – ei käytetä overflow: hidden */
+
+  /* Flex-overflow fix */
+  min-width: 0;
 }
 
 /* Setup-näkymä */
@@ -109,7 +116,6 @@ body {
   transform: scale(1.03);
 }
 
-
 #player-list {
   list-style: none;
   text-align: center;
@@ -119,25 +125,31 @@ body {
 #game-container {
   position: relative;
 }
+
+/* Header takaisin normaaliin flow'hun (ei absolute) */
 .game-header {
-  position: absolute;
-  top: 1rem;
-  left: calc(12.5rem + var(--panel-gap));
-  right: calc(50vh + var(--panel-gap));
+  position: static;
+  width: 100%;
   text-align: center;
+  margin-bottom: 0.75rem;
 }
 
 /* Pääasettelu: Kolme paneelia */
 .game-main {
   display: flex;
   gap: var(--panel-gap);
-  height: 70vh;
-  margin-top: 12vh;
+
+  /* Ei pakoteta överikorkeutta */
+  height: min(70vh, 44rem);
+
+  width: 100%;
+  min-width: 0;
 }
 
 /* Vasen paneeli: Penalty Deck & Redraw */
 .left-panel {
-  flex: 0 0 12.5rem; /* 200px */
+  flex: 0 0 var(--left-panel-width);
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -151,8 +163,8 @@ body {
 }
 
 .penalty-deck {
-  width: 9.375rem;  /* 150px */
-  height: 12.5rem;  /* 200px */
+  width: 9.375rem;
+  height: 12.5rem;
   background-color: #222;
   border: 0.188rem solid #FF4136;
   border-radius: 0.625rem;
@@ -171,7 +183,8 @@ body {
 
 /* Keskipaneeli: Vuoron ilmoitus, kortit & inventaario */
 .center-panel {
-  flex: 1;
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -187,20 +200,23 @@ body {
   font-size: 1.25rem;
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
 }
-
 
 .card-container {
   display: flex;
   justify-content: center;
   gap: 1.25rem;
   margin-bottom: 1.25rem;
-  height: 13.75rem; /* 220px */
+  height: 13.75rem;
 }
 
 .card {
-  width: 9.375rem;  
-  height: 12.5rem;  
+  width: 9.375rem;
+  height: 12.5rem;
   background-color: #fff;
   border: 0.188rem solid #000;
   border-radius: 0.625rem;
@@ -230,38 +246,41 @@ body {
   100% { transform: rotateY(0deg); }
 }
 
-/* Inventaario */
-.inventory {
+/* Oikea paneeli: Items + History */
+.right-panel {
+  /* TÄRKEÄ: pois 50vh-leveys -> ei voi ylittää containeria */
+  flex: 0 1 var(--right-panel-width);
+  min-width: 16rem;
+
+  border-left: 1px solid rgba(255,255,255,0.3);
+  padding-left: 1.625rem;
+
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* täyttää leveyden */
+  gap: 0.5rem;
+
+  height: 100%;
+  overflow: hidden;
   text-align: center;
 }
 
-.inventory ul {
-  list-style: none;
-  padding: 0;
-  font-size: 1.125rem;
-}
-
-/* Oikea paneeli: Korttihistoria */
-.right-panel {
-  flex: 0 0 50vh;
-  border-left: 1px solid rgba(255,255,255,0.3);
-  padding-left: 1.625rem;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-  overflow: hidden;
+.right-panel h2 {
+  margin: 0.25rem 0;
 }
 
 .items-board {
   width: 100%;
+  min-width: 0;
+
+  flex: 0 0 auto;
   max-height: 30%;
   overflow-y: auto;
+
   border: 0.063rem solid rgba(255,255,255,0.3);
   padding: 0.5rem;
   border-radius: 0.3125rem;
   background-color: rgba(0,0,0,0.2);
-  margin-bottom: 0.75rem;
 }
 
 .items-board .player-row {
@@ -292,40 +311,45 @@ body {
 
 .history-section {
   width: 100%;
-  height: 100%;
+  min-width: 0;
+
+  /* TÄRKEÄ: ottaa "loput tilasta" eikä ylitä */
+  flex: 1 1 auto;
+  min-height: 0;
+
   overflow-y: auto;
   border: 0.063rem solid rgba(255,255,255,0.3);
   padding: 0.625rem;
   border-radius: 0.3125rem;
   background-color: rgba(0,0,0,0.2);
-
 }
 
-/* Flip-out: kortti kääntyy 0° -> 90° myötäpäivään */
+/* Flip-out / flip-in */
 .flip-out {
   animation: flipOut 0.4s forwards;
 }
 
-/* Flip-in: uusi sisältö ilmestyy kääntyen -90° -> 0° vastapäivään */
 .flip-in {
   animation: flipIn 0.4s forwards;
 }
 
-.turn-order {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
+@keyframes flipOut {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(90deg); }
 }
 
-/* Pelaajan nimen kääre vuorojärjestyksessä */
+@keyframes flipIn {
+  from { transform: rotateY(-90deg); }
+  to { transform: rotateY(0deg); }
+}
+
+/* Vuorojärjestyksen dropdown */
 .turn-player-wrapper {
   position: relative;
   margin: 0.25rem;
   cursor: pointer;
 }
 
-/* Dropdown-valikko, joka sisältää pelaajan inventaarion esineet */
 .player-dropdown {
   display: none;
   position: absolute;
@@ -337,6 +361,7 @@ body {
   padding: 0.5rem;
   z-index: 1000;
   min-width: 150px;
+  text-align: left;
 }
 
 .player-dropdown.show {
@@ -354,49 +379,48 @@ body {
   white-space: nowrap;
 }
 
-
-@keyframes flipOut {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(90deg); }
-}
-
-@keyframes flipIn {
-  from { transform: rotateY(-90deg); }
-  to { transform: rotateY(0deg); }
-}
-
-
 /* Responsiivisuus */
 @media (max-width: 768px) {
   .game-main {
     flex-direction: column;
     height: auto;
   }
+
+  .left-panel {
+    flex: none;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.3);
+    padding-right: 0;
+    padding-bottom: 0.75rem;
+  }
+
   .right-panel {
     flex: none;
+    width: 100%;
+    border-left: none;
+    padding-left: 0;
   }
+
   .history-section {
-    max-height: 12.5rem; /* noin 200px */
+    max-height: 12.5rem;
   }
 }
 
 /* 4K-näytöt */
 @media (min-width: 2560px) {
-  body {
-    font-size: 1.25rem;
+  :root {
+    --container-max-width: 1600px;
+    --right-panel-width: clamp(22rem, 28vw, 32rem);
   }
-  .container {
-    padding: 2rem;
-  }
+
   .penalty-deck, .card {
     width: 18.5rem;
     height: 16.875rem;
     font-size: 2rem;
   }
-  .right-panel {
-    flex: 0 0 35vh;
-  }
+
   .game-main {
-    gap: 2rem;
+    height: min(70vh, 54rem);
   }
 }
