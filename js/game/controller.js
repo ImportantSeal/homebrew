@@ -153,15 +153,18 @@ function selectCard(index) {
     }
 
     log(`${currentPlayer.name} confirmed Ditto card.`);
-
     runDittoEffect(state, index, log, updateTurnOrder, renderItems);
 
-    // Reset ditto state + ulkoasu
-    state.dittoActive[index] = false;
+    // Reset ditto state + ulkoasu, css hoitaa 
+    state.dittoActive[index] = false; 
     state.dittoPending[index] = null;
-    cards[index].style.backgroundColor = "white";
-    cards[index].style.borderColor = "black";
+
+    cards[index].style.borderColor = "";
+    cards[index].style.backgroundColor = "";
+    cards[index].style.color = "";
     cards[index].style.backgroundImage = "";
+    cards[index].style.backgroundSize = "";
+    cards[index].style.backgroundPosition = "";
     cards[index].dataset.value = "";
 
     nextPlayer();

@@ -1,198 +1,252 @@
-:root {
-  /* Container */
-  --container-max-width: 1200px;
-  --container-padding: clamp(1rem, 2vw, 2.25rem);
+/* =========================
+   Aurora Noir – Homebrew UI
+   (Readable cards + stable panels)
+   ========================= */
 
-  /* fontti skaalautuu näytön mukaan */
-  --base-font-size: clamp(1rem, 1.1vw, 1.5rem);
+:root {
+  /* Sizing */
+  --container-max-width: 1300px;
+  --container-padding: clamp(1rem, 2vw, 2.25rem);
+  --base-font-size: clamp(1rem, 0.95vw, 1.25rem);
 
   --panel-gap: clamp(0.75rem, 2vw, 2.25rem);
-
-  /* Paneelileveydet */
   --left-panel-width: 12.5rem; /* 200px */
-  --right-panel-width: clamp(18rem, 30vw, 26rem); /* ~288px–416px */
+  --right-panel-width: clamp(18rem, 26vw, 26rem);
 
-  /* ===== Card scaling (FIX) ===== */
+  /* Cards */
   --cards-gap: clamp(0.6rem, 1.2vw, 1.25rem);
-  --card-min-width: 7rem;
-  --card-max-width: clamp(9.375rem, 10vw, 12rem); /* kasvaa isolla näytöllä, mutta ei yli */
-  --card-aspect: 3 / 4; /* leveys : korkeus */
+  --card-min-width: 7.2rem;
+  --card-max-width: clamp(9.5rem, 10vw, 12.5rem);
+  --card-aspect: 3 / 4;
+
+  /* Palette */
+  --bg0: #070A14;
+  --bg1: #0A1230;
+  --bg2: #0B2A2C;
+
+  --panel: rgba(18, 24, 46, 0.78);
+  --panel-strong: rgba(18, 24, 46, 0.92);
+  --panel-border: rgba(255, 255, 255, 0.14);
+
+  --text: #EAF0FF;
+  --muted: rgba(234, 240, 255, 0.72);
+
+  --accent: #35E0C7;   /* teal */
+  --accent2: #A855F7;  /* violet */
+  --accent3: #FF4FD8;  /* magenta */
+
+  --shadow: 0 1rem 2.2rem rgba(0,0,0,0.45);
+  --shadow-soft: 0 0.75rem 1.5rem rgba(0,0,0,0.28);
+
+  --radius: 0.9rem;
+  --radius-sm: 0.55rem;
+  --ring: 0 0 0 3px rgba(53, 224, 199, 0.22);
+
+  /* Light card face */
+  --card-face: linear-gradient(180deg, rgba(255,255,255,0.96), rgba(246,248,255,0.92));
+  --card-text: #0b1020;
+  --card-border: rgba(11, 16, 32, 0.12);
 }
 
 /* Reset */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; }
 
-/* Yleiset asetukset */
 body {
-  background: linear-gradient(135deg, #1C2833, #2E4053);
-  font-family: 'Montserrat', sans-serif;
-  color: #ECF0F1;
-  min-height: 100vh;
+  color-scheme: dark;
+  background:
+    radial-gradient(1100px 600px at 18% 18%, rgba(168, 85, 247, 0.18), transparent 62%),
+    radial-gradient(900px 520px at 78% 22%, rgba(53, 224, 199, 0.16), transparent 58%),
+    radial-gradient(900px 560px at 50% 90%, rgba(255, 79, 216, 0.11), transparent 62%),
+    linear-gradient(145deg, var(--bg0), var(--bg1) 52%, var(--bg2));
+  font-family: 'Montserrat', system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: var(--text);
   font-size: var(--base-font-size);
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100vh;
   position: relative;
+  overflow-x: hidden;
 }
 
-/* Vuorojärjestys overlay – sijoitetaan suoraan bodyyn */
-.turn-order-overlay {
+/* Subtle background noise */
+body::before {
+  content: "";
   position: fixed;
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(52, 62, 90, 0.8);
-  color: #fff;
-  padding: 0.625rem 1.25rem;
-  border-radius: 0.3125rem;
-  z-index: 10000;
-  font-size: 1.25rem;
+  inset: 0;
+  pointer-events: none;
+  background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.05) 1px, transparent 0);
+  background-size: 22px 22px;
+  opacity: 0.22;
+  mix-blend-mode: overlay;
 }
 
-/* Pelialustan kontaineri */
+/* Container */
 .container {
-  /* TÄRKEÄ: ei voi ylittää viewportia -> ei "vuotoa" ulos */
   width: min(var(--container-max-width), 94vw);
-
-  background-color: rgba(46, 64, 83, 0.95);
-  border-radius: 0.625rem;
   padding: var(--container-padding);
-  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.3);
-
-  /* Flex-overflow fix */
+  border-radius: var(--radius);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.07), rgba(255,255,255,0.03)),
+    var(--panel);
+  border: 1px solid var(--panel-border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   min-width: 0;
 }
 
-/* Setup-näkymä */
-#setup-container {
-  text-align: center;
-  padding: 1rem;
+/* Setup */
+#setup-container { text-align: center; }
+
+#setup-container h1 {
+  font-size: clamp(1.4rem, 1.8vw, 2.1rem);
+  letter-spacing: 0.02em;
+  margin-bottom: 0.9rem;
 }
 
 #setup-container input[type="text"] {
-  width: 60%;
-  padding: 0.75rem;
+  width: min(34rem, 88%);
+  padding: 0.85rem 0.95rem;
   font-size: 1rem;
-  border: 0.125rem solid #4682B4;
-  border-radius: 0.3125rem;
-  margin-bottom: 0.625rem;
+  border-radius: 0.7rem;
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(10, 14, 28, 0.55);
+  color: var(--text);
   outline: none;
-  transition: border-color 0.3s;
+  transition: box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
 }
+
+#setup-container input[type="text"]::placeholder { color: rgba(234,240,255,0.55); }
 
 #setup-container input[type="text"]:focus {
-  border-color: #5F9EA0;
+  border-color: rgba(53, 224, 199, 0.55);
+  box-shadow: var(--ring);
+  background: rgba(10, 14, 28, 0.7);
 }
 
-#setup-container button {
-  background-color: #4682B4;
-  border: none;
-  color: white;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 0.3125rem;
-  cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  margin: 0.625rem;
-}
-
-#setup-container button:hover {
-  background-color: #5F9EA0;
-  transform: scale(1.03);
-}
-
+#setup-container button,
 #redraw-button {
-  background-color: #4682B4;
-  border: none;
-  color: #fff;
-  padding: 0.75rem 1.5rem;
-  font-size: 1rem;
-  border-radius: 0.3125rem;
+  border: 1px solid rgba(255,255,255,0.16);
+  color: var(--text);
+  padding: 0.75rem 1.15rem;
+  border-radius: 0.8rem;
   cursor: pointer;
-  transition: background-color 0.3s, transform 0.2s;
-  margin-top: 0.625rem;
+  font-size: 1rem;
+  transition: transform 0.15s, box-shadow 0.2s, filter 0.2s, border-color 0.2s;
+  background:
+    linear-gradient(135deg, rgba(53,224,199,0.22), rgba(168,85,247,0.22)),
+    rgba(10, 14, 28, 0.65);
+  box-shadow: var(--shadow-soft);
+  margin: 0.65rem 0.35rem 0;
 }
 
+#setup-container button:hover,
 #redraw-button:hover {
-  background-color: #5F9EA0;
-  transform: scale(1.03);
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  border-color: rgba(255,255,255,0.22);
+}
+
+#start-game-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+  filter: none;
 }
 
 #player-list {
   list-style: none;
-  text-align: center;
-  margin: 0.625rem 0;
+  margin: 0.9rem auto 0.2rem;
+  width: min(34rem, 88%);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: center;
 }
 
-#game-container {
-  position: relative;
+#player-list li {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--muted);
+  font-size: 0.95rem;
 }
 
-/* Header takaisin normaaliin flow'hun (ei absolute) */
-.game-header {
-  position: static;
-  width: 100%;
-  text-align: center;
-  margin-bottom: 0.75rem;
-}
+/* Game container */
+#game-container { position: relative; }
 
-/* Pääasettelu: Kolme paneelia */
+/* Main layout */
 .game-main {
   display: flex;
   gap: var(--panel-gap);
-
-  /* Ei pakoteta överikorkeutta */
-  height: min(70vh, 44rem);
-
+  height: min(74vh, 46rem);
   width: 100%;
   min-width: 0;
+  align-items: stretch;
 }
 
-/* Vasen paneeli: Penalty Deck & Redraw */
+/* LEFT PANEL */
 .left-panel {
   flex: 0 0 var(--left-panel-width);
   min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
-  border-right: 1px solid rgba(255,255,255,0.3);
-  padding-right: 0.625rem;
+  padding-right: 0.75rem;
+  border-right: 1px solid rgba(255,255,255,0.10);
 }
 
 .penalty-deck-container {
   margin-top: 5.5vh;
   text-align: center;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .penalty-deck {
-  /* ===== FIX: skaalautuu, ei voi ylivuotaa vasemman paneelin yli ===== */
   width: min(100%, var(--card-max-width));
   aspect-ratio: var(--card-aspect);
   height: auto;
 
-  background-color: #222;
-  border: 0.188rem solid #FF4136;
-  border-radius: 0.625rem;
+  border-radius: 1rem;
   overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.14);
 
+  background:
+    radial-gradient(120px 90px at 35% 25%, rgba(255, 59, 59, 0.25), transparent 60%),
+    radial-gradient(140px 120px at 70% 70%, rgba(255, 176, 32, 0.14), transparent 60%),
+    linear-gradient(145deg, rgba(255,59,59,0.12), rgba(10, 14, 28, 0.78));
+  box-shadow: 0 0.9rem 1.8rem rgba(0,0,0,0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: clamp(1.1rem, 1.3vw, 1.6rem);
-  color: #FF4136;
-  margin-bottom: 0.625rem;
-  transition: transform 0.3s, border-color 0.3s;
+
+  color: rgba(255,255,255,0.92);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  font-size: clamp(1.05rem, 1.1vw, 1.35rem);
+
+  /* Anti-jitter */
+  contain: layout paint;
+  will-change: transform;
+  transform: translateZ(0);
+
+  transition: filter 0.2s, box-shadow 0.2s;
 }
+
+.penalty-deck p { pointer-events: none; }
 
 .penalty-deck:hover {
-  transform: scale(1.05);
+  filter: brightness(1.05);
+  box-shadow: 0 1.05rem 2.1rem rgba(0,0,0,0.42);
 }
 
-/* Keskipaneeli: Vuoron ilmoitus, kortit & inventaario */
+/* CENTER PANEL */
 .center-panel {
   flex: 1 1 auto;
   min-width: 0;
@@ -201,37 +255,120 @@ body {
   align-items: center;
 }
 
-.turn-indicator {
-  font-size: 1.375rem;
-  margin-bottom: 1.25rem;
+/* Header */
+.game-header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 0.75rem;
 }
 
+.header-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-bottom: 0.35rem;
+}
+
+.game-header h1 {
+  font-size: clamp(1.35rem, 1.6vw, 2.05rem);
+  letter-spacing: 0.03em;
+}
+
+.rules-button {
+  background:
+    linear-gradient(135deg, rgba(168,85,247,0.20), rgba(53,224,199,0.18)),
+    rgba(10, 14, 28, 0.55);
+  border: 1px solid rgba(255,255,255,0.16);
+  color: var(--text);
+  padding: 0.45rem 0.75rem;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: transform 0.15s, filter 0.2s, box-shadow 0.2s, border-color 0.2s;
+  font-size: 0.95rem;
+  box-shadow: var(--shadow-soft);
+}
+.rules-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  border-color: rgba(255,255,255,0.22);
+}
+.rules-button:focus-visible { outline: none; box-shadow: var(--ring); }
+
+/* Turn order chips */
 .turn-order {
-  text-align: center;
-  font-size: 1.25rem;
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
+  width: 100%;
+  margin-top: 0.35rem;
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
+  gap: 0.35rem;
 }
 
-.card-container {
-  display: flex;
-  justify-content: center;
+.turn-player-wrapper { position: relative; cursor: pointer; }
 
-  /* ===== FIX: gap muuttujaksi ja EI kiinteää korkeutta ===== */
-  gap: var(--cards-gap);
-  margin-bottom: 1.25rem;
+.turn-player-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: var(--muted);
+  transition: filter 0.2s, border-color 0.2s;
+  user-select: none;
+  line-height: 1;
+}
+.turn-player-wrapper:hover .turn-player-name {
+  filter: brightness(1.08);
+  border-color: rgba(255,255,255,0.18);
+}
+.turn-player-name strong {
+  color: rgba(255,255,255,0.96);
+  font-weight: 900;
+}
+
+/* Arrow between players */
+.turn-order > span {
+  color: rgba(234,240,255,0.35);
+  margin: 0 0.15rem;
+}
+
+/* Turn indicator */
+.turn-indicator {
+  margin: 0.75rem 0 1.1rem;
+  padding: 0.5rem 0.9rem;
+  border-radius: 0.85rem;
+  background:
+    radial-gradient(180px 80px at 25% 30%, rgba(53,224,199,0.20), transparent 60%),
+    radial-gradient(160px 80px at 75% 70%, rgba(168,85,247,0.18), transparent 60%),
+    rgba(10, 14, 28, 0.45);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.92);
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: var(--shadow-soft);
+}
+
+/* Cards row */
+.card-container {
   width: 100%;
   min-width: 0;
-  height: auto;
+  display: flex;
+  justify-content: center;
   align-items: center;
+  gap: var(--cards-gap);
+  height: auto;
+  margin-bottom: 1.25rem;
 }
 
+/* CARD – responsive width that ALWAYS fits center column
+   NOTE: Cards are LIGHT for readability because your JS can set white bg inline.
+*/
 .card {
-  /* ===== FIX: leveys aina mahtuu keskialueen sisään ===== */
   width: clamp(
     var(--card-min-width),
     calc((100% - (2 * var(--cards-gap))) / 3),
@@ -240,282 +377,256 @@ body {
   aspect-ratio: var(--card-aspect);
   height: auto;
 
-  background-color: #fff;
-  border: 0.188rem solid #000;
-  border-radius: 0.625rem;
+  border-radius: 1rem;
   overflow: hidden;
+  border: 1px solid var(--card-border);
+
+  background: var(--card-face);
+  box-shadow: 0 0.95rem 1.9rem rgba(0,0,0,0.22);
 
   display: flex;
   align-items: center;
   justify-content: center;
 
-  /* fontti seuraa kortin kokoa */
-  font-size: clamp(1.05rem, 1.2vw, 1.6rem);
-  color: #000;
-
-  cursor: pointer;
-  transition: transform 0.3s, border-color 0.3s, background-color 0.3s;
-  perspective: 1000px;
+  color: var(--card-text);
   text-align: center;
 
-  /* pitkät tekstit pysyy sisällä */
+  font-weight: 800;
+  font-size: clamp(1.02rem, 1.1vw, 1.4rem);
   line-height: 1.15;
-  padding: 0.35rem;
+  padding: 0.55rem;
   word-break: break-word;
+
+  cursor: pointer;
+
+  /* Anti-jitter */
+  min-width: 0;
+  flex: 0 1 auto;
+  contain: layout paint;
+  will-change: transform;
+  transform: translateZ(0);
+
+  transition: filter 0.18s, box-shadow 0.18s, border-color 0.18s;
 }
 
 .card:hover {
-  transform: scale(1.04);
+  filter: brightness(1.04);
+  border-color: rgba(53,224,199,0.38);
+  box-shadow: 0 1.05rem 2.2rem rgba(0,0,0,0.28);
 }
 
-/* Flip-animaatio */
-.flip {
-  animation: flipAnimation 0.6s forwards;
+/* Make imgs not affect baseline/measurements */
+.card img,
+.penalty-deck img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
 }
 
-@keyframes flipAnimation {
-  0% { transform: rotateY(0deg); }
-  50% { transform: rotateY(90deg); }
-  100% { transform: rotateY(0deg); }
-}
+/* Disable hover “transform fights” during flip states */
+.card.flip-out:hover,
+.card.flip-in:hover { transform: translateZ(0) !important; }
+.penalty-deck.flip-out:hover,
+.penalty-deck.flip-in:hover { transform: translateZ(0) !important; }
 
-/* Oikea paneeli: Items + History */
+/* RIGHT PANEL – stable sizing (no shifting as items/history grow) */
 .right-panel {
-  /* TÄRKEÄ: pois 50vh-leveys -> ei voi ylittää containeria */
   flex: 0 1 var(--right-panel-width);
   min-width: 16rem;
+  height: 100%;
+  overflow: hidden;
 
-  border-left: 1px solid rgba(255,255,255,0.3);
-  padding-left: 1.625rem;
+  border-left: 1px solid rgba(255,255,255,0.10);
+  padding-left: 1.25rem;
 
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* täyttää leveyden */
-  gap: 0.5rem;
+  align-items: stretch;
+  gap: 0.55rem;
 
-  height: 100%;
-  overflow: hidden;
   text-align: center;
 }
 
 .right-panel h2 {
   margin: 0.25rem 0;
+  font-size: 1.08rem;
+  color: rgba(255,255,255,0.92);
+  letter-spacing: 0.01em;
 }
 
+/* Items board – FIXED HEIGHT so history doesn't “jump” */
 .items-board {
   width: 100%;
   min-width: 0;
 
-  flex: 0 0 auto;
-  max-height: 30%;
+  /* 🔒 lock height to avoid shifting when inventory changes */
+  flex: 0 0 30%;
+  min-height: 9.5rem;
+
   overflow-y: auto;
+  scrollbar-gutter: stable both-edges;
 
-  border: 0.063rem solid rgba(255,255,255,0.3);
-  padding: 0.5rem;
-  border-radius: 0.3125rem;
-  background-color: rgba(0,0,0,0.2);
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(10, 14, 28, 0.40);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+  padding: 0.6rem;
+  text-align: left;
 }
 
-.items-board .player-row {
-  margin-bottom: 0.5rem;
-}
-
+.items-board .player-row { margin-bottom: 0.55rem; }
 .items-board .player-name {
-  font-weight: bold;
-  margin-right: 0.5rem;
+  font-weight: 900;
+  margin-right: 0.45rem;
+  color: rgba(255,255,255,0.90);
 }
 
 .items-board .item-badge {
-  display: inline-block;
-  background: #34495E;
-  color: #ECF0F1;
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 0.375rem;
-  padding: 0.1rem 0.4rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.18rem 0.55rem;
   margin: 0.15rem;
+  border-radius: 999px;
   font-size: 0.95rem;
-  cursor: default;
+
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(234,240,255,0.90);
+  user-select: none;
 }
 
 .items-board .item-badge.clickable {
   cursor: pointer;
-  background: #2E86C1;
+  background:
+    linear-gradient(135deg, rgba(53,224,199,0.18), rgba(168,85,247,0.16)),
+    rgba(255,255,255,0.06);
+  border-color: rgba(53,224,199,0.28);
+  transition: filter 0.15s, border-color 0.15s;
+}
+.items-board .item-badge.clickable:hover {
+  filter: brightness(1.08);
+  border-color: rgba(255,79,216,0.28);
 }
 
+/* History – takes the rest, stable scrollbar width */
 .history-section {
   width: 100%;
   min-width: 0;
 
-  /* TÄRKEÄ: ottaa "loput tilasta" eikä ylitä */
   flex: 1 1 auto;
   min-height: 0;
 
   overflow-y: auto;
-  border: 0.063rem solid rgba(255,255,255,0.3);
-  padding: 0.625rem;
-  border-radius: 0.3125rem;
-  background-color: rgba(0,0,0,0.2);
-}
+  scrollbar-gutter: stable both-edges;
 
-/* Flip-out / flip-in */
-.flip-out {
-  animation: flipOut 0.4s forwards;
-}
-
-.flip-in {
-  animation: flipIn 0.4s forwards;
-}
-
-@keyframes flipOut {
-  from { transform: rotateY(0deg); }
-  to { transform: rotateY(90deg); }
-}
-
-@keyframes flipIn {
-  from { transform: rotateY(-90deg); }
-  to { transform: rotateY(0deg); }
-}
-
-/* Vuorojärjestyksen dropdown */
-.turn-player-wrapper {
-  position: relative;
-  margin: 0.25rem;
-  cursor: pointer;
-}
-
-.player-dropdown {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background: rgba(46, 64, 83, 0.95);
-  border: 1px solid rgba(255,255,255,0.3);
-  border-radius: 0.3125rem;
-  padding: 0.5rem;
-  z-index: 1000;
-  min-width: 150px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(10, 14, 28, 0.40);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+  padding: 0.65rem;
   text-align: left;
 }
 
-.player-dropdown.show {
-  display: block;
+#card-history p {
+  margin: 0.25rem 0;
+  color: rgba(234,240,255,0.86);
+  font-size: 0.98rem;
+  line-height: 1.25;
+}
+#card-history p:last-child {
+  color: rgba(255,255,255,0.96);
 }
 
-.player-dropdown ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
+/* Dropdown */
+.player-dropdown {
+  display: none;
+  position: absolute;
+  top: 110%;
+  left: 0;
+  z-index: 1000;
+  min-width: 170px;
+  text-align: left;
 
+  border-radius: 0.75rem;
+  background: var(--panel-strong);
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: var(--shadow-soft);
+  padding: 0.5rem;
+}
+.player-dropdown.show { display: block; }
+
+.player-dropdown ul { list-style: none; margin: 0; padding: 0; }
 .player-dropdown li {
-  padding: 0.25rem 0.5rem;
+  padding: 0.3rem 0.55rem;
+  border-radius: 0.55rem;
+  color: rgba(234,240,255,0.86);
   white-space: nowrap;
 }
+.player-dropdown li:hover { background: rgba(255,255,255,0.06); }
 
-/* Responsiivisuus */
-@media (max-width: 768px) {
-  .game-main {
-    flex-direction: column;
-    height: auto;
-  }
+/* Flip animations (kept compatible with your JS) */
+.flip-out { animation: flipOut 0.4s forwards; }
+.flip-in  { animation: flipIn 0.4s forwards; }
 
-  .left-panel {
-    flex: none;
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid rgba(255,255,255,0.3);
-    padding-right: 0;
-    padding-bottom: 0.75rem;
-  }
-
-  .right-panel {
-    flex: none;
-    width: 100%;
-    border-left: none;
-    padding-left: 0;
-  }
-
-  .history-section {
-    max-height: 12.5rem;
-  }
+@keyframes flipOut {
+  from { transform: rotateY(0deg); }
+  to   { transform: rotateY(90deg); }
+}
+@keyframes flipIn {
+  from { transform: rotateY(-90deg); }
+  to   { transform: rotateY(0deg); }
 }
 
-/* 4K-näytöt */
-@media (min-width: 2560px) {
-  :root {
-    --container-max-width: 1700px;
-
-    /* hieman maltillisempi oikea paneeli isolla näytöllä */
-    --right-panel-width: clamp(18rem, 22vw, 28rem);
-
-    /* korteille saa vähän lisää, mutta EI mitään jättiä */
-    --card-max-width: clamp(10rem, 8vw, 12.5rem);
-  }
-
-  .game-main {
-    height: min(70vh, 54rem);
-  }
+/* Scrollbar (WebKit) */
+.items-board::-webkit-scrollbar,
+.history-section::-webkit-scrollbar,
+.modal__body::-webkit-scrollbar { width: 10px; }
+.items-board::-webkit-scrollbar-track,
+.history-section::-webkit-scrollbar-track,
+.modal__body::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 999px; }
+.items-board::-webkit-scrollbar-thumb,
+.history-section::-webkit-scrollbar-thumb,
+.modal__body::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(53,224,199,0.35), rgba(168,85,247,0.30));
+  border-radius: 999px;
+  border: 2px solid rgba(10, 14, 28, 0.40);
 }
 
-/* ===== Rules UI additions ===== */
-
-/* Header row: title + rules button */
-.header-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.rules-button {
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.25);
-  color: #ECF0F1;
-  padding: 0.45rem 0.75rem;
-  border-radius: 0.375rem;
-  cursor: pointer;
-  transition: transform 0.15s, background-color 0.2s;
-  font-size: 0.95rem;
-}
-
-.rules-button:hover {
-  transform: scale(1.03);
-  background: rgba(255,255,255,0.18);
-}
-
-/* Modal base */
+/* Modal */
 .modal {
   position: fixed;
   inset: 0;
   display: none;
   z-index: 20000;
 }
-
-.modal.is-open {
-  display: block;
-}
+.modal.is-open { display: block; }
 
 .modal__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(0,0,0,0.55);
+  background: rgba(0,0,0,0.60);
 }
 
-/* ===== FIXED SCROLLING MODAL (sticky header + body scroll) ===== */
 .modal__panel {
   position: relative;
-  width: min(44rem, 92vw);
-  max-height: min(80vh, 46rem);
+  width: min(46rem, 92vw);
+  max-height: min(82vh, 48rem);
   margin: 8vh auto 0;
-  background: rgba(46, 64, 83, 0.98);
-  border: 1px solid rgba(255,255,255,0.25);
-  border-radius: 0.75rem;
-  box-shadow: 0 1rem 2rem rgba(0,0,0,0.35);
+
+  background:
+    radial-gradient(260px 160px at 25% 20%, rgba(53,224,199,0.12), transparent 60%),
+    radial-gradient(260px 160px at 75% 40%, rgba(168,85,247,0.12), transparent 60%),
+    var(--panel-strong);
+
+  border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 1rem;
+  box-shadow: var(--shadow);
   overflow: hidden;
   outline: none;
 
-  /* TÄRKEÄ: flex container */
   display: flex;
   flex-direction: column;
 }
@@ -525,56 +636,126 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
 
-  /* Sticky header */
-  flex: 0 0 auto;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid rgba(255,255,255,0.12);
+
   position: sticky;
   top: 0;
-  background: rgba(46, 64, 83, 0.98);
+  background: rgba(18, 24, 46, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   z-index: 1;
 }
 
 .modal__header h2 {
   margin: 0;
   font-size: 1.2rem;
+  letter-spacing: 0.02em;
 }
 
 .modal__close {
-  background: transparent;
-  border: 1px solid rgba(255,255,255,0.25);
-  color: #ECF0F1;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 0.5rem;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.92);
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 0.75rem;
   cursor: pointer;
   font-size: 1.25rem;
   line-height: 1;
+  transition: filter 0.15s, border-color 0.15s;
 }
-
 .modal__close:hover {
-  background: rgba(255,255,255,0.12);
+  filter: brightness(1.08);
+  border-color: rgba(255,79,216,0.28);
 }
+.modal__close:focus-visible { outline: none; box-shadow: var(--ring); }
 
 .modal__body {
   flex: 1 1 auto;
-  min-height: 0; /* tärkeä flex overflow fix */
+  min-height: 0;
   overflow-y: auto;
-  padding: 0.9rem 1rem;
+  scrollbar-gutter: stable both-edges;
+  padding: 0.95rem 1rem;
   text-align: left;
 }
 
 .modal__body h3 {
-  margin: 0.75rem 0 0.35rem;
+  margin: 0.85rem 0 0.35rem;
   font-size: 1.05rem;
+  color: rgba(255,255,255,0.92);
 }
 
 .modal__body ul {
   margin-left: 1.15rem;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.6rem;
 }
 
 .modal__body li {
-  margin: 0.25rem 0;
+  margin: 0.3rem 0;
+  color: rgba(234,240,255,0.86);
+}
+
+/* Overlay */
+.turn-order-overlay {
+  position: fixed;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10000;
+
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.16);
+  background:
+    linear-gradient(135deg, rgba(53,224,199,0.20), rgba(168,85,247,0.18)),
+    rgba(10, 14, 28, 0.60);
+  box-shadow: var(--shadow-soft);
+  color: rgba(255,255,255,0.92);
+  font-weight: 900;
+  letter-spacing: 0.02em;
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  :root { --right-panel-width: 100%; }
+
+  .game-main {
+    flex-direction: column;
+    height: auto;
+  }
+
+  .left-panel {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid rgba(255,255,255,0.10);
+    padding-right: 0;
+    padding-bottom: 0.85rem;
+  }
+
+  .right-panel {
+    width: 100%;
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .items-board { flex-basis: 14rem; max-height: 14rem; }
+  .history-section { max-height: 16rem; }
+}
+
+/* 4K+ */
+@media (min-width: 2560px) {
+  :root {
+    --container-max-width: 1750px;
+    --right-panel-width: clamp(18rem, 22vw, 28rem);
+    --card-max-width: clamp(10.5rem, 8vw, 13rem);
+  }
+
+  .game-main { height: min(74vh, 56rem); }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
 }

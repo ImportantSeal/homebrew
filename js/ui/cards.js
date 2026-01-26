@@ -13,8 +13,9 @@ export function renderCards(state, onSelectCard) {
   const cards = getCardElements();
 
   for (let i = 0; i < 3; i++) {
-    cards[i].style.borderColor = "black";
-    cards[i].style.backgroundColor = "white";
+    cards[i].style.borderColor = "";
+    cards[i].style.backgroundColor = "";
+    cards[i].style.color = "";
     cards[i].style.backgroundImage = "";
     cards[i].style.backgroundSize = "";
     cards[i].style.backgroundPosition = "";
