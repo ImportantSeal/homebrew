@@ -25,7 +25,8 @@
       <!-- Vasen paneeli -->
       <aside class="left-panel">
         <div class="penalty-deck-container">
-          <div class="penalty-deck show-front" id="penalty-deck" aria-label="Penalty deck">
+          <!-- EI show-front oletuksena: deckin pitää näyttää BACK (cardback) -->
+          <div class="penalty-deck" id="penalty-deck" aria-label="Penalty deck" tabindex="0">
             <div class="card__inner">
               <div class="card__face card__back"></div>
               <div class="card__face card__front">
@@ -33,6 +34,7 @@
               </div>
             </div>
           </div>
+
           <button id="redraw-button">Redraw</button>
         </div>
       </aside>
@@ -61,21 +63,21 @@
         <div class="turn-indicator" id="turn-indicator">Player's Turn</div>
 
         <div class="card-container">
-          <div class="card" id="card0" data-index="0">
+          <div class="card" id="card0" data-index="0" tabindex="0">
             <div class="card__inner">
               <div class="card__face card__back"></div>
               <div class="card__face card__front"></div>
             </div>
           </div>
 
-          <div class="card" id="card1" data-index="1">
+          <div class="card" id="card1" data-index="1" tabindex="0">
             <div class="card__inner">
               <div class="card__face card__back"></div>
               <div class="card__face card__front"></div>
             </div>
           </div>
 
-          <div class="card" id="card2" data-index="2">
+          <div class="card" id="card2" data-index="2" tabindex="0">
             <div class="card__inner">
               <div class="card__face card__back"></div>
               <div class="card__face card__front"></div>

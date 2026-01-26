@@ -290,7 +290,7 @@ body::before {
   margin-bottom: 1.25rem;
 }
 
-/* ==== Stable 3D cards ==== */
+/* ==== Cards + hover highlight (ALL cards) ==== */
 .card,
 .penalty-deck {
   width: clamp(
@@ -309,11 +309,22 @@ body::before {
   position: relative;
   perspective: 1000px;
 
-  contain: layout paint;
+  /* no paint containment -> hover glow won't get clipped */
+  contain: layout;
   will-change: transform;
   transform: translateZ(0);
+  isolation: isolate;
 
   cursor: pointer;
+
+  /* per-kind defaults */
+  --front-bg: var(--card-face);
+  --front-text: var(--card-text);
+  --badge: "";
+  --badge-bg: rgba(10,14,28,0.65);
+  --badge-fg: rgba(255,255,255,0.92);
+  --strip: rgba(11,16,32,0.10);
+  --hover-ring: rgba(53,224,199,0.30);
 }
 
 .penalty-deck {
@@ -322,6 +333,31 @@ body::before {
   box-shadow: 0 0.9rem 1.8rem rgba(0,0,0,0.35);
 }
 
+@media (hover:hover) {
+  .card:hover,
+  .penalty-deck:hover {
+    transform: translateY(-3px) scale(1.02);
+    border-color: rgba(255,255,255,0.22);
+    box-shadow:
+      0 1.35rem 2.7rem rgba(0,0,0,0.38),
+      0 0 0 3px var(--hover-ring);
+  }
+
+  .card:active,
+  .penalty-deck:active {
+    transform: translateY(-1px) scale(1.01);
+  }
+}
+
+.card:focus-visible,
+.penalty-deck:focus-visible {
+  outline: none;
+  box-shadow:
+    0 1.35rem 2.7rem rgba(0,0,0,0.38),
+    0 0 0 3px var(--hover-ring);
+}
+
+/* 3D inner flip */
 .card__inner {
   position: absolute;
   inset: 0;
@@ -351,24 +387,53 @@ body::before {
   text-align: center;
 }
 
-/* ✅ FIX: CSS file is in /css, so images must be ../images */
+/* Back face */
 .card__back {
   transform: rotateY(0deg);
   background-image: url('../images/cardback.png');
   background-size: cover;
   background-position: center;
-  background-color: rgba(10, 14, 28, 0.75); /* fallback if image missing */
+  background-color: rgba(10, 14, 28, 0.75); /* fallback */
 }
 
 /* Front face (cards) */
 .card .card__front {
   transform: rotateY(180deg);
-  background: var(--card-face);
-  color: var(--card-text);
-  font-weight: 800;
+  background: var(--front-bg);
+  color: var(--front-text);
+  font-weight: 900;
   font-size: clamp(1.02rem, 1.1vw, 1.4rem);
   line-height: 1.15;
   word-break: break-word;
+  position: relative;
+  padding-top: 1.55rem; /* tilaa badge:lle */
+}
+
+/* Badge + bottom strip */
+.card.show-front .card__front::before {
+  content: var(--badge);
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.12);
+}
+
+.card.show-front .card__front::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.45rem;
+  background: var(--strip);
 }
 
 /* Front face (penalty deck) */
@@ -382,15 +447,9 @@ body::before {
   font-weight: 900;
   font-size: clamp(1.05rem, 1.1vw, 1.35rem);
 }
-
 .penalty-label { pointer-events: none; }
 
-.card:hover {
-  border-color: rgba(53,224,199,0.38);
-  box-shadow: 0 1.05rem 2.2rem rgba(0,0,0,0.28);
-}
-.penalty-deck:hover { filter: brightness(1.04); }
-
+/* Images inside fronts */
 .card img,
 .penalty-deck img {
   display: block;
@@ -399,6 +458,105 @@ body::before {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+
+/* ====== Card kind styling ====== */
+/* Normal fallback */
+.card[data-kind="normal"] {
+  --badge: "NORMAL";
+  --strip: linear-gradient(90deg, rgba(11,16,32,0.10), rgba(11,16,32,0.02));
+  --hover-ring: rgba(255,255,255,0.22);
+}
+
+/* Drink */
+.card[data-kind="drink"] {
+  --badge: "DRINK";
+  --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(53,224,199,0.22), transparent 60%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,18,48,0.92));
+  --front-text: rgba(255,255,255,0.93);
+  --strip: linear-gradient(90deg, rgba(53,224,199,0.70), rgba(53,224,199,0.10));
+  --hover-ring: rgba(53,224,199,0.35);
+}
+
+/* Give */
+.card[data-kind="give"] {
+  --badge: "GIVE";
+  --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(72,222,128,0.22), transparent 60%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,32,20,0.88));
+  --front-text: rgba(255,255,255,0.93);
+  --strip: linear-gradient(90deg, rgba(72,222,128,0.72), rgba(72,222,128,0.10));
+  --hover-ring: rgba(72,222,128,0.33);
+}
+
+/* Mix (Drink + Give) */
+.card[data-kind="mix"] {
+  --badge: "MIX";
+  --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(255,176,32,0.20), transparent 60%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(44,24,10,0.90));
+  --front-text: rgba(255,255,255,0.93);
+  --strip: linear-gradient(90deg, rgba(255,176,32,0.80), rgba(255,176,32,0.12));
+  --hover-ring: rgba(255,176,32,0.32);
+}
+
+/* Penalty call card */
+.card[data-kind="penaltycall"] {
+  --badge: "PENALTY";
+  --front-bg: radial-gradient(200px 150px at 30% 25%, rgba(255,79,216,0.18), transparent 62%),
+             radial-gradient(180px 140px at 70% 70%, rgba(255,59,59,0.22), transparent 62%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(40,10,12,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(255,59,59,0.85), rgba(255,59,59,0.12));
+  --hover-ring: rgba(255,59,59,0.32);
+}
+
+/* Items */
+.card[data-kind="item"] {
+  --badge: "ITEM";
+  --front-bg: radial-gradient(200px 160px at 30% 25%, rgba(168,85,247,0.20), transparent 62%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(24,10,44,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(168,85,247,0.85), rgba(168,85,247,0.12));
+  --hover-ring: rgba(168,85,247,0.32);
+}
+
+/* Social / Challenge */
+.card[data-kind="social"] {
+  --badge: "SOCIAL";
+  --front-bg: radial-gradient(200px 160px at 30% 25%, rgba(53,224,199,0.20), transparent 62%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,44,40,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(53,224,199,0.85), rgba(53,224,199,0.12));
+  --hover-ring: rgba(53,224,199,0.34);
+}
+
+/* Crowd challenge */
+.card[data-kind="crowd"] {
+  --badge: "CROWD";
+  --front-bg: radial-gradient(220px 170px at 30% 25%, rgba(255,79,216,0.18), transparent 62%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(44,10,34,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(255,79,216,0.85), rgba(255,79,216,0.12));
+  --hover-ring: rgba(255,79,216,0.32);
+}
+
+/* Special card */
+.card[data-kind="special"] {
+  --badge: "SPECIAL";
+  --front-bg: radial-gradient(220px 170px at 30% 25%, rgba(168,85,247,0.20), transparent 62%),
+             radial-gradient(220px 170px at 75% 70%, rgba(53,224,199,0.14), transparent 65%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(18,10,40,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(168,85,247,0.85), rgba(53,224,199,0.55));
+  --hover-ring: rgba(168,85,247,0.30);
+}
+
+/* Ditto */
+.card[data-kind="ditto"] {
+  --badge: "DITTO";
+  --front-bg: linear-gradient(145deg, rgba(230,230,250,0.92), rgba(246,248,255,0.90));
+  --front-text: #0b1020;
+  --strip: linear-gradient(90deg, rgba(168,85,247,0.80), rgba(255,79,216,0.20));
+  --hover-ring: rgba(168,85,247,0.30);
 }
 
 /* Right panel */
