@@ -1,37 +1,58 @@
-export function flipCardAnimation(cardElement, finalText) {
-  // Aloitetaan flip-out-animaatio
-  cardElement.classList.add('flip-out');
+function setFrontContent(frontEl, finalText) {
+  frontEl.innerHTML = "";
 
-  // Flip-out puolessa välissä: vaihdetaan sisältö kortin selkäpuoleen
-  setTimeout(() => {
-    cardElement.innerHTML = `<img src="images/cardback.png" alt="Card Back" style="width:100%; height:100%; object-fit: cover;">`;
-  }, 150); // 150ms – puolet flip-out kestoajasta (300ms)
+  if (finalText === "Immunity") {
+    frontEl.innerHTML = `<img src="images/immunity.png" alt="Immunity" style="width:100%; height:100%; object-fit: contain;">`;
+    return;
+  }
 
-  // Kun flip-out on valmis (300ms), päivitetään sisältö uudella kortin etupuolella ja käynnistetään flip-in
-  setTimeout(() => {
-    if (finalText === "Immunity") {
-      cardElement.innerHTML = `<img src="images/immunity.png" alt="Immunity" style="width:100%; height:100%; object-fit: contain;">`;
-    } else if (finalText === "???") {
-      // Näytetään kortin takakansi, jos kyseessä on piilotettu kortti
-      cardElement.innerHTML = `<img src="images/cardback.png" alt="Card Back" style="width:100%; height:100%; object-fit: cover;">`;
-    } else {
-      cardElement.textContent = finalText;
-    }
-    cardElement.dataset.value = finalText;
-    cardElement.classList.remove('flip-out');
-    cardElement.classList.add('flip-in');
-
-    // Kun flip-in on valmis (300ms), poistetaan animaatioluokka
-    setTimeout(() => {
-      cardElement.classList.remove('flip-in');
-    }, 300);
-  }, 300);
+  frontEl.textContent = finalText;
 }
 
+export function flipCardAnimation(cardElement, finalText) {
+  const front = cardElement.querySelector?.('.card__front');
 
+  // Fallback
+  if (!front) {
+    cardElement.textContent = finalText;
+    cardElement.dataset.value = finalText;
+    return;
+  }
 
+  const wantFront = finalText !== "???";
+  const isFront = cardElement.classList.contains('show-front');
 
+  cardElement._flipToken = (cardElement._flipToken || 0) + 1;
+  const token = cardElement._flipToken;
 
+  // Want back
+  if (!wantFront) {
+    cardElement.classList.remove('show-front');
+    cardElement.dataset.value = finalText;
+    return;
+  }
+
+  // Back -> Front
+  if (!isFront) {
+    setFrontContent(front, finalText);
+    requestAnimationFrame(() => {
+      if (cardElement._flipToken !== token) return;
+      cardElement.classList.add('show-front');
+      cardElement.dataset.value = finalText;
+    });
+    return;
+  }
+
+  // Front -> Back -> swap -> Front
+  cardElement.classList.remove('show-front');
+
+  setTimeout(() => {
+    if (cardElement._flipToken !== token) return;
+    setFrontContent(front, finalText);
+    cardElement.classList.add('show-front');
+    cardElement.dataset.value = finalText;
+  }, 230);
+}
 
 export function flashElement(element, flashColor = "yellow", duration = 300) {
   const originalBorder = element.style.borderColor;

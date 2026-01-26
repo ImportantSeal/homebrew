@@ -167,6 +167,9 @@ function selectCard(index) {
     cards[index].style.backgroundPosition = "";
     cards[index].dataset.value = "";
 
+    const front = cards[index].querySelector('.card__front');
+    if (front) front.removeAttribute('style');
+
     nextPlayer();
     state.uiLocked = false;
     return;

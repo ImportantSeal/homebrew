@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Homebrew Beta</title>
-  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
 </head>
@@ -23,17 +22,22 @@
   <div id="game-container" class="container" style="display:none;">
     <main class="game-main">
 
-      <!-- Vasen paneeli: Penalty Deck & Redraw -->
+      <!-- Vasen paneeli -->
       <aside class="left-panel">
         <div class="penalty-deck-container">
-          <div class="penalty-deck" id="penalty-deck">
-            <p>Penalty Deck</p>
+          <div class="penalty-deck show-front" id="penalty-deck" aria-label="Penalty deck">
+            <div class="card__inner">
+              <div class="card__face card__back"></div>
+              <div class="card__face card__front">
+                <span class="penalty-label">Penalty Deck</span>
+              </div>
+            </div>
           </div>
           <button id="redraw-button">Redraw</button>
         </div>
       </aside>
 
-      <!-- Keskipaneeli: Vuoron ilmoitus, kortit ja inventaario -->
+      <!-- Keskipaneeli -->
       <section class="center-panel">
 
         <header class="game-header">
@@ -57,13 +61,30 @@
         <div class="turn-indicator" id="turn-indicator">Player's Turn</div>
 
         <div class="card-container">
-          <div class="card" id="card0" data-index="0"></div>
-          <div class="card" id="card1" data-index="1"></div>
-          <div class="card" id="card2" data-index="2"></div>
+          <div class="card" id="card0" data-index="0">
+            <div class="card__inner">
+              <div class="card__face card__back"></div>
+              <div class="card__face card__front"></div>
+            </div>
+          </div>
+
+          <div class="card" id="card1" data-index="1">
+            <div class="card__inner">
+              <div class="card__face card__back"></div>
+              <div class="card__face card__front"></div>
+            </div>
+          </div>
+
+          <div class="card" id="card2" data-index="2">
+            <div class="card__inner">
+              <div class="card__face card__back"></div>
+              <div class="card__face card__front"></div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <!-- Oikea paneeli: Korttihistoria -->
+      <!-- Oikea paneeli -->
       <aside class="right-panel">
         <h2>Items</h2>
         <div id="items-board" class="items-board"></div>
@@ -72,6 +93,7 @@
           <div id="card-history" class="card-history"></div>
         </div>
       </aside>
+
     </main>
   </div>
 
@@ -110,8 +132,6 @@
         <ul>
           <li>Sometimes a picked card becomes Ditto. Click again to confirm and apply the stored Ditto effect.</li>
         </ul>
-
-
       </div>
     </div>
   </div>

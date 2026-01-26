@@ -15,12 +15,20 @@ export function getDittoEventPool() {
 export function activateDitto(state, cardElement, cardIndex, log) {
   state.dittoActive[cardIndex] = true;
   cardElement.dataset.value = "Ditto";
-  cardElement.textContent = "";
-  cardElement.style.borderColor = "purple";
-  cardElement.style.backgroundColor = "#E6E6FA";
-  cardElement.style.backgroundImage = "url('images/ditto.png')";
-  cardElement.style.backgroundSize = "cover";
-  cardElement.style.backgroundPosition = "center";
+
+  const front = cardElement.querySelector('.card__front');
+  if (front) {
+    front.textContent = "";
+    front.style.background = "#E6E6FA";
+    front.style.backgroundImage = "url('images/ditto.png')";
+    front.style.backgroundSize = "cover";
+    front.style.backgroundPosition = "center";
+    front.style.color = "#0b1020";
+  }
+
+  cardElement.classList.add('show-front');
+  cardElement.style.borderColor = "rgba(168,85,247,0.55)";
+
   log("Ditto effect activated! Click again to confirm.");
 
   cardElement.dataset.dittoTime = Date.now();

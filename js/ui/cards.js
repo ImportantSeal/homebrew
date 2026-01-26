@@ -13,12 +13,14 @@ export function renderCards(state, onSelectCard) {
   const cards = getCardElements();
 
   for (let i = 0; i < 3; i++) {
+    // reset root inline styles
     cards[i].style.borderColor = "";
     cards[i].style.backgroundColor = "";
     cards[i].style.color = "";
-    cards[i].style.backgroundImage = "";
-    cards[i].style.backgroundSize = "";
-    cards[i].style.backgroundPosition = "";
+
+    // reset possible Ditto front overrides
+    const front = cards[i].querySelector('.card__front');
+    if (front) front.removeAttribute('style');
 
     if (!state.revealed[i]) {
       flipCardAnimation(cards[i], "???");
