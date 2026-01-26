@@ -11,6 +11,12 @@
   /* Paneelileveydet */
   --left-panel-width: 12.5rem; /* 200px */
   --right-panel-width: clamp(18rem, 30vw, 26rem); /* ~288px–416px */
+
+  /* ===== Card scaling (FIX) ===== */
+  --cards-gap: clamp(0.6rem, 1.2vw, 1.25rem);
+  --card-min-width: 7rem;
+  --card-max-width: clamp(9.375rem, 10vw, 12rem); /* kasvaa isolla näytöllä, mutta ei yli */
+  --card-aspect: 3 / 4; /* leveys : korkeus */
 }
 
 /* Reset */
@@ -163,15 +169,20 @@ body {
 }
 
 .penalty-deck {
-  width: 9.375rem;
-  height: 12.5rem;
+  /* ===== FIX: skaalautuu, ei voi ylivuotaa vasemman paneelin yli ===== */
+  width: min(100%, var(--card-max-width));
+  aspect-ratio: var(--card-aspect);
+  height: auto;
+
   background-color: #222;
   border: 0.188rem solid #FF4136;
   border-radius: 0.625rem;
+  overflow: hidden;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+  font-size: clamp(1.1rem, 1.3vw, 1.6rem);
   color: #FF4136;
   margin-bottom: 0.625rem;
   transition: transform 0.3s, border-color 0.3s;
@@ -209,26 +220,48 @@ body {
 .card-container {
   display: flex;
   justify-content: center;
-  gap: 1.25rem;
+
+  /* ===== FIX: gap muuttujaksi ja EI kiinteää korkeutta ===== */
+  gap: var(--cards-gap);
   margin-bottom: 1.25rem;
-  height: 13.75rem;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  align-items: center;
 }
 
 .card {
-  width: 9.375rem;
-  height: 12.5rem;
+  /* ===== FIX: leveys aina mahtuu keskialueen sisään ===== */
+  width: clamp(
+    var(--card-min-width),
+    calc((100% - (2 * var(--cards-gap))) / 3),
+    var(--card-max-width)
+  );
+  aspect-ratio: var(--card-aspect);
+  height: auto;
+
   background-color: #fff;
   border: 0.188rem solid #000;
   border-radius: 0.625rem;
+  overflow: hidden;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.5rem;
+
+  /* fontti seuraa kortin kokoa */
+  font-size: clamp(1.05rem, 1.2vw, 1.6rem);
   color: #000;
+
   cursor: pointer;
   transition: transform 0.3s, border-color 0.3s, background-color 0.3s;
   perspective: 1000px;
   text-align: center;
+
+  /* pitkät tekstit pysyy sisällä */
+  line-height: 1.15;
+  padding: 0.35rem;
+  word-break: break-word;
 }
 
 .card:hover {
@@ -410,14 +443,13 @@ body {
 /* 4K-näytöt */
 @media (min-width: 2560px) {
   :root {
-    --container-max-width: 1600px;
-    --right-panel-width: clamp(22rem, 28vw, 32rem);
-  }
+    --container-max-width: 1700px;
 
-  .penalty-deck, .card {
-    width: 18.5rem;
-    height: 16.875rem;
-    font-size: 2rem;
+    /* hieman maltillisempi oikea paneeli isolla näytöllä */
+    --right-panel-width: clamp(18rem, 22vw, 28rem);
+
+    /* korteille saa vähän lisää, mutta EI mitään jättiä */
+    --card-max-width: clamp(10rem, 8vw, 12.5rem);
   }
 
   .game-main {
