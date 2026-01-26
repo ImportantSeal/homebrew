@@ -755,3 +755,35 @@ body::before {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+.card,
+.penalty-deck {
+  transition:
+    transform 150ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease,
+    filter 200ms ease;
+}
+
+/* Hover + keyboard focus — applies BOTH back and show-front states */
+.card:hover,
+.card:focus-visible,
+.card.show-front:hover,
+.card.show-front:focus-visible,
+.penalty-deck:hover,
+.penalty-deck:focus-visible,
+.penalty-deck.show-front:hover,
+.penalty-deck.show-front:focus-visible {
+  transform: translateY(-2px);
+  border-color: rgba(53, 224, 199, 0.50);
+  box-shadow:
+    0 0 0 3px rgba(53, 224, 199, 0.18),
+    0 1.05rem 2.2rem rgba(0,0,0,0.30);
+  outline: none;
+}
+
+/* keep border always visible but neutral */
+.card,
+.penalty-deck {
+  border-color: rgba(255,255,255,0.16);
+}
