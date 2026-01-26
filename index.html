@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Homebrew beta</title>
+  <title>Homebrew Beta</title>
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
@@ -21,8 +21,6 @@
 
   <!-- Peli-näkymä -->
   <div id="game-container" class="container" style="display:none;">
-   
-    
     <main class="game-main">
 
       <!-- Vasen paneeli: Penalty Deck & Redraw -->
@@ -39,11 +37,25 @@
       <section class="center-panel">
 
         <header class="game-header">
-          <h1>Homebrew beta</h1>
+          <div class="header-row">
+            <h1>Homebrew beta</h1>
+            <button
+              id="rules-toggle"
+              class="rules-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="rules-modal"
+              aria-expanded="false"
+            >
+              Rules
+            </button>
+          </div>
+
           <div id="turn-order" class="turn-order"></div>
         </header>
+
         <div class="turn-indicator" id="turn-indicator">Player's Turn</div>
-        
+
         <div class="card-container">
           <div class="card" id="card0" data-index="0"></div>
           <div class="card" id="card1" data-index="1"></div>
@@ -62,7 +74,50 @@
       </aside>
     </main>
   </div>
-  
+
+  <!-- Rules Modal -->
+  <div id="rules-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2>Rules</h2>
+        <button class="modal__close" type="button" data-close aria-label="Close rules">×</button>
+      </div>
+
+      <div class="modal__body">
+        <h3>Turn</h3>
+        <ul>
+          <li>On your turn, pick a card. One card is a Mystery (first click reveals, second click selects).</li>
+          <li>Penalty Deck: first click reveals, second click confirms and ends your turn.</li>
+        </ul>
+
+        <h3>Redraw</h3>
+        <ul>
+          <li>Reveals a penalty card, then after 1s refreshes the 3 cards. Does not change turn.</li>
+        </ul>
+
+        <h3>Items</h3>
+        <ul>
+          <li><strong>Shield</strong>: blocks your next penalty.</li>
+          <li><strong>Immunity</strong>: prevents your next drink effect (Drink / Everybody drinks).</li>
+          <li><strong>Reveal Free</strong>: reveals the Mystery card for free.</li>
+          <li><strong>Mirror</strong>: use on any turn, then click a card to prime, then click a player to target.</li>
+          <li><strong>Skip Turn</strong>: if used on your turn, you pass immediately; otherwise your next turn is skipped.</li>
+        </ul>
+
+        <h3>Ditto</h3>
+        <ul>
+          <li>Sometimes a picked card becomes Ditto. Click again to confirm and apply the stored Ditto effect.</li>
+        </ul>
+
+        <p style="opacity:.8; margin-top:.75rem;">
+          You can edit these rules text freely in <code>index.html</code>.
+        </p>
+      </div>
+    </div>
+  </div>
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>
