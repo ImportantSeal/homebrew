@@ -1,8 +1,12 @@
 function setFrontContent(frontEl, finalText) {
-  frontEl.innerHTML = "";
+  // safer & cleaner than innerHTML injections
+  frontEl.replaceChildren();
 
   if (finalText === "Immunity") {
-    frontEl.innerHTML = `<img src="images/immunity.png" alt="Immunity" style="width:100%; height:100%; object-fit: contain;">`;
+    const img = document.createElement('img');
+    img.src = "images/immunity.png";
+    img.alt = "Immunity";
+    frontEl.appendChild(img);
     return;
   }
 

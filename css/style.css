@@ -309,13 +309,18 @@ body::before {
   position: relative;
   perspective: 1000px;
 
-  /* no paint containment -> hover glow won't get clipped */
   contain: layout;
   will-change: transform;
   transform: translateZ(0);
   isolation: isolate;
 
   cursor: pointer;
+
+  transition:
+    transform 150ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease,
+    filter 200ms ease;
 
   /* per-kind defaults */
   --front-bg: var(--card-face);
@@ -550,13 +555,15 @@ body::before {
   --hover-ring: rgba(168,85,247,0.30);
 }
 
-/* Ditto */
+/* Ditto (visual comes from CSS, not inline JS) */
 .card[data-kind="ditto"] {
   --badge: "DITTO";
-  --front-bg: linear-gradient(145deg, rgba(230,230,250,0.92), rgba(246,248,255,0.90));
-  --front-text: #0b1020;
-  --strip: linear-gradient(90deg, rgba(168,85,247,0.80), rgba(255,79,216,0.20));
   --hover-ring: rgba(168,85,247,0.30);
+  --strip: linear-gradient(90deg, rgba(168,85,247,0.80), rgba(255,79,216,0.20));
+}
+.card[data-kind="ditto"] .card__front {
+  background: url('../images/ditto.png') center/cover no-repeat;
+  color: #0b1020;
 }
 
 /* Right panel */
@@ -754,36 +761,4 @@ body::before {
 
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
-}
-
-.card,
-.penalty-deck {
-  transition:
-    transform 150ms ease,
-    box-shadow 200ms ease,
-    border-color 200ms ease,
-    filter 200ms ease;
-}
-
-/* Hover + keyboard focus — applies BOTH back and show-front states */
-.card:hover,
-.card:focus-visible,
-.card.show-front:hover,
-.card.show-front:focus-visible,
-.penalty-deck:hover,
-.penalty-deck:focus-visible,
-.penalty-deck.show-front:hover,
-.penalty-deck.show-front:focus-visible {
-  transform: translateY(-2px);
-  border-color: rgba(53, 224, 199, 0.50);
-  box-shadow:
-    0 0 0 3px rgba(53, 224, 199, 0.18),
-    0 1.05rem 2.2rem rgba(0,0,0,0.30);
-  outline: none;
-}
-
-/* keep border always visible but neutral */
-.card,
-.penalty-deck {
-  border-color: rgba(255,255,255,0.16);
 }

@@ -2,10 +2,19 @@ export const state = {
   players: [],
   currentPlayerIndex: 0,
 
+  // UI / flow guards
+  uiLocked: false,
+
+  // Penalty deck: 1st click reveals, 2nd click confirms + ends turn
+  penaltyConfirmArmed: false,
+
+  // Ditto: pending effect per card index
+  dittoPending: [null, null, null],
+
   // Sosiaaliset ja Challenge-kortit
   socialCards: [
-    { 
-      name: "Challenge", 
+    {
+      name: "Challenge",
       subcategories: [
         { name: "Dare", instruction: "Dare someone." },
         { name: "Truth or Drink", instruction: "Ask someone Truth or Drink." },
@@ -30,8 +39,6 @@ export const state = {
         { name: "Speed Math", instruction: "Give someone a quick sum (e.g., 7×6−5). Wrong answer drinks one; right lets them give one." },
         { name: "Guess the Number", instruction: "Hold 1–5 fingers behind your back. Closest gives one; exact gives two." },
         { name: "Left or Right", instruction: "Hide a coin in one hand. Guesser picks; wrong drinks one, right gives one." }
-
-
       ]
     }
   ],
@@ -57,13 +64,12 @@ export const state = {
     "Everybody drinks 3"
   ],
 
-  // Crowd Challenge -kortti, jossa alaluokkana satunnaisesti arvottava tehtävä
   crowdChallenge: {
     name: "Crowd Challenge",
     subcategories: [
-      { name: "Waterfall", instruction: "Starting with you, everyone begins drinking; each person can stop only when the person to their right stops." }, 
-      { name: "Trivia Master", instruction: "Ask a trivia question to the group; wrong answers drink, first correct answer gives one." }, 
-      { name: "Categories", instruction: "Pick a category and go clockwise naming items; first repeat, pause, or miss drinks." }, 
+      { name: "Waterfall", instruction: "Starting with you, everyone begins drinking; each person can stop only when the person to their right stops." },
+      { name: "Trivia Master", instruction: "Ask a trivia question to the group; wrong answers drink, first correct answer gives one." },
+      { name: "Categories", instruction: "Pick a category and go clockwise naming items; first repeat, pause, or miss drinks." },
       { name: "Red or Black", instruction: "Everyone chooses red or black; flip a card or use RNG—losing color drinks." },
       { name: "Heads or Tails", instruction: "Everyone chooses heads/tails with hands; losing side drinks." },
       { name: "Zip Zap Zop", instruction: "Pass 'Zip'→'Zap'→'Zop' in order; hesitation or wrong word drinks." },
@@ -76,19 +82,15 @@ export const state = {
       { name: "Red Light, Green Light", instruction: "Leader faces away; move on 'green', stop on 'red'; anyone caught moving drinks." },
       { name: "Last Letter Chain", instruction: "Pick a category; each item must start with the last letter of the previous; first repeat or miss drinks." },
       { name: "Finger Total 21", instruction: "Without talking, on three everyone shows 0–10 fingers; if the total equals 21, drawer gives 3, else all drink 1." }
-
-
-      
     ]
   },
 
-  // Special Card, josta arvotaan yksi alaluokka
   special: {
     name: "Special Card",
     subcategories: [
-      { name: "Odds Drink", instruction: "Roll 0-9; if the result is odd, you drink the number shown." }, 
-      { name: "Even Drink", instruction: "Roll 0-9; if the result is even, you drink the number shown." }, 
-      { name: "Odds Give", instruction: "Roll 0-9; if the result is odd, you give out the number of drinks shown." }, 
+      { name: "Odds Drink", instruction: "Roll 0-9; if the result is odd, you drink the number shown." },
+      { name: "Even Drink", instruction: "Roll 0-9; if the result is even, you drink the number shown." },
+      { name: "Odds Give", instruction: "Roll 0-9; if the result is odd, you give out the number of drinks shown." },
       { name: "Even Give", instruction: "Roll 0-9; if the result is even, you give out the number of drinks shown." },
       { name: "Fun Time", instruction: "Roll the penalty deck. The penalty applies to all players." },
       { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
@@ -107,16 +109,10 @@ export const state = {
       { name: "Sloth", instruction: "Lie on your back and drink."},
       { name: "To The Western Sky", instruction: "The player to your left must drinks."},
       { name: "Social Distancing", instruction: "Everyone drinks if they are sitting less than 1 meter apart." },
-      { name: "For All Ages", instruction: "Roll 0-9; players whose age ends with that digit give 1; others drink 1." },
-
-
-
-      
-
+      { name: "For All Ages", instruction: "Roll 0-9; players whose age ends with that digit give 1; others drink 1." }
     ]
   },
 
-  // Penalty-kortit
   penaltyDeck: [
     "Drink 2",
     "Drink 3",
@@ -126,7 +122,6 @@ export const state = {
     "Shotgun"
   ],
 
-  // Item-kortit, joita pelaajat voivat hankkia
   itemCards: ["Shield", "Reveal Free", "Mirror", "Immunity", "Skip Turn"],
 
   // Pelin aikana käytettävät tilat
@@ -138,7 +133,7 @@ export const state = {
   cardHistory: [],
   penaltyCard: null,
   penaltyShown: false,
-  // Mirror item temporary state
+
   mirror: {
     active: false,
     sourceIndex: null,

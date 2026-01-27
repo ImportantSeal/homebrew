@@ -16,18 +16,18 @@ export function activateDitto(state, cardElement, cardIndex, log) {
   state.dittoActive[cardIndex] = true;
   cardElement.dataset.value = "Ditto";
 
+  // mark kind for CSS (badge + strip + ditto image)
+  cardElement.dataset.kind = "ditto";
+
+  // keep DOM clean: no inline background-image; CSS handles the visual
   const front = cardElement.querySelector('.card__front');
   if (front) {
     front.textContent = "";
-    front.style.background = "#E6E6FA";
-    front.style.backgroundImage = "url('images/ditto.png')";
-    front.style.backgroundSize = "cover";
-    front.style.backgroundPosition = "center";
-    front.style.color = "#0b1020";
+    front.removeAttribute('style');
   }
 
+  // ensure it's showing front
   cardElement.classList.add('show-front');
-  cardElement.style.borderColor = "rgba(168,85,247,0.55)";
 
   log("Ditto effect activated! Click again to confirm.");
 

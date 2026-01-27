@@ -15,18 +15,21 @@ import { renderCards, getCardElements } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { renderItemsBoard } from '../ui/itemsBoard.js';
 
+const PENALTY_UNLOCK_MS = 350;
+const MYSTERY_REVEAL_UNLOCK_MS = 700;
+const DITTO_DOUBLECLICK_GUARD_MS = 1000;
+const REDRAW_REFRESH_MS = 1000;
+
 function log(message) {
   addHistoryEntry(message);
 }
 
 export function startGame() {
+  // keep existing behavior, but state fields now exist in state.js
   state.uiLocked = false;
-
-  // Penalty: 1. klikki paljastaa, 2. klikki vahvistaa + nextPlayer
   state.penaltyConfirmArmed = false;
-
-  // Ditto: pending-efekti per kortti
   state.dittoPending = [null, null, null];
+  state.dittoActive = [false, false, false];
 
   initGameView();
   setupEventListeners();
@@ -49,6 +52,7 @@ function setupEventListeners() {
   document.getElementById('penalty-deck').addEventListener('click', () => {
     if (state.uiLocked) return;
 
+    // 2nd click confirms + ends turn
     if (state.penaltyShown && state.penaltyConfirmArmed) {
       state.uiLocked = true;
       hidePenaltyCard(state);
@@ -57,13 +61,15 @@ function setupEventListeners() {
       return;
     }
 
+    // 1st click reveals
     if (!state.penaltyShown) {
       state.uiLocked = true;
       rollPenaltyCard(state, log);
-      setTimeout(() => { state.uiLocked = false; }, 350);
+      setTimeout(() => { state.uiLocked = false; }, PENALTY_UNLOCK_MS);
       return;
     }
 
+    // if penalty is shown but not confirm-armed, keep existing behavior: hide
     hidePenaltyCard(state);
   });
 
@@ -140,14 +146,14 @@ function selectCard(index) {
   if (!state.revealed[index]) {
     state.revealed[index] = true;
     flipCardAnimation(cards[index], getCardDisplayValue(state.currentCards[index]));
-    setTimeout(() => { state.uiLocked = false; }, 700);
+    setTimeout(() => { state.uiLocked = false; }, MYSTERY_REVEAL_UNLOCK_MS);
     return;
   }
 
   // Ditto confirm (kortti on jo paljastettu)
   if (state.dittoActive[index]) {
     const activationTime = parseInt(cards[index].dataset.dittoTime || "0", 10);
-    if (Date.now() - activationTime < 1000) {
+    if (Date.now() - activationTime < DITTO_DOUBLECLICK_GUARD_MS) {
       state.uiLocked = false;
       return;
     }
@@ -155,20 +161,9 @@ function selectCard(index) {
     log(`${currentPlayer.name} confirmed Ditto card.`);
     runDittoEffect(state, index, log, updateTurnOrder, renderItems);
 
-    // Reset ditto state + ulkoasu, css hoitaa 
-    state.dittoActive[index] = false; 
+    // Reset Ditto state (visual is handled by next render)
+    state.dittoActive[index] = false;
     state.dittoPending[index] = null;
-
-    cards[index].style.borderColor = "";
-    cards[index].style.backgroundColor = "";
-    cards[index].style.color = "";
-    cards[index].style.backgroundImage = "";
-    cards[index].style.backgroundSize = "";
-    cards[index].style.backgroundPosition = "";
-    cards[index].dataset.value = "";
-
-    const front = cards[index].querySelector('.card__front');
-    if (front) front.removeAttribute('style');
 
     nextPlayer();
     state.uiLocked = false;
@@ -181,7 +176,13 @@ function selectCard(index) {
   if (state.mirror && state.mirror.active && state.mirror.selectedCardIndex === null) {
     primeMirrorFromCard(state, cardData, index, log, randomFromArray);
 
-    log(`Mirror primed with: ${state.mirror.parentName}${state.mirror.subName ? ' - ' + state.mirror.subName : ''}${state.mirror.subInstruction ? ' — ' + state.mirror.subInstruction : ''}. Now click a player's name to target.`);
+    log(
+      `Mirror primed with: ${state.mirror.parentName}` +
+      `${state.mirror.subName ? ' - ' + state.mirror.subName : ''}` +
+      `${state.mirror.subInstruction ? ' — ' + state.mirror.subInstruction : ''}. ` +
+      `Now click a player's name to target.`
+    );
+
     enableMirrorTargetSelection(state, log, updateTurnOrder, renderItems, nextPlayer);
 
     state.uiLocked = false;
@@ -261,5 +262,5 @@ function redrawGame() {
   rollPenaltyCard(state, log);
   setTimeout(() => {
     resetCards();
-  }, 1000);
+  }, REDRAW_REFRESH_MS);
 }

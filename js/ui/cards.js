@@ -46,15 +46,16 @@ export function renderCards(state, onSelectCard) {
     cards[i].style.backgroundColor = "";
     cards[i].style.color = "";
 
-    // set kind every render (works even if card is hidden)
-    const kind = computeKind(state, state.currentCards[i]);
+    // IMPORTANT: Don't leak hidden card kind (prevents hover ring revealing the mystery type)
+    const isHidden = !state.revealed[i];
+    const kind = isHidden ? 'normal' : computeKind(state, state.currentCards[i]);
     cards[i].dataset.kind = kind;
 
-    // reset possible Ditto front overrides
+    // reset possible Ditto / any overrides on front
     const front = cards[i].querySelector('.card__front');
     if (front) front.removeAttribute('style');
 
-    if (!state.revealed[i]) {
+    if (isHidden) {
       flipCardAnimation(cards[i], "???");
     } else {
       flipCardAnimation(cards[i], getCardDisplayValue(state.currentCards[i]));
