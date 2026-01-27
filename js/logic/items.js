@@ -1,5 +1,6 @@
 import { flipCardAnimation } from '../animations.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
+import { setCardKind } from '../ui/cards.js';
 
 function getCardEls() {
   return [
@@ -42,8 +43,14 @@ export function useItem(
     case "Reveal Free":
       if (state.hiddenIndex !== null && !state.revealed[state.hiddenIndex]) {
         const cards = getCardEls();
-        state.revealed[state.hiddenIndex] = true;
-        flipCardAnimation(cards[state.hiddenIndex], getCardDisplayValue(state.currentCards[state.hiddenIndex]));
+        const idx = state.hiddenIndex;
+
+        state.revealed[idx] = true;
+
+        // NOW that it's revealed: apply real kind styling
+        setCardKind(state, cards[idx], state.currentCards[idx], false);
+
+        flipCardAnimation(cards[idx], getCardDisplayValue(state.currentCards[idx]));
         log(`${player.name} used Reveal Free! Mystery card revealed.`);
       } else {
         log("No mystery card to reveal.");

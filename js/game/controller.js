@@ -11,7 +11,7 @@ import { activateDitto, runDittoEffect } from '../logic/ditto.js';
 import { useItem } from '../logic/items.js';
 import { enableMirrorTargetSelection, primeMirrorFromCard } from '../logic/mirror.js';
 
-import { renderCards, getCardElements } from '../ui/cards.js';
+import { renderCards, getCardElements, setCardKind } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { renderItemsBoard } from '../ui/itemsBoard.js';
 
@@ -25,7 +25,6 @@ function log(message) {
 }
 
 export function startGame() {
-  // keep existing behavior, but state fields now exist in state.js
   state.uiLocked = false;
   state.penaltyConfirmArmed = false;
   state.dittoPending = [null, null, null];
@@ -52,7 +51,6 @@ function setupEventListeners() {
   document.getElementById('penalty-deck').addEventListener('click', () => {
     if (state.uiLocked) return;
 
-    // 2nd click confirms + ends turn
     if (state.penaltyShown && state.penaltyConfirmArmed) {
       state.uiLocked = true;
       hidePenaltyCard(state);
@@ -61,7 +59,6 @@ function setupEventListeners() {
       return;
     }
 
-    // 1st click reveals
     if (!state.penaltyShown) {
       state.uiLocked = true;
       rollPenaltyCard(state, log);
@@ -69,7 +66,6 @@ function setupEventListeners() {
       return;
     }
 
-    // if penalty is shown but not confirm-armed, keep existing behavior: hide
     hidePenaltyCard(state);
   });
 
@@ -145,6 +141,10 @@ function selectCard(index) {
   // 1) Mystery: eka klikki vain paljastaa. (EI ADVANCE)
   if (!state.revealed[index]) {
     state.revealed[index] = true;
+
+    // NOW that it's revealed: apply real kind styling for this card
+    setCardKind(state, cards[index], state.currentCards[index], false);
+
     flipCardAnimation(cards[index], getCardDisplayValue(state.currentCards[index]));
     setTimeout(() => { state.uiLocked = false; }, MYSTERY_REVEAL_UNLOCK_MS);
     return;
@@ -161,7 +161,6 @@ function selectCard(index) {
     log(`${currentPlayer.name} confirmed Ditto card.`);
     runDittoEffect(state, index, log, updateTurnOrder, renderItems);
 
-    // Reset Ditto state (visual is handled by next render)
     state.dittoActive[index] = false;
     state.dittoPending[index] = null;
 

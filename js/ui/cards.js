@@ -9,7 +9,7 @@ export function getCardElements() {
   ];
 }
 
-function computeKind(state, cardData) {
+export function computeKind(state, cardData) {
   // Object cards (Challenge / Crowd / Special)
   if (typeof cardData === 'object' && cardData !== null) {
     const name = String(cardData.name || "").trim();
@@ -37,6 +37,16 @@ function computeKind(state, cardData) {
   return 'normal';
 }
 
+/**
+ * Sets card kind safely:
+ * - hidden mystery card stays 'normal' to prevent style/hover leak
+ * - once revealed, set to actual computed kind
+ */
+export function setCardKind(state, cardEl, cardData, isHidden) {
+  const kind = isHidden ? 'normal' : computeKind(state, cardData);
+  cardEl.dataset.kind = kind;
+}
+
 export function renderCards(state, onSelectCard) {
   const cards = getCardElements();
 
@@ -46,10 +56,10 @@ export function renderCards(state, onSelectCard) {
     cards[i].style.backgroundColor = "";
     cards[i].style.color = "";
 
-    // IMPORTANT: Don't leak hidden card kind (prevents hover ring revealing the mystery type)
     const isHidden = !state.revealed[i];
-    const kind = isHidden ? 'normal' : computeKind(state, state.currentCards[i]);
-    cards[i].dataset.kind = kind;
+
+    // IMPORTANT: don't leak hidden card kind
+    setCardKind(state, cards[i], state.currentCards[i], isHidden);
 
     // reset possible Ditto / any overrides on front
     const front = cards[i].querySelector('.card__front');
