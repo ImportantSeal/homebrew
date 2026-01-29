@@ -27,8 +27,8 @@ export const state = {
         { name: "Dream Date", instruction: "Everyone describes their ideal date; the most unoriginal drinks." },
         { name: "This or That", instruction: "Ask someone 'this or that'; hesitation means two drinks." },
         { name: "Share a Secret", instruction: "Everyone must share a secret. If your secret is voted lame, take 1 drink. If you refuse to share, take 3 drinks." },
-        { name: "On your feet!", instruction: "Everyone stands up, and the last person standing must drink."},
-        { name: "Hear me out", instruction: "Everyone must reveal their Hear me out crush"},
+        { name: "On your feet!", instruction: "Everyone stands up, and the last person standing must drink." },
+        { name: "Hear me out", instruction: "Everyone must reveal their Hear me out crush" },
         { name: "Song Association", instruction: "Say a word. First person to sing a lyric with it gives one; last drinks one." },
         { name: "5-Second Rule", instruction: "Name 3 things in a category in 5 seconds. Fail and drink two." },
         { name: "Most Likely To", instruction: "Say 'Most likely to…'. Count to three and point; most-voted drinks one." },
@@ -106,18 +106,33 @@ export const state = {
       { name: "Last Bathroom", instruction: "The player who last used the bathroom drinks one." },
       { name: "Speed Round", instruction: "Name five items in a category within 10 seconds. Failure means a drink." },
       { name: "Lilo and Stitch", instruction: "If you have siblings, drink as many sips as the total number of your siblings." },
-      { name: "Sloth", instruction: "Lie on your back and drink."},
-      { name: "To The Western Sky", instruction: "The player to your left must drinks."},
+      { name: "Sloth", instruction: "Lie on your back and drink." },
+      { name: "To The Western Sky", instruction: "The player to your left must drinks." },
       { name: "Social Distancing", instruction: "Everyone drinks if they are sitting less than 1 meter apart." },
-      { name: "For All Ages", instruction: "Roll 0-9; players whose age ends with that digit give 1; others drink 1." }
-    ]
-  },
+      { name: "For All Ages", instruction: "Roll 0-9; players whose age ends with that digit give 1; others drink 1." },
+
+      { name: "Host Tax", instruction: "Host drinks as many sips as there are players at the table." },
+      { name: "Last Arrival ", instruction: "Last arrival drinks the same number as the last Drink-card value shown in Card History. " },
+      { name: "Battery Debt", instruction: "Everyone shows phone battery %. Lowest battery drinks the DIFFERENCE to the highest battery (rounded down, max 8)." },
+      { name: "Notification Curse", instruction: "For the next 60 seconds, the first person who gets ANY notification drinks the last Drink-card value." },
+      { name: "Most Recent Sip", instruction: "The person who last took a sip drinks 3." },
+      { name: "Echo", instruction: "Repeat the last Drink-card value: you drink that amount again. (If last was Everybody drinks, only YOU repeat it.)" },
+      { name: "Name Length Ladder", instruction: "Longest name drinks 3. Shortest name gives 1." },
+      { name: "Birthday Roulette", instruction: "Nearest upcoming birthday gives 2. Farthest birthday drinks 2." },
+      { name: "Left-Handed Justice", instruction: "If you are left-handed: give 2. If not: drink 1. (Yes, it’s unfair.)" },
+      { name: "Glance & Sip", instruction: "Everyone looks at the same person (count to 3). Most looked-at drinks 3." },
+      { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
+      { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
+      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
+
+
+    ]},
 
   penaltyDeck: [
-    "Drink 2",
     "Drink 3",
     "Drink 4",
     "Drink 5",
+    "Drink 6",
     "Shot",
     "Shotgun"
   ],
