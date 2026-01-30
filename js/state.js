@@ -1,6 +1,8 @@
 export const state = {
   players: [],
   currentPlayerIndex: 0,
+  bags: {},
+
 
   // UI / flow guards
   uiLocked: false,
@@ -110,7 +112,6 @@ export const state = {
       { name: "To The Western Sky", instruction: "The player to your left must drinks." },
       { name: "Social Distancing", instruction: "Everyone drinks if they are sitting less than 1 meter apart." },
       { name: "For All Ages", instruction: "Roll 0-9; players whose age ends with that digit give 1; others drink 1." },
-
       { name: "Host Tax", instruction: "Host drinks as many sips as there are players at the table." },
       { name: "Last Arrival ", instruction: "Last arrival drinks the same number as the last Drink-card value shown in Card History. " },
       { name: "Battery Debt", instruction: "Everyone shows phone battery %. Lowest battery drinks the DIFFERENCE to the highest battery (rounded down, max 8)." },

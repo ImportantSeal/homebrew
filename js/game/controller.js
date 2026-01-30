@@ -1,8 +1,10 @@
+// homebrew/js/game/controller.js
+
 import { state } from '../state.js';
 import { addHistoryEntry } from '../cardHistory.js';
 import { flipCardAnimation, flashElement } from '../animations.js';
 
-import { randomFromArray } from '../utils/random.js';
+import { randomFromArray, createBag } from '../utils/random.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
 
 import { dealTurnCards } from '../logic/deck.js';
@@ -29,6 +31,9 @@ export function startGame() {
   state.penaltyConfirmArmed = false;
   state.dittoPending = [null, null, null];
   state.dittoActive = [false, false, false];
+
+  // Ensure bags object exists
+  if (!state.bags) state.bags = {};
 
   initGameView();
   setupEventListeners();
@@ -190,7 +195,26 @@ function selectCard(index) {
 
   // Haastekortit (object + subcategories)
   if (typeof cardData === 'object' && cardData.subcategories) {
-    const challengeEvent = randomFromArray(cardData.subcategories);
+    // Use shuffle-bag for "feels random" draws
+    if (!state.bags) state.bags = {};
+
+    let bagKey = "";
+
+    if (cardData === state.special) {
+      bagKey = "special";
+    } else if (cardData === state.crowdChallenge) {
+      bagKey = "crowd";
+    } else {
+      // e.g. Challenge parent from socialCards
+      bagKey = `social:${cardData.name || "unknown"}`;
+    }
+
+    if (!state.bags[bagKey]) {
+      state.bags[bagKey] = createBag(cardData.subcategories);
+    }
+
+    const challengeEvent = state.bags[bagKey].next();
+
     let subName = "";
     let subInstruction = "";
     let challengeText = "";
