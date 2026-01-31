@@ -260,6 +260,23 @@ body::before {
 .turn-player-name strong { color: rgba(255,255,255,0.96); font-weight: 900; }
 .turn-order > span { color: rgba(234,240,255,0.35); margin: 0 0.15rem; }
 
+/* ✅ Pick mode: highlight player names when an effect needs a target */
+body[data-pickmode="effect-target"] .turn-player-name {
+  cursor: pointer;
+  border-color: rgba(53,224,199,0.28);
+  box-shadow: 0 0 0 3px rgba(53,224,199,0.14);
+}
+
+@media (hover:hover) {
+  body[data-pickmode="effect-target"] .turn-player-name:hover {
+    filter: brightness(1.08);
+    border-color: rgba(255,79,216,0.28);
+    box-shadow:
+      0 0 0 3px rgba(53,224,199,0.14),
+      0 0 0 5px rgba(255,79,216,0.10);
+  }
+}
+
 .turn-indicator {
   margin: 0.75rem 0 1.1rem;
   padding: 0.5rem 0.9rem;
@@ -288,35 +305,144 @@ body::before {
 
 /* ✅ Status effects area under cards */
 .status-effects {
-  width: min(52rem, 100%);
+  width: min(56rem, 100%);
   min-width: 0;
-  margin-top: 0.35rem;
+  margin-top: 0.45rem;
 
   border-radius: var(--radius-sm);
   border: 1px solid rgba(255,255,255,0.12);
-  background: rgba(10, 14, 28, 0.35);
+  background: rgba(10, 14, 28, 0.38);
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
-  padding: 0.6rem 0.7rem;
 
+  padding: 0.75rem 0.8rem;
   display: flex;
   flex-direction: column;
-  gap: 0.45rem;
+  gap: 0.6rem;
   text-align: left;
 }
 
-.status-effects:empty {
-  display: none; /* piilota kokonaan jos ei mitään */
+.status-effects:empty { display: none; }
+
+.effects-section-title {
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  color: rgba(255,255,255,0.92);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.05rem;
 }
+
+/* Effect “mini-cards” */
+.effect-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+
+  padding: 0.65rem 0.7rem;
+  border-radius: 0.85rem;
+  border: 1px solid rgba(255,255,255,0.12);
+  background:
+    radial-gradient(220px 120px at 20% 20%, rgba(53,224,199,0.10), transparent 60%),
+    rgba(255,255,255,0.05);
+  box-shadow: 0 0.65rem 1.3rem rgba(0,0,0,0.18);
+}
+
+.effect-card.is-warning {
+  border-color: rgba(255,79,216,0.28);
+  box-shadow:
+    0 0.65rem 1.3rem rgba(0,0,0,0.18),
+    0 0 0 2px rgba(255,79,216,0.18);
+}
+
+.effect-card.is-pending {
+  border-color: rgba(53,224,199,0.28);
+  box-shadow:
+    0 0.65rem 1.3rem rgba(0,0,0,0.18),
+    0 0 0 2px rgba(53,224,199,0.18);
+}
+
+/* Left icon */
+.effect-left { display: flex; align-items: center; justify-content: center; }
+.effect-icon {
+  width: 2.05rem;
+  height: 2.05rem;
+  border-radius: 0.75rem;
+  display: grid;
+  place-items: center;
+  font-size: 1.2rem;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+
+/* Middle text */
+.effect-mid { min-width: 0; }
+.effect-title {
+  font-weight: 950;
+  color: rgba(255,255,255,0.95);
+  line-height: 1.05;
+}
+.effect-desc {
+  margin-top: 0.15rem;
+  color: rgba(234,240,255,0.86);
+  font-size: 0.95rem;
+  line-height: 1.2;
+}
+.effect-applies {
+  margin-top: 0.2rem;
+  color: rgba(234,240,255,0.62);
+  font-size: 0.9rem;
+}
+
+/* Right meta */
+.effect-right { display: flex; align-items: center; justify-content: flex-end; }
+.effect-remaining {
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.90);
+  font-weight: 850;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+/* Progress bar */
+.effect-bar {
+  grid-column: 1 / -1;
+  height: 0.42rem;
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.10);
+  margin-top: 0.55rem;
+}
+
+.effect-bar-fill {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(
+    90deg,
+    rgba(53,224,199,0.85),
+    rgba(168,85,247,0.70),
+    rgba(255,79,216,0.65)
+  );
+}
+
+/* Player status chips */
+.status-section { display: flex; flex-direction: column; gap: 0.45rem; }
 
 .status-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
+  gap: 0.4rem;
   align-items: center;
 }
 
 .status-player {
-  font-weight: 900;
+  font-weight: 950;
   color: rgba(255,255,255,0.92);
   margin-right: 0.25rem;
 }
@@ -325,12 +451,12 @@ body::before {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  padding: 0.18rem 0.55rem;
+  padding: 0.18rem 0.6rem;
   border-radius: 999px;
   font-size: 0.92rem;
   background: rgba(255,255,255,0.07);
   border: 1px solid rgba(255,255,255,0.12);
-  color: rgba(234,240,255,0.90);
+  color: rgba(234,240,255,0.92);
   user-select: none;
 }
 

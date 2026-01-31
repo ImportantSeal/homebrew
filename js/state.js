@@ -26,7 +26,9 @@ export const state = {
   // NEW: when an effect needs a target pick
   effectSelection: {
     active: false,
-    pending: null // { type, remainingTurns, sourceIndex, meta }
+    pending: null,  // { type, remainingTurns, sourceIndex, meta }
+    cleanup: null
+
   },
 
   // Sosiaaliset ja Challenge-kortit

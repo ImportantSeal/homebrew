@@ -1,106 +1,172 @@
 // js/ui/statusEffects.js
-// Renders active status flags/effects under the 3 cards.
+// Renders active timed effects + player statuses under the 3 cards.
 
-function addChip(row, label, extra = "") {
+function el(tag, className, text) {
+  const n = document.createElement(tag);
+  if (className) n.className = className;
+  if (text != null) n.textContent = text;
+  return n;
+}
+
+function effectIcon(type) {
+  switch (type) {
+    case "LEFT_HAND": return "🫲";
+    case "NO_NAMES": return "🤐";
+    case "DRINK_BUDDY": return "🤝🍻";
+    default: return "✨";
+  }
+}
+
+function effectTitle(type) {
+  switch (type) {
+    case "LEFT_HAND": return "Left Hand Rule";
+    case "NO_NAMES": return "No Names";
+    case "DRINK_BUDDY": return "Drink Buddy";
+    default: return type || "Effect";
+  }
+}
+
+function effectDescription(state, eff) {
+  switch (eff.type) {
+    case "LEFT_HAND":
+      return "Everyone must drink with their LEFT hand.";
+    case "NO_NAMES": {
+      const tgt = state.players?.[eff.targetIndex]?.name;
+      return tgt ? `${tgt} is not allowed to say any names.` : "No names allowed.";
+    }
+    case "DRINK_BUDDY": {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
+      return `${tgt} drinks whenever ${src} drinks.`;
+    }
+    default:
+      return "An effect is active.";
+  }
+}
+
+function effectAppliesTo(state, eff) {
+  switch (eff.type) {
+    case "LEFT_HAND":
+      return "Applies to: Everyone";
+    case "NO_NAMES": {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
+      return `Applies to: ${tgt}`;
+    }
+    case "DRINK_BUDDY": {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
+      return `Link: ${src} → ${tgt}`;
+    }
+    default:
+      return "Applies to: —";
+  }
+}
+
+function addChip(row, label) {
   const chip = document.createElement('span');
   chip.className = 'status-chip';
-
-  const t = document.createElement('span');
-  t.textContent = label;
-  chip.appendChild(t);
-
-  if (extra) {
-    const strong = document.createElement('strong');
-    strong.textContent = ` ${extra}`;
-    chip.appendChild(strong);
-  }
-
+  chip.textContent = label;
   row.appendChild(chip);
 }
 
-function isGlobalEffect(e) {
-  return e && e.scope === "all";
+function buildEffectCard(state, eff) {
+  const card = el("div", "effect-card");
+  card.dataset.type = eff.type || "GENERIC";
+
+  const left = el("div", "effect-left");
+  const icon = el("div", "effect-icon", effectIcon(eff.type));
+  left.appendChild(icon);
+
+  const mid = el("div", "effect-mid");
+  mid.appendChild(el("div", "effect-title", effectTitle(eff.type)));
+  mid.appendChild(el("div", "effect-desc", effectDescription(state, eff)));
+  mid.appendChild(el("div", "effect-applies", effectAppliesTo(state, eff)));
+
+  const right = el("div", "effect-right");
+  const remaining = typeof eff.remainingTurns === "number" ? eff.remainingTurns : 0;
+  right.appendChild(el("div", "effect-remaining", `${remaining} turn${remaining === 1 ? "" : "s"} left`));
+
+  // Progress bar
+  const total = Math.max(1, Number(eff.totalTurns || eff.remainingTurns || 1));
+  const pct = Math.max(0, Math.min(100, Math.round((remaining / total) * 100)));
+
+  const bar = el("div", "effect-bar");
+  const fill = el("span", "effect-bar-fill");
+  fill.style.width = `${pct}%`;
+  bar.appendChild(fill);
+
+  if (remaining <= 2) card.classList.add("is-warning");
+
+  card.appendChild(left);
+  card.appendChild(mid);
+  card.appendChild(right);
+  card.appendChild(bar);
+
+  return card;
 }
 
 export function renderStatusEffects(state) {
-  const el = document.getElementById('status-effects');
-  if (!el) return;
+  const root = document.getElementById('status-effects');
+  if (!root) return;
 
-  el.innerHTML = "";
+  root.innerHTML = "";
 
-  const effects = Array.isArray(state.effects) ? state.effects : [];
+  const effects = Array.isArray(state.effects) ? state.effects.filter(e => (e?.remainingTurns ?? 0) > 0) : [];
 
-  let any = false;
+  const hasPendingPick = !!state.effectSelection?.active;
 
-  // ✅ Global effects row
-  const global = effects.filter(isGlobalEffect);
-  if (global.length > 0) {
-    const row = document.createElement('div');
-    row.className = 'status-row';
+  // --- Active Effects section ---
+  if (effects.length > 0 || hasPendingPick) {
+    root.appendChild(el("div", "effects-section-title", "Active effects"));
 
-    const name = document.createElement('span');
-    name.className = 'status-player';
-    name.textContent = `All:`;
-    row.appendChild(name);
+    // Pending selection hint
+    if (hasPendingPick) {
+      const pending = state.effectSelection?.pending;
+      const pendingCard = el("div", "effect-card is-pending");
+      pendingCard.appendChild(el("div", "effect-left")).appendChild(el("div", "effect-icon", "🎯"));
+      const mid = el("div", "effect-mid");
+      mid.appendChild(el("div", "effect-title", "Pick a target"));
+      mid.appendChild(el("div", "effect-desc", "Click a player name in the turn order to finish this effect."));
+      mid.appendChild(el("div", "effect-applies", pending?.type ? `Effect: ${pending.type}` : "Effect: —"));
+      pendingCard.appendChild(mid);
+      const right = el("div", "effect-right");
+      right.appendChild(el("div", "effect-remaining", "Waiting…"));
+      pendingCard.appendChild(right);
+      pendingCard.appendChild(el("div", "effect-bar")).appendChild(el("span", "effect-bar-fill"));
+      root.appendChild(pendingCard);
+    }
 
-    global.forEach(e => {
-      const label = e.label || e.type || "Effect";
-      const left = Number.isFinite(e.remainingTurns) ? `${e.remainingTurns}t` : "";
-      addChip(row, label, left);
+    effects.forEach(eff => {
+      root.appendChild(buildEffectCard(state, eff));
     });
-
-    el.appendChild(row);
-    any = true;
   }
 
-  // ✅ Per-player rows (flags + per-player effects)
-  state.players.forEach((p, idx) => {
-    const row = document.createElement('div');
-    row.className = 'status-row';
+  // --- Player statuses (Shield / Immunity / etc.) ---
+  let anyStatuses = false;
+  const statusWrap = el("div", "status-section");
 
-    const name = document.createElement('span');
-    name.className = 'status-player';
-    name.textContent = `${p.name}:`;
-    row.appendChild(name);
+  state.players.forEach((p) => {
+    const row = el("div", "status-row");
 
-    let has = false;
+    row.appendChild(el("span", "status-player", `${p.name}:`));
 
-    // flags
-    if (p.shield) { addChip(row, "Shield"); has = true; }
-    if (p.immunity) { addChip(row, "Immunity"); has = true; }
-    if (p.skipNextTurn) { addChip(row, "Skip Next Turn"); has = true; }
-    if (p.extraLife) { addChip(row, "Extra Life"); has = true; }
+    let hasForPlayer = false;
+    if (p.shield) { addChip(row, "🛡 Shield"); hasForPlayer = true; }
+    if (p.immunity) { addChip(row, "🧪 Immunity"); hasForPlayer = true; }
+    if (p.skipNextTurn) { addChip(row, "⏭ Skip Next Turn"); hasForPlayer = true; }
+    if (p.extraLife) { addChip(row, "❤️ Extra Life"); hasForPlayer = true; }
 
-    // timed effects (non-global)
-    effects.forEach(e => {
-      if (!e || isGlobalEffect(e)) return;
-
-      const left = Number.isFinite(e.remainingTurns) ? `${e.remainingTurns}t` : "";
-
-      if (e.type === "DRINK_BUDDY") {
-        const src = state.players?.[e.sourceIndex]?.name ?? "Someone";
-        const tgt = state.players?.[e.targetIndex]?.name ?? "Someone";
-
-        if (e.sourceIndex === idx) {
-          addChip(row, "Drink Buddy", `${tgt} · ${left}`);
-          has = true;
-        } else if (e.targetIndex === idx) {
-          addChip(row, "Buddy", `${src} · ${left}`);
-          has = true;
-        }
-      } else if (e.playerIndex === idx) {
-        const label = e.label || e.type || "Effect";
-        addChip(row, label, left);
-        has = true;
-      }
-    });
-
-    if (has) {
-      el.appendChild(row);
-      any = true;
+    if (hasForPlayer) {
+      anyStatuses = true;
+      statusWrap.appendChild(row);
     }
   });
 
-  // hide when empty
-  if (!any) el.innerHTML = "";
+  if (anyStatuses) {
+    root.appendChild(el("div", "effects-section-title", "Player status"));
+    root.appendChild(statusWrap);
+  }
+
+  // If nothing, keep empty so CSS hides it
+  if (!root.childElementCount) root.innerHTML = "";
 }

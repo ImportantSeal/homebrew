@@ -11,11 +11,9 @@ import { dealTurnCards } from '../logic/deck.js';
 import { rollPenaltyCard, hidePenaltyCard, showPenaltyPreview } from '../logic/penalty.js';
 import { activateDitto, runDittoEffect } from '../logic/ditto.js';
 import { useItem } from '../logic/items.js';
-import {
-  enableMirrorTargetSelection,
-  primeMirrorFromCard,
-  enablePlayerNameSelection
-} from '../logic/mirror.js';
+import { enableMirrorTargetSelection, primeMirrorFromCard } from '../logic/mirror.js';
+
+import { addEffect, createEffect, tickEffects, beginTargetedEffectSelection, applyDrinkEvent } from '../logic/effects.js';
 
 import { renderCards, getCardElements, setCardKind } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
@@ -83,168 +81,18 @@ function ensureBag(stateObj, key, items) {
   return stateObj.bags[key];
 }
 
-// ---------- Timed Effects (NEW) ----------
-function makeEffectId() {
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
+function parseDrinkFromText(text) {
+  const t = String(text || "").trim();
 
-function effectLabel(e) {
-  if (!e) return "Effect";
-  if (e.type === "DRINK_BUDDY") {
-    const src = state.players?.[e.sourceIndex]?.name ?? "Someone";
-    const tgt = state.players?.[e.targetIndex]?.name ?? "Someone";
-    return `${e.label || "Drink Buddy"} (${src} → ${tgt})`;
-  }
-  return e.label || e.type || "Effect";
-}
+  // Everybody drinks N
+  const all = t.match(/^Everybody drinks\s+(\d+)\b/i);
+  if (all) return { scope: "all", amount: parseInt(all[1], 10) };
 
-function upsertGlobalEffect(type, label, turns) {
-  if (!Array.isArray(state.effects)) state.effects = [];
-  const existing = state.effects.find(e => e && e.scope === "all" && e.type === type);
+  // Drink N (also matches "Drink 2, Give 1")
+  const self = t.match(/\bDrink\s+(\d+)\b/i);
+  if (self) return { scope: "self", amount: parseInt(self[1], 10) };
 
-  if (existing) {
-    existing.remainingTurns = Math.max(existing.remainingTurns || 0, turns);
-    log(`Effect refreshed: ${label} (${existing.remainingTurns} turns).`);
-  } else {
-    state.effects.push({
-      id: makeEffectId(),
-      type,
-      label,
-      remainingTurns: turns,
-      scope: "all"
-    });
-    log(`Effect started: ${label} (${turns} turns).`);
-  }
-}
-
-function upsertDrinkBuddyEffect(sourceIndex, targetIndex, turns) {
-  if (!Array.isArray(state.effects)) state.effects = [];
-  const existing = state.effects.find(e =>
-    e && e.type === "DRINK_BUDDY" && e.sourceIndex === sourceIndex && e.targetIndex === targetIndex
-  );
-
-  const src = state.players?.[sourceIndex]?.name ?? "Someone";
-  const tgt = state.players?.[targetIndex]?.name ?? "Someone";
-
-  if (existing) {
-    existing.remainingTurns = Math.max(existing.remainingTurns || 0, turns);
-    log(`Drink Buddy refreshed: ${tgt} drinks with ${src} for ${existing.remainingTurns} turns.`);
-  } else {
-    state.effects.push({
-      id: makeEffectId(),
-      type: "DRINK_BUDDY",
-      label: "Drink Buddy",
-      remainingTurns: turns,
-      sourceIndex,
-      targetIndex
-    });
-    log(`Drink Buddy started: ${tgt} drinks whenever ${src} drinks. (${turns} turns)`);
-  }
-}
-
-function tickTimedEffects() {
-  const effects = Array.isArray(state.effects) ? state.effects : [];
-  if (effects.length === 0) return;
-
-  // decrement
-  effects.forEach(e => {
-    if (!e) return;
-    const n = Number.isFinite(e.remainingTurns) ? e.remainingTurns : 0;
-    e.remainingTurns = Math.max(0, n - 1);
-  });
-
-  // expire
-  const expired = effects.filter(e => e && (e.remainingTurns || 0) <= 0);
-  if (expired.length > 0) {
-    expired.forEach(e => log(`Effect ended: ${effectLabel(e)}.`));
-  }
-
-  state.effects = effects.filter(e => e && (e.remainingTurns || 0) > 0);
-}
-
-// Drink events hook (NEW): enables Drink Buddy to actually do something
-function applyDrinkEvent(playerIndex, amount, reason = "", opts = {}) {
-  const triggerBuddy = opts.triggerBuddy !== false;
-
-  const p = state.players?.[playerIndex];
-  if (!p) return;
-
-  const n = Math.max(1, parseInt(amount, 10) || 1);
-  const tail = reason ? ` (${reason})` : "";
-  log(`${p.name} drinks ${n}.${tail}`);
-
-  if (!triggerBuddy) return;
-
-  const buddies = (Array.isArray(state.effects) ? state.effects : [])
-    .filter(e => e && e.type === "DRINK_BUDDY" && e.sourceIndex === playerIndex && (e.remainingTurns || 0) > 0);
-
-  buddies.forEach(e => {
-    const t = state.players?.[e.targetIndex];
-    if (!t) return;
-    log(`🍻 Drink Buddy: ${t.name} drinks ${n} too.`);
-  });
-}
-
-function parseDrinkGiveText(txt) {
-  const s = String(txt || "").trim();
-
-  const everyone = s.match(/^Everybody drinks\s+(\d+)/i);
-  if (everyone) return { kind: "everybody", drink: parseInt(everyone[1], 10) || 1 };
-
-  // "Drink X, Give Y"
-  const drink = s.match(/\bDrink\s+(\d+)/i);
-  const give = s.match(/\bGive\s+(\d+)/i);
-
-  return {
-    kind: "single",
-    drink: drink ? (parseInt(drink[1], 10) || 0) : 0,
-    give: give ? (parseInt(give[1], 10) || 0) : 0
-  };
-}
-
-// ---------- Effect target selection (NEW) ----------
-function clearEffectSelection() {
-  if (state.effectSelection?.cleanup) {
-    try { state.effectSelection.cleanup(); } catch (_) {}
-  }
-  state.effectSelection = { active: false, pending: null, cleanup: null };
-}
-
-function beginEffectTargetSelection(pending) {
-  clearEffectSelection();
-
-  state.effectSelection.active = true;
-  state.effectSelection.pending = pending;
-
-  log(`Pick a target player by clicking a name in the turn order.`);
-
-  // Attach click listeners to player names (same mechanism as Mirror)
-  const cleanup = enablePlayerNameSelection(state, (targetIndex, done) => {
-    const p = state.effectSelection.pending;
-    if (!p) {
-      done?.();
-      clearEffectSelection();
-      return;
-    }
-
-    // Apply the pending effect
-    if (p.type === "DRINK_BUDDY") {
-      upsertDrinkBuddyEffect(p.sourceIndex, targetIndex, p.remainingTurns);
-    } else {
-      // future-proof: other targeted effects
-      log(`Target selected for ${p.type}, but no handler exists.`);
-    }
-
-    done?.();
-    clearEffectSelection();
-
-    // End the turn now that selection is complete
-    nextPlayer();
-    unlockUI();
-    renderStatusEffects(state);
-  });
-
-  state.effectSelection.cleanup = cleanup;
+  return null;
 }
 
 // ---------- Public API ----------
@@ -258,9 +106,9 @@ export function startGame() {
   state.dittoPending = [null, null, null];
   state.dittoActive = [false, false, false];
 
-  // NEW: reset timed effects at game start
-  state.effects = Array.isArray(state.effects) ? [] : [];
-  state.effectSelection = { active: false, pending: null, cleanup: null };
+  // reset effects for a fresh game
+  state.effects = [];
+  state.effectSelection = { active: false, pending: null };
 
   if (!state.bags) state.bags = {};
 
@@ -279,14 +127,13 @@ function setupEventListeners() {
   bindRedrawClick(onRedrawClick);
   bindPenaltyDeckClick(onPenaltyDeckClick);
 
-  // Dropdown close is now harmless (dropdown removed), but keeping doesn't break anything.
   bindCloseDropdownsOnOutsideClick();
 }
 
 // ---------- Turn flow ----------
 function nextPlayer() {
-  // Each time a turn ends, tick timed effects down by 1
-  tickTimedEffects();
+  // ✅ end-of-turn timing: tick active effects once per finished turn
+  tickEffects(state, log);
 
   const p = currentPlayer();
 
@@ -313,12 +160,6 @@ function updateTurn() {
 
 function renderItems() {
   renderItemsBoard(state, (pIndex, iIndex) => {
-    // If a target selection is pending, don't allow item use (keeps UX clean)
-    if (state.effectSelection?.active) {
-      log("Finish selecting an effect target first.");
-      return;
-    }
-
     useItem(
       state,
       pIndex,
@@ -344,7 +185,7 @@ function resetCards() {
 // ---------- UI event handlers ----------
 function onRedrawClick() {
   if (state.effectSelection?.active) {
-    log("Pick the target player first.");
+    log("Pick a target player first (effect selection is active).");
     return;
   }
 
@@ -356,7 +197,7 @@ function onRedrawClick() {
 
 function onPenaltyDeckClick() {
   if (state.effectSelection?.active) {
-    log("Pick the target player first.");
+    log("Pick a target player first (effect selection is active).");
     return;
   }
 
@@ -382,9 +223,15 @@ function onPenaltyDeckClick() {
   // Otherwise reveal penalty deck normally
   if (!state.penaltyShown) {
     lockUI();
+    rollPenaltyCard(state, log, "deck");
 
-    // NEW: pass applyDrinkEvent so penalties can trigger Drink Buddy
-    rollPenaltyCard(state, log, "deck", applyDrinkEvent);
+    // If a real penalty appeared, hook drink buddy + immunity handling
+    if (state.penaltyShown && state.penaltyCard) {
+      const drink = parseDrinkFromText(state.penaltyCard);
+      if (drink?.scope === "self") {
+        applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Penalty", log);
+      }
+    }
 
     unlockAfter(TIMING.PENALTY_UNLOCK_MS);
     renderStatusEffects(state);
@@ -396,12 +243,14 @@ function onPenaltyDeckClick() {
 }
 
 function onCardClick(index) {
+  if (state.uiLocked) return;
+
+  // ✅ Block card clicks while an effect is waiting for target pick
   if (state.effectSelection?.active) {
-    log("Pick the target player first (click a name in the turn order).");
+    log("Pick the target player in the turn order first.");
     return;
   }
 
-  if (state.uiLocked) return;
   lockUI();
 
   // If penalty is open, handle it first
@@ -445,7 +294,7 @@ function onCardClick(index) {
     const p = currentPlayer();
     log(`${p.name} confirmed Ditto card.`);
 
-    // NEW: pass applyDrinkEvent so Ditto drink effects + buddy work
+    // ✅ pass applyDrinkEvent so Ditto drink outcomes can trigger Drink Buddy too
     runDittoEffect(state, index, log, () => renderTurnOrder(state), renderItems, applyDrinkEvent);
 
     state.dittoActive[index] = false;
@@ -477,16 +326,13 @@ function onCardClick(index) {
 
   // 4) Object card (Special/Crowd/Social) draw
   if (typeof cardData === 'object' && cardData.subcategories) {
-    const waitForTarget = handleObjectCardDraw(cardEl, cardData);
+    const endsTurnNow = handleObjectCardDraw(cardEl, cardData);
 
-    if (waitForTarget) {
-      // We are now waiting for user to click a player name.
-      unlockUI();
-      renderStatusEffects(state);
-      return;
+    // ✅ If we started a target-pick effect, DON'T end the turn yet
+    if (endsTurnNow) {
+      nextPlayer();
     }
 
-    nextPlayer();
     unlockUI();
     renderStatusEffects(state);
     return;
@@ -507,13 +353,16 @@ function handleObjectCardDraw(cardEl, parentCard) {
   let subName = "";
   let subInstruction = "";
   let shownText = "";
-  let effect = null;
+  let effectDef = null;
 
   if (typeof event === "object") {
     subName = event.name || "";
     subInstruction = event.instruction || "";
     shownText = subInstruction || subName;
-    effect = event.effect || null;
+
+    if (event.effect && typeof event.effect === "object") {
+      effectDef = event.effect; // { type, turns, needsTarget? }
+    }
   } else {
     subName = String(event);
     shownText = subName;
@@ -531,32 +380,44 @@ function handleObjectCardDraw(cardEl, parentCard) {
     showPenaltyPreview(state, log, label);
   }
 
-  // ✅ NEW: timed effects from special subevents
-  if (effect && effect.type) {
-    const turns = Math.max(1, parseInt(effect.turns, 10) || 1);
+  // ✅ Timed Effect Cards
+  if (effectDef && effectDef.type && effectDef.turns) {
+    // Targeted effect: enter pick mode, DO NOT end turn yet
+    if (effectDef.needsTarget) {
+      beginTargetedEffectSelection(
+        state,
+        { type: effectDef.type, turns: effectDef.turns },
+        state.currentPlayerIndex,
+        log,
+        () => {
+          renderStatusEffects(state);
+          // End the turn AFTER target is picked
+          nextPlayer();
+        }
+      );
 
-    if (effect.type === "LEFT_HAND") {
-      upsertGlobalEffect("LEFT_HAND", "Left Hand Rule", turns);
+      // UI refresh: show pending "pick a target" card immediately
+      renderStatusEffects(state);
       return false;
     }
 
-    if (effect.type === "NO_NAMES") {
-      upsertGlobalEffect("NO_NAMES", "No Names", turns);
-      return false;
+    // Non-targeted effects:
+    // Decide scope by type (simple rule set)
+    if (effectDef.type === "LEFT_HAND") {
+      addEffect(state, createEffect("LEFT_HAND", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
+      log(`Effect activated: Left Hand Rule (${effectDef.turns} turns).`);
+    } else if (effectDef.type === "NO_NAMES") {
+      addEffect(state, createEffect("NO_NAMES", effectDef.turns, { targetIndex: state.currentPlayerIndex }));
+      log(`Effect activated: No Names (${effectDef.turns} turns).`);
+    } else {
+      addEffect(state, createEffect(effectDef.type, effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
+      log(`Effect activated: ${effectDef.type} (${effectDef.turns} turns).`);
     }
 
-    if (effect.type === "DRINK_BUDDY") {
-      // Needs target selection -> do NOT end turn yet
-      beginEffectTargetSelection({
-        type: "DRINK_BUDDY",
-        remainingTurns: turns,
-        sourceIndex: state.currentPlayerIndex
-      });
-      return true;
-    }
+    renderStatusEffects(state);
   }
 
-  return false;
+  return true;
 }
 
 function handlePlainCard(cardEl, cardData) {
@@ -568,8 +429,7 @@ function handlePlainCard(cardEl, cardData) {
   if (isDrawPenaltyCardText(txt)) {
     flashElement(cardEl);
 
-    // NEW: pass applyDrinkEvent so penalty drink triggers buddy
-    rollPenaltyCard(state, log, "card", applyDrinkEvent);
+    rollPenaltyCard(state, log, "card");
 
     // If blocked by Shield/Immunity, penalty won't show -> turn ends normally
     if (!state.penaltyShown) {
@@ -577,6 +437,14 @@ function handlePlainCard(cardEl, cardData) {
       unlockUI();
       renderStatusEffects(state);
       return;
+    }
+
+    // If a real penalty appeared, hook drink buddy + immunity handling
+    if (state.penaltyCard) {
+      const drink = parseDrinkFromText(state.penaltyCard);
+      if (drink?.scope === "self") {
+        applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Penalty", log);
+      }
     }
 
     unlockAfter(TIMING.PENALTY_UNLOCK_MS);
@@ -599,20 +467,6 @@ function handlePlainCard(cardEl, cardData) {
     return;
   }
 
-  // Immunity consumption for drink effects
-  if (p.immunity) {
-    if (/^(Drink\b|Everybody drinks\b)/i.test(txt)) {
-      delete p.immunity;
-      log(`${p.name}'s Immunity prevented drinking from: ${txt}`);
-
-      flashElement(cardEl);
-      nextPlayer();
-      unlockUI();
-      renderStatusEffects(state);
-      return;
-    }
-  }
-
   // Ditto activation chance (same as before)
   if (Math.random() < 0.06) {
     const idx = parseInt(cardEl.dataset.index || "0", 10);
@@ -622,36 +476,21 @@ function handlePlainCard(cardEl, cardData) {
     return;
   }
 
-  // ✅ NEW: parse drink/give and route through applyDrinkEvent
-  const parsed = parseDrinkGiveText(txt);
-
-  if (parsed.kind === "everybody") {
-    flashElement(cardEl);
-
-    // Everybody drinks: don't trigger Drink Buddy as "extra" (they already drink anyway)
-    state.players.forEach((_, i) => applyDrinkEvent(i, parsed.drink, "Everybody drinks", { triggerBuddy: false }));
-
-    nextPlayer();
-    unlockUI();
-    renderStatusEffects(state);
-    return;
-  }
-
-  // Single player drink/give/mix
-  if (parsed.drink > 0) {
-    flashElement(cardEl);
-    applyDrinkEvent(state.currentPlayerIndex, parsed.drink, "Card");
-  }
-
-  if (parsed.give > 0) {
-    flashElement(cardEl);
-    log(`${p.name} gives ${parsed.give}.`);
-  }
-
-  if (parsed.drink === 0 && parsed.give === 0) {
+  // ✅ Drink event hook (for Immunity + Drink Buddy logging)
+  const drink = parseDrinkFromText(txt);
+  if (drink) {
+    if (drink.scope === "all") {
+      state.players.forEach((_, idx) => {
+        applyDrinkEvent(state, idx, drink.amount, "Everybody drinks", log);
+      });
+    } else {
+      applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Drink card", log);
+    }
+  } else {
     log(`${p.name} selected ${value}`);
-    flashElement(cardEl);
   }
+
+  flashElement(cardEl);
 
   nextPlayer();
   unlockUI();
@@ -659,9 +498,7 @@ function handlePlainCard(cardEl, cardData) {
 }
 
 function redrawGame() {
-  // NEW: pass applyDrinkEvent (redraw penalty is preview; buddy impact doesn’t really matter, but safe)
-  rollPenaltyCard(state, log, "redraw", applyDrinkEvent);
-
+  rollPenaltyCard(state, log, "redraw");
   setTimeout(() => {
     resetCards();
   }, TIMING.REDRAW_REFRESH_MS);
