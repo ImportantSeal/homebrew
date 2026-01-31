@@ -26,9 +26,8 @@ export const state = {
   // NEW: when an effect needs a target pick
   effectSelection: {
     active: false,
-    pending: null,  // { type, remainingTurns, sourceIndex, meta }
+    pending: null, // { type, remainingTurns, sourceIndex, meta }
     cleanup: null
-
   },
 
   // Sosiaaliset ja Challenge-kortit
@@ -143,7 +142,24 @@ export const state = {
       { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
       { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
 
-      // ===== NEW EFFECT CARDS =====
+      // ===== NEW ONE-SHOT LOGIC CARDS =====
+      {
+        name: "Risky Advice (d20)",
+        instruction: "Roll a d20. On 1: you down a drink. On 20: everyone else downs. Otherwise: give a genuinely useful tip — if the table says it’s bad, you drink 2.",
+        action: "RISKY_ADVICE_D20"
+      },
+      {
+        name: "The Collector",
+        instruction: "If you currently have the MOST items, you drink as many as you have items.",
+        action: "COLLECTOR"
+      },
+      {
+        name: "The Minimalist",
+        instruction: "If you have 0 items, you GIVE as many drinks as the total number of items held by other players.",
+        action: "MINIMALIST"
+      },
+
+      // ===== EFFECT CARDS =====
       {
         name: "Left Hand Rule",
         instruction: "For the next 6 turns, everyone drinks with their LEFT hand.",
@@ -158,6 +174,11 @@ export const state = {
         name: "Drink Buddy (Pick a target)",
         instruction: "Pick a player. For the next 6 turns, that player drinks whenever YOU drink.",
         effect: { type: "DRINK_BUDDY", turns: 6, needsTarget: true }
+      },
+      {
+        name: "Ditto Magnet (Pick a target)",
+        instruction: "Pick a player. For the next 5 turns, if Ditto triggers for them, they take a Shot immediately.",
+        effect: { type: "DITTO_MAGNET", turns: 5, needsTarget: true }
       }
     ]
   },

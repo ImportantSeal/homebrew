@@ -13,7 +13,14 @@ import { activateDitto, runDittoEffect } from '../logic/ditto.js';
 import { useItem } from '../logic/items.js';
 import { enableMirrorTargetSelection, primeMirrorFromCard } from '../logic/mirror.js';
 
-import { addEffect, createEffect, tickEffects, beginTargetedEffectSelection, applyDrinkEvent } from '../logic/effects.js';
+import {
+  addEffect,
+  createEffect,
+  tickEffects,
+  beginTargetedEffectSelection,
+  applyDrinkEvent,
+  onDittoActivated
+} from '../logic/effects.js';
 
 import { renderCards, getCardElements, setCardKind } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
@@ -93,6 +100,93 @@ function parseDrinkFromText(text) {
   if (self) return { scope: "self", amount: parseInt(self[1], 10) };
 
   return null;
+}
+
+function rollDie(sides) {
+  return Math.floor(Math.random() * sides) + 1;
+}
+
+function inventoryCount(player) {
+  return Array.isArray(player?.inventory) ? player.inventory.length : 0;
+}
+
+function totalOtherItems(state, selfIndex) {
+  return state.players.reduce((sum, p, idx) => {
+    if (idx === selfIndex) return sum;
+    return sum + inventoryCount(p);
+  }, 0);
+}
+
+function maxItemsAnyPlayer(state) {
+  return Math.max(0, ...state.players.map(p => inventoryCount(p)));
+}
+
+function runSpecialAction(action) {
+  const p = currentPlayer();
+  const selfIndex = state.currentPlayerIndex;
+
+  switch (action) {
+    case "RISKY_ADVICE_D20": {
+      const r = rollDie(20);
+      log(`Risky roll (d20): ${r}`);
+
+      if (r === 1) {
+        log("Critical fail: down your drink. (We treat this as Shotgun.)");
+        applyDrinkEvent(state, selfIndex, "Shotgun", "Risky Advice: 1", log);
+        return;
+      }
+
+      if (r === 20) {
+        log("Natural 20: everyone else downs. (We treat this as Shotgun.)");
+        state.players.forEach((_, idx) => {
+          if (idx !== selfIndex) applyDrinkEvent(state, idx, "Shotgun", "Risky Advice: 20", log);
+        });
+        return;
+      }
+
+      // “Advice quality” is social judgement — we just instruct
+      log("Give a genuinely useful tip. Table votes: if it's BAD → you drink 2. If it's GOOD → you may give 2.");
+      return;
+    }
+
+    case "COLLECTOR": {
+      const myItems = inventoryCount(p);
+      const maxItems = maxItemsAnyPlayer(state);
+
+      if (maxItems <= 0) {
+        log("The Collector: nobody has any items. Nothing happens.");
+        return;
+      }
+
+      if (myItems === maxItems) {
+        log(`The Collector: you have the most items (${myItems}). Drink ${myItems}.`);
+        if (myItems > 0) applyDrinkEvent(state, selfIndex, myItems, "The Collector", log);
+      } else {
+        log(`The Collector: you do NOT have the most items (${myItems} vs max ${maxItems}). Safe... for now.`);
+      }
+      return;
+    }
+
+    case "MINIMALIST": {
+      const myItems = inventoryCount(p);
+      if (myItems !== 0) {
+        log(`The Minimalist: you have ${myItems} item(s), so nothing happens.`);
+        return;
+      }
+
+      const give = totalOtherItems(state, selfIndex);
+      if (give <= 0) {
+        log("The Minimalist: everyone is item-poor. Nothing happens.");
+        return;
+      }
+
+      log(`The Minimalist: you have 0 items → GIVE ${give} drinks (total items held by others).`);
+      return;
+    }
+
+    default:
+      return;
+  }
 }
 
 // ---------- Public API ----------
@@ -354,6 +448,7 @@ function handleObjectCardDraw(cardEl, parentCard) {
   let subInstruction = "";
   let shownText = "";
   let effectDef = null;
+  let action = null;
 
   if (typeof event === "object") {
     subName = event.name || "";
@@ -362,6 +457,9 @@ function handleObjectCardDraw(cardEl, parentCard) {
 
     if (event.effect && typeof event.effect === "object") {
       effectDef = event.effect; // { type, turns, needsTarget? }
+    }
+    if (event.action) {
+      action = event.action;
     }
   } else {
     subName = String(event);
@@ -396,13 +494,11 @@ function handleObjectCardDraw(cardEl, parentCard) {
         }
       );
 
-      // UI refresh: show pending "pick a target" card immediately
       renderStatusEffects(state);
       return false;
     }
 
     // Non-targeted effects:
-    // Decide scope by type (simple rule set)
     if (effectDef.type === "LEFT_HAND") {
       addEffect(state, createEffect("LEFT_HAND", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
       log(`Effect activated: Left Hand Rule (${effectDef.turns} turns).`);
@@ -414,6 +510,12 @@ function handleObjectCardDraw(cardEl, parentCard) {
       log(`Effect activated: ${effectDef.type} (${effectDef.turns} turns).`);
     }
 
+    renderStatusEffects(state);
+  }
+
+  // ✅ NEW: one-shot action cards (Risky/Collector/Minimalist)
+  if (action) {
+    runSpecialAction(action);
     renderStatusEffects(state);
   }
 
@@ -471,6 +573,10 @@ function handlePlainCard(cardEl, cardData) {
   if (Math.random() < 0.06) {
     const idx = parseInt(cardEl.dataset.index || "0", 10);
     activateDitto(state, cardEl, idx, log);
+
+    // ✅ NEW: Ditto Magnet trigger
+    onDittoActivated(state, state.currentPlayerIndex, log);
+
     unlockUI();
     renderStatusEffects(state);
     return;

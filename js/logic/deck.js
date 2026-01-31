@@ -25,7 +25,7 @@ export function dealTurnCards(state) {
       const r = Math.random();
       if (r < 0.04) {
         card = "Immunity";
-      } else if (r < 0.06) {
+      } else if (r < 0.02) {
         const otherItems = state.itemCards.filter(item => item !== "Immunity");
         card = randomFromArray(otherItems);
       }
@@ -46,15 +46,14 @@ export function dealTurnCards(state) {
 
 function pickBaseCard(state) {
   const cardTypeChance = Math.random();
-
-  if (cardTypeChance < 0.2) {
-    // social parent (Challenge object)
+  if (cardTypeChance < 0.3) { 
+   
     return randomFromArray(state.socialCards);
-  } else if (cardTypeChance < 0.3) {
+  } else if (cardTypeChance < 0.4) {  
     return state.crowdChallenge;
-  } else if (cardTypeChance < 0.4) {
+  } else if (cardTypeChance < 0.6) { 
     return state.special;
-  } else {
+  } else { 
     return randomFromArray(state.normalDeck);
   }
 }

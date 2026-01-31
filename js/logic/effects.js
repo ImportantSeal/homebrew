@@ -39,14 +39,21 @@ export function tickEffects(state, log) {
   if (expired.length > 0) {
     state.effects = state.effects.filter(e => !(typeof e.remainingTurns === 'number' && e.remainingTurns <= 0));
     expired.forEach(e => {
-      // Keep log short (UI shows the details)
       log?.(`Effect ended: ${e.type}`);
     });
   }
 }
 
+function friendlyEffectName(type) {
+  if (type === "DRINK_BUDDY") return "Drink Buddy";
+  if (type === "LEFT_HAND") return "Left Hand Rule";
+  if (type === "NO_NAMES") return "No Names";
+  if (type === "DITTO_MAGNET") return "Ditto Magnet";
+  return type;
+}
+
 /**
- * "Pick a target" mode for targeted effects like DRINK_BUDDY.
+ * "Pick a target" mode for targeted effects like DRINK_BUDDY / DITTO_MAGNET.
  * - Adds highlight mode to turn order names
  * - Blocks other actions until target picked (controller handles the guard)
  */
@@ -69,9 +76,16 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
   // Visual hint: highlight player names while picking
   document.body.dataset.pickmode = 'effect-target';
 
-  log?.(`Pick a player for: ${def.type}. Click a player name in turn order.`);
+  log?.(`Pick a player for: ${friendlyEffectName(def.type)}. Click a player name in turn order.`);
 
   activeCleanup = enablePlayerNameSelection(state, (targetIndex, cleanup) => {
+    // ✅ disallow self-target
+    if (targetIndex === sourceIndex) {
+      const srcName = state.players?.[sourceIndex]?.name ?? "You";
+      log?.(`Nope. ${srcName} can't target themselves — pick someone else.`);
+      return; // keep selection active; do NOT cleanup
+    }
+
     cleanup?.();
     activeCleanup = null;
 
@@ -87,9 +101,10 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
     const srcName = state.players?.[sourceIndex]?.name ?? "Someone";
     const tgtName = state.players?.[targetIndex]?.name ?? "Someone";
 
-    // Specific friendly log line
     if (def.type === "DRINK_BUDDY") {
       log?.(`Drink Buddy: ${tgtName} drinks whenever ${srcName} drinks (${def.turns} turns).`);
+    } else if (def.type === "DITTO_MAGNET") {
+      log?.(`Ditto Magnet: if Ditto triggers for ${tgtName}, they take a Shot (${def.turns} turns).`);
     } else {
       log?.(`Effect set: ${def.type} → ${tgtName} (${def.turns} turns).`);
     }
@@ -107,7 +122,7 @@ function parseDrinkAmount(text) {
   const m = t.match(/\bDrink\s+(\d+)\b/i);
   if (m) return { amount: parseInt(m[1], 10), label: `Drink ${m[1]}` };
 
-  // Shot / Shotgun (map to “amount” for buddy mirroring)
+  // Shot / Shotgun
   if (/^Shotgun$/i.test(t)) return { amount: 2, label: 'Shotgun' };
   if (/^Shot$/i.test(t)) return { amount: 1, label: 'Shot' };
 
@@ -147,7 +162,6 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
     return;
   }
 
-  // We keep it short (the card itself already says the instruction)
   log?.(`${player.name}: ${label}${reason ? ` (${reason})` : ""}`);
 
   if (skipBuddy) return;
@@ -166,7 +180,27 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
         return;
       }
 
-      // Prevent chain loops
       log?.(`${tgt.name}: ${label} (Drink Buddy with ${player.name})`);
     });
+}
+
+/**
+ * Trigger hook for "Ditto appeared for player X".
+ * Used by DITTO_MAGNET.
+ */
+export function onDittoActivated(state, playerIndex, log) {
+  const player = state.players?.[playerIndex];
+  if (!player) return;
+
+  const effects = Array.isArray(state.effects) ? state.effects : [];
+  const magnets = effects.filter(
+    e => e && e.type === "DITTO_MAGNET" && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0
+  );
+
+  if (magnets.length === 0) return;
+
+  // One magnet = one shot. If you WANT stacking, remove the "only once" behavior.
+  // We'll do: trigger once even if multiple magnets exist.
+  log?.(`${player.name} got Ditto while magnetized → Shot!`);
+  applyDrinkEvent(state, playerIndex, "Shot", "Ditto Magnet", log);
 }
