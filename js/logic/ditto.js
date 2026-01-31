@@ -35,7 +35,11 @@ export function activateDitto(state, cardElement, cardIndex, log) {
   state.dittoPending[cardIndex] = randomFromArray(getDittoEventPool());
 }
 
-export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderItemsBoard) {
+/**
+ * applyDrinkEvent(playerIndex, amount, reason) is injected from controller,
+ * so Ditto drink effects can trigger "Drink Buddy" etc.
+ */
+export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderItemsBoard, applyDrinkEvent) {
   const ev = state.dittoPending?.[cardIndex];
   const currentPlayer = state.players[state.currentPlayerIndex];
 
@@ -76,6 +80,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
         log(`${currentPlayer.name}'s Immunity prevented 'Drink 3!'`);
       } else {
         log("Ditto says: Drink 3!");
+        applyDrinkEvent?.(state.currentPlayerIndex, 3, "Ditto: Drink 3");
       }
       return;
     }
@@ -87,6 +92,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
     case 'SHOT': {
       log("Ditto ordered a Shot! Take a shot now.");
+      applyDrinkEvent?.(state.currentPlayerIndex, 1, "Ditto: Shot");
       return;
     }
 
@@ -106,7 +112,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
       const penalty = randomFromArray(state.penaltyDeck);
       log(`Ditto rolled a penalty for everyone: ${penalty}`);
 
-      state.players.forEach(p => {
+      state.players.forEach((p, idx) => {
         if (p.shield) {
           delete p.shield;
           log(`${p.name}'s Shield blocked the penalty.`);
@@ -115,6 +121,11 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
           log(`${p.name}'s Immunity prevented the penalty.`);
         } else {
           log(`${p.name} takes penalty: ${penalty}`);
+          // if it's Drink X / Shot etc, trigger drink event
+          const m = String(penalty).match(/Drink\s+(\d+)/i);
+          if (m) applyDrinkEvent?.(idx, parseInt(m[1], 10), "Ditto penalty all");
+          else if (/^Shotgun$/i.test(String(penalty))) applyDrinkEvent?.(idx, 2, "Ditto penalty all: Shotgun");
+          else if (/^Shot$/i.test(String(penalty))) applyDrinkEvent?.(idx, 1, "Ditto penalty all: Shot");
         }
       });
 

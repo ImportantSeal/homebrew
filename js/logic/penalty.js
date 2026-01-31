@@ -8,7 +8,7 @@ import { getPenaltyDeckEl } from '../ui/uiFacade.js';
  *  - "card"   = player selected "Draw a Penalty Card"
  *  - "redraw" = info/preview penalty (should NOT end turn on confirm)
  */
-export function rollPenaltyCard(state, log, source = "deck") {
+export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
   if (state.penaltyShown) return;
 
   const currentPlayer = state.players[state.currentPlayerIndex];
@@ -45,6 +45,17 @@ export function rollPenaltyCard(state, log, source = "deck") {
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
 
   log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
+
+  // ✅ NEW: route drink-like penalties through applyDrinkEvent (for Drink Buddy)
+  const s = String(penalty || "").trim();
+  const m = s.match(/^Drink\s+(\d+)/i);
+  if (m && applyDrinkEvent) {
+    applyDrinkEvent(state.currentPlayerIndex, parseInt(m[1], 10) || 1, "Penalty");
+  } else if (/^Shotgun$/i.test(s) && applyDrinkEvent) {
+    applyDrinkEvent(state.currentPlayerIndex, 2, "Penalty: Shotgun");
+  } else if (/^Shot$/i.test(s) && applyDrinkEvent) {
+    applyDrinkEvent(state.currentPlayerIndex, 1, "Penalty: Shot");
+  }
 }
 
 /**

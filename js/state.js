@@ -1,33 +1,35 @@
 export const state = {
-  // -------------------------
-  // Core state
-  // -------------------------
   players: [],
   currentPlayerIndex: 0,
-
-  // shuffle-bags for "feels random" subevents
   bags: {},
 
-  // -------------------------
   // UI / flow guards
-  // -------------------------
   uiLocked: false,
 
-  // Penalty deck: 1st click reveals, 2nd click confirms (+ maybe ends turn)
+  // Penalty deck: 1st click reveals, 2nd click confirms + ends turn
   penaltyConfirmArmed: false,
 
-  // Why penalty is currently shown: "deck" | "card" | "redraw" | null
+  // NEW: why penalty is currently shown (affects behavior)
+  // "deck" | "card" | "redraw" | null
   penaltySource: null,
 
-  // Prevent log spam when player clicks cards while penalty must be confirmed
+  // NEW: prevent log spam when player clicks cards while penalty must be confirmed
   penaltyHintShown: false,
 
   // Ditto: pending effect per card index
   dittoPending: [null, null, null],
 
-  // -------------------------
-  // Card pools
-  // -------------------------
+  // NEW: timed effects
+  // Each effect: { id, type, remainingTurns, sourceIndex?, targetIndex?, createdBy? }
+  effects: [],
+
+  // NEW: when an effect needs a target pick
+  effectSelection: {
+    active: false,
+    pending: null // { type, remainingTurns, sourceIndex, meta }
+  },
+
+  // Sosiaaliset ja Challenge-kortit
   socialCards: [
     {
       name: "Challenge",
@@ -59,6 +61,7 @@ export const state = {
     }
   ],
 
+  // Normaalikortit
   normalDeck: [
     "Draw a Penalty Card",
     "Drink 1",
@@ -103,11 +106,10 @@ export const state = {
   special: {
     name: "Special Card",
     subcategories: [
-      { name: "Odds Drink", instruction: "Roll 0-9; if the result is odd, you drink the number shown." },
-      { name: "Even Drink", instruction: "Roll 0-9; if the result is even, you drink the number shown." },
-      { name: "Odds Give", instruction: "Roll 0-9; if the result is odd, you give out the number of drinks shown." },
-      { name: "Even Give", instruction: "Roll 0-9; if the result is even, you give out the number of drinks shown." },
-      { name: "Fun Time", instruction: "Roll the penalty deck. The penalty applies to all players." },
+      { name: "Odds Drink", instruction: "Roll 1-10; if the result is odd, you drink the number shown." },
+      { name: "Even Drink", instruction: "Roll 1-10; if the result is even, you drink the number shown." },
+      { name: "Odds Give", instruction: "Roll 1-10; if the result is odd, you give out the number of drinks shown." },
+      { name: "Even Give", instruction: "Roll 1-10; if the result is even, you give out the number of drinks shown." },
       { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
       { name: "Mini King", instruction: "Everyone adds to the Kings cup. Drink the Kings Cup." },
       { name: "Social", instruction: "Everyone drinks one." },
@@ -122,9 +124,9 @@ export const state = {
       { name: "Speed Round", instruction: "Name five items in a category within 10 seconds. Failure means a drink." },
       { name: "Lilo and Stitch", instruction: "If you have siblings, drink as many sips as the total number of your siblings." },
       { name: "Sloth", instruction: "Lie on your back and drink." },
-      { name: "To The Western Sky", instruction: "The player to your left must drinks." },
+      { name: "To The Western Sky", instruction: "The player to your left must drink." },
       { name: "Social Distancing", instruction: "Everyone drinks if they are sitting less than 1 meter apart." },
-      { name: "For All Ages", instruction: "Roll 0-9; players whose age ends with that digit give 1; others drink 1." },
+      { name: "For All Ages", instruction: "Roll 1-10; players whose age ends with that digit give 1; others drink 1." },
       { name: "Host Tax", instruction: "Host drinks as many sips as there are players at the table." },
       { name: "Last Arrival ", instruction: "Last arrival drinks the same number as the last Drink-card value shown in Card History. " },
       { name: "Battery Debt", instruction: "Everyone shows phone battery %. Lowest battery drinks the DIFFERENCE to the highest battery (rounded down, max 8)." },
@@ -137,33 +139,48 @@ export const state = {
       { name: "Glance & Sip", instruction: "Everyone looks at the same person (count to 3). Most looked-at drinks 3." },
       { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
       { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
-      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." }
+      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
+
+      // ===== NEW EFFECT CARDS =====
+      {
+        name: "Left Hand Rule",
+        instruction: "For the next 6 turns, everyone drinks with their LEFT hand.",
+        effect: { type: "LEFT_HAND", turns: 6 }
+      },
+      {
+        name: "No Names",
+        instruction: "For the next 10 turns, you are not allowed to say ANY names.",
+        effect: { type: "NO_NAMES", turns: 10 }
+      },
+      {
+        name: "Drink Buddy (Pick a target)",
+        instruction: "Pick a player. For the next 6 turns, that player drinks whenever YOU drink.",
+        effect: { type: "DRINK_BUDDY", turns: 6, needsTarget: true }
+      }
     ]
   },
 
-  penaltyDeck: ["Drink 3", "Drink 4", "Drink 5", "Drink 6", "Shot", "Shotgun"],
+  penaltyDeck: [
+    "Drink 3",
+    "Drink 4",
+    "Drink 5",
+    "Drink 6",
+    "Shot",
+    "Shotgun"
+  ],
 
   itemCards: ["Shield", "Reveal Free", "Mirror", "Immunity", "Skip Turn"],
 
-  // -------------------------
-  // Runtime per-turn state
-  // -------------------------
+  // Pelin aikana käytettävät tilat
   currentCards: [],
   revealed: [true, true, true],
-  hiddenIndex: null,
-
-  // Ditto per-card flags
   dittoActive: [false, false, false],
-
-  // history
+  hiddenIndex: null,
   redrawUsed: false,
   cardHistory: [],
-
-  // penalty deck runtime
   penaltyCard: null,
   penaltyShown: false,
 
-  // Mirror runtime
   mirror: {
     active: false,
     sourceIndex: null,

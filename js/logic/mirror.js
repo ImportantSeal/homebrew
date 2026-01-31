@@ -1,4 +1,12 @@
-export function enableMirrorTargetSelection(state, log, updateTurnOrder, renderItemsBoard, nextPlayer) {
+// js/logic/mirror.js
+
+/**
+ * Generic player name click selection helper.
+ * - Adds click listeners to .turn-player-name
+ * - Uses stopImmediatePropagation so it won't also toggle dropdown
+ * - Returns cleanup()
+ */
+export function enablePlayerNameSelection(state, onPick) {
   const nameEls = document.querySelectorAll('.turn-player-name');
 
   const cleanup = () => {
@@ -6,12 +14,26 @@ export function enableMirrorTargetSelection(state, log, updateTurnOrder, renderI
   };
 
   const onClick = (e) => {
+    // IMPORTANT: prevent dropdown toggle + other click handlers
+    e.preventDefault();
     e.stopPropagation();
+    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
 
     const clickedName = e.currentTarget.textContent.trim();
     const targetIndex = state.players.findIndex(p => p.name === clickedName);
     if (targetIndex === -1) return;
 
+    onPick?.(targetIndex, cleanup);
+  };
+
+  nameEls.forEach(el => el.addEventListener('click', onClick));
+  return cleanup;
+}
+
+export function enableMirrorTargetSelection(state, log, updateTurnOrder, renderItemsBoard, nextPlayer) {
+  let cleanup = null;
+
+  cleanup = enablePlayerNameSelection(state, (targetIndex, done) => {
     const sourceIndex = state.mirror.sourceIndex;
     const sourcePlayer = state.players[sourceIndex];
     const targetPlayer = state.players[targetIndex];
@@ -24,7 +46,7 @@ export function enableMirrorTargetSelection(state, log, updateTurnOrder, renderI
     log(`${sourcePlayer.name} used Mirror on ${targetPlayer.name}: ${parent}${detail ? ' | ' + detail : ''}`);
 
     state.mirror = { active: false, sourceIndex: null, selectedCardIndex: null, parentName: '', subName: '', subInstruction: '', displayText: '' };
-    cleanup();
+    done?.();
 
     if (sourceIndex === state.currentPlayerIndex) {
       nextPlayer();
@@ -32,9 +54,9 @@ export function enableMirrorTargetSelection(state, log, updateTurnOrder, renderI
       updateTurnOrder();
       renderItemsBoard();
     }
-  };
+  });
 
-  nameEls.forEach(el => el.addEventListener('click', onClick));
+  return cleanup;
 }
 
 export function primeMirrorFromCard(state, cardData, cardIndex, log, randomFromArray) {

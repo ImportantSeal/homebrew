@@ -244,7 +244,7 @@ body::before {
   flex-wrap: wrap;
   gap: 0.35rem;
 }
-.turn-player-wrapper { position: relative; cursor: pointer; }
+.turn-player-wrapper { position: relative; }
 .turn-player-name {
   display: inline-flex;
   align-items: center;
@@ -256,10 +256,6 @@ body::before {
   transition: filter 0.2s, border-color 0.2s;
   user-select: none;
   line-height: 1;
-}
-.turn-player-wrapper:hover .turn-player-name {
-  filter: brightness(1.08);
-  border-color: rgba(255,255,255,0.18);
 }
 .turn-player-name strong { color: rgba(255,255,255,0.96); font-weight: 900; }
 .turn-order > span { color: rgba(234,240,255,0.35); margin: 0 0.15rem; }
@@ -287,7 +283,60 @@ body::before {
   justify-content: center;
   align-items: center;
   gap: var(--cards-gap);
-  margin-bottom: 1.25rem;
+  margin-bottom: 0.9rem; /* hieman pienempi, koska status tulee alle */
+}
+
+/* ✅ Status effects area under cards */
+.status-effects {
+  width: min(52rem, 100%);
+  min-width: 0;
+  margin-top: 0.35rem;
+
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(10, 14, 28, 0.35);
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+  padding: 0.6rem 0.7rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  text-align: left;
+}
+
+.status-effects:empty {
+  display: none; /* piilota kokonaan jos ei mitään */
+}
+
+.status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.status-player {
+  font-weight: 900;
+  color: rgba(255,255,255,0.92);
+  margin-right: 0.25rem;
+}
+
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  background: rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: rgba(234,240,255,0.90);
+  user-select: none;
+}
+
+.status-chip strong {
+  font-weight: 900;
+  color: rgba(255,255,255,0.95);
 }
 
 /* ==== Cards + hover highlight (ALL cards) ==== */
@@ -398,7 +447,7 @@ body::before {
   background-image: url('../images/cardback.png');
   background-size: cover;
   background-position: center;
-  background-color: rgba(10, 14, 28, 0.75); /* fallback */
+  background-color: rgba(10, 14, 28, 0.75);
 }
 
 /* Front face (cards) */
@@ -411,7 +460,7 @@ body::before {
   line-height: 1.15;
   word-break: break-word;
   position: relative;
-  padding-top: 1.55rem; /* tilaa badge:lle */
+  padding-top: 1.55rem;
 }
 
 /* Badge + bottom strip */
@@ -466,14 +515,11 @@ body::before {
 }
 
 /* ====== Card kind styling ====== */
-/* Normal fallback */
 .card[data-kind="normal"] {
   --badge: "NORMAL";
   --strip: linear-gradient(90deg, rgba(11,16,32,0.10), rgba(11,16,32,0.02));
   --hover-ring: rgba(255,255,255,0.22);
 }
-
-/* Drink */
 .card[data-kind="drink"] {
   --badge: "DRINK";
   --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(53,224,199,0.22), transparent 60%),
@@ -482,8 +528,6 @@ body::before {
   --strip: linear-gradient(90deg, rgba(53,224,199,0.70), rgba(53,224,199,0.10));
   --hover-ring: rgba(53,224,199,0.35);
 }
-
-/* Give */
 .card[data-kind="give"] {
   --badge: "GIVE";
   --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(72,222,128,0.22), transparent 60%),
@@ -492,8 +536,6 @@ body::before {
   --strip: linear-gradient(90deg, rgba(72,222,128,0.72), rgba(72,222,128,0.10));
   --hover-ring: rgba(72,222,128,0.33);
 }
-
-/* Mix (Drink + Give) */
 .card[data-kind="mix"] {
   --badge: "MIX";
   --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(255,176,32,0.20), transparent 60%),
@@ -502,8 +544,6 @@ body::before {
   --strip: linear-gradient(90deg, rgba(255,176,32,0.80), rgba(255,176,32,0.12));
   --hover-ring: rgba(255,176,32,0.32);
 }
-
-/* Penalty call card */
 .card[data-kind="penaltycall"] {
   --badge: "PENALTY";
   --front-bg: radial-gradient(200px 150px at 30% 25%, rgba(255,79,216,0.18), transparent 62%),
@@ -513,8 +553,6 @@ body::before {
   --strip: linear-gradient(90deg, rgba(255,59,59,0.85), rgba(255,59,59,0.12));
   --hover-ring: rgba(255,59,59,0.32);
 }
-
-/* Items */
 .card[data-kind="item"] {
   --badge: "ITEM";
   --front-bg: radial-gradient(200px 160px at 30% 25%, rgba(168,85,247,0.20), transparent 62%),
@@ -523,8 +561,6 @@ body::before {
   --strip: linear-gradient(90deg, rgba(168,85,247,0.85), rgba(168,85,247,0.12));
   --hover-ring: rgba(168,85,247,0.32);
 }
-
-/* Social / Challenge */
 .card[data-kind="social"] {
   --badge: "SOCIAL";
   --front-bg: radial-gradient(200px 160px at 30% 25%, rgba(53,224,199,0.20), transparent 62%),
@@ -533,8 +569,6 @@ body::before {
   --strip: linear-gradient(90deg, rgba(53,224,199,0.85), rgba(53,224,199,0.12));
   --hover-ring: rgba(53,224,199,0.34);
 }
-
-/* Crowd challenge */
 .card[data-kind="crowd"] {
   --badge: "CROWD";
   --front-bg: radial-gradient(220px 170px at 30% 25%, rgba(255,79,216,0.18), transparent 62%),
@@ -543,8 +577,6 @@ body::before {
   --strip: linear-gradient(90deg, rgba(255,79,216,0.85), rgba(255,79,216,0.12));
   --hover-ring: rgba(255,79,216,0.32);
 }
-
-/* Special card */
 .card[data-kind="special"] {
   --badge: "SPECIAL";
   --front-bg: radial-gradient(220px 170px at 30% 25%, rgba(168,85,247,0.20), transparent 62%),
@@ -554,8 +586,6 @@ body::before {
   --strip: linear-gradient(90deg, rgba(168,85,247,0.85), rgba(53,224,199,0.55));
   --hover-ring: rgba(168,85,247,0.30);
 }
-
-/* Ditto */
 .card[data-kind="ditto"] {
   --badge: "DITTO";
   --hover-ring: rgba(168,85,247,0.30);
@@ -650,26 +680,6 @@ body::before {
 
 #card-history p { margin: 0.25rem 0; color: rgba(234,240,255,0.86); font-size: 0.98rem; line-height: 1.25; }
 #card-history p:last-child { color: rgba(255,255,255,0.96); }
-
-/* Dropdown */
-.player-dropdown {
-  display: none;
-  position: absolute;
-  top: 110%;
-  left: 0;
-  z-index: 1000;
-  min-width: 170px;
-  text-align: left;
-  border-radius: 0.75rem;
-  background: var(--panel-strong);
-  border: 1px solid rgba(255,255,255,0.14);
-  box-shadow: var(--shadow-soft);
-  padding: 0.5rem;
-}
-.player-dropdown.show { display: block; }
-.player-dropdown ul { list-style: none; margin: 0; padding: 0; }
-.player-dropdown li { padding: 0.3rem 0.55rem; border-radius: 0.55rem; color: rgba(234,240,255,0.86); white-space: nowrap; }
-.player-dropdown li:hover { background: rgba(255,255,255,0.06); }
 
 /* Modal */
 .modal { position: fixed; inset: 0; display: none; z-index: 20000; }
@@ -877,6 +887,8 @@ body::before {
   .history-section { max-height: 16rem; }
 
   .dice-controls label { min-width: 7.25rem; }
+
+  .status-effects { width: 100%; }
 }
 
 @media (prefers-reduced-motion: reduce) {

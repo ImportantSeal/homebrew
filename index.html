@@ -96,6 +96,10 @@
             </div>
           </div>
         </div>
+
+        <!-- ✅ UUSI: Status effects korttien alle -->
+        <div class="status-effects" id="status-effects" aria-label="Status effects"></div>
+
       </section>
 
       <!-- Oikea paneeli -->
@@ -161,7 +165,7 @@
       </div>
 
       <div class="modal__body">
-        <!-- QUICK BUTTONS (only standard dice) -->
+        <!-- QUICK BUTTONS -->
         <div class="dice-quick" aria-label="Quick dice buttons">
           <button class="dice-chip" type="button" data-qty="1" data-sides="4">d4</button>
           <button class="dice-chip" type="button" data-qty="1" data-sides="6">d6</button>
@@ -169,13 +173,15 @@
           <button class="dice-chip" type="button" data-qty="1" data-sides="10">d10</button>
           <button class="dice-chip" type="button" data-qty="1" data-sides="12">d12</button>
           <button class="dice-chip" type="button" data-qty="1" data-sides="20">d20</button>
+
+          <span class="dice-quick-sep"></span>
+
+          <button class="dice-chip" type="button" data-qty="2" data-sides="6">2d6</button>
+          <button class="dice-chip" type="button" data-qty="3" data-sides="6">3d6</button>
+          <button class="dice-chip" type="button" data-qty="2" data-sides="20">2d20</button>
         </div>
 
-        <!-- DICE TRAY -->
-        <div id="dice-box" class="dice-box" aria-label="3D dice tray"></div>
-
-        <!-- CONTROLS moved UNDER tray, no Modifier -->
-        <div class="dice-controls dice-controls-under">
+        <div class="dice-controls">
           <label>
             Die
             <select id="dice-sides">
@@ -193,8 +199,15 @@
             <input id="dice-qty" type="number" min="1" max="20" value="1" />
           </label>
 
+          <label>
+            Modifier
+            <input id="dice-mod" type="number" min="-50" max="50" value="0" />
+          </label>
+
           <button id="dice-roll" class="dice-roll" type="button">Roll</button>
         </div>
+
+        <div id="dice-box" class="dice-box" aria-label="3D dice tray"></div>
 
         <div id="dice-result" class="dice-result">—</div>
       </div>
