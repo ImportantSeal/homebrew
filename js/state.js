@@ -3,12 +3,18 @@ export const state = {
   currentPlayerIndex: 0,
   bags: {},
 
-
   // UI / flow guards
   uiLocked: false,
 
   // Penalty deck: 1st click reveals, 2nd click confirms + ends turn
   penaltyConfirmArmed: false,
+
+  // NEW: why penalty is currently shown (affects behavior)
+  // "deck" | "card" | "redraw" | null
+  penaltySource: null,
+
+  // NEW: prevent log spam when player clicks cards while penalty must be confirmed
+  penaltyHintShown: false,
 
   // Ditto: pending effect per card index
   dittoPending: [null, null, null],
@@ -90,11 +96,10 @@ export const state = {
   special: {
     name: "Special Card",
     subcategories: [
-      { name: "Odds Drink", instruction: "Roll 0-9; if the result is odd, you drink the number shown." },
-      { name: "Even Drink", instruction: "Roll 0-9; if the result is even, you drink the number shown." },
-      { name: "Odds Give", instruction: "Roll 0-9; if the result is odd, you give out the number of drinks shown." },
-      { name: "Even Give", instruction: "Roll 0-9; if the result is even, you give out the number of drinks shown." },
-      { name: "Fun Time", instruction: "Roll the penalty deck. The penalty applies to all players." },
+      { name: "Odds Drink", instruction: "Roll 1-10; if the result is odd, you drink the number shown." },
+      { name: "Even Drink", instruction: "Roll 1-10; if the result is even, you drink the number shown." },
+      { name: "Odds Give", instruction: "Roll 1-10; if the result is odd, you give out the number of drinks shown." },
+      { name: "Even Give", instruction: "Roll 1-10; if the result is even, you give out the number of drinks shown." },
       { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
       { name: "Mini King", instruction: "Everyone adds to the Kings cup. Drink the Kings Cup." },
       { name: "Social", instruction: "Everyone drinks one." },
@@ -124,10 +129,9 @@ export const state = {
       { name: "Glance & Sip", instruction: "Everyone looks at the same person (count to 3). Most looked-at drinks 3." },
       { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
       { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
-      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
-
-
-    ]},
+      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." }
+    ]
+  },
 
   penaltyDeck: [
     "Drink 3",

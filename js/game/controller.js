@@ -26,9 +26,43 @@ function log(message) {
   addHistoryEntry(message);
 }
 
+/**
+ * Reveal penalty deck as an "info reveal" (does NOT end turn on confirm).
+ * This is used for Special/Crowd/Social sub-events that mention penalty deck/card.
+ */
+function revealPenaltyDeckInfo(reasonLabel = "Penalty") {
+  // If we are forcing a penalty confirm from a real "Draw a Penalty Card" selection,
+  // don't override that state.
+  if (state.penaltyShown && state.penaltySource === "card") return;
+
+  // If some other penalty is currently open, close it first.
+  if (state.penaltyShown) {
+    hidePenaltyCard(state);
+  }
+
+  const penalty = randomFromArray(state.penaltyDeck);
+
+  state.penaltyCard = penalty;
+  state.penaltyShown = true;
+  state.penaltyConfirmArmed = true;
+
+  // IMPORTANT: mark as "redraw" so clicking the deck to close it will NOT advance turn
+  state.penaltySource = "redraw";
+  state.penaltyHintShown = false;
+
+  const penaltyDeckEl = document.getElementById('penalty-deck');
+  flipCardAnimation(penaltyDeckEl, penalty);
+
+  // One clean log line (so we don't spam)
+  log(`${reasonLabel} → ${penalty}`);
+}
+
 export function startGame() {
   state.uiLocked = false;
   state.penaltyConfirmArmed = false;
+  state.penaltySource = null;
+  state.penaltyHintShown = false;
+
   state.dittoPending = [null, null, null];
   state.dittoActive = [false, false, false];
 
@@ -56,17 +90,27 @@ function setupEventListeners() {
   document.getElementById('penalty-deck').addEventListener('click', () => {
     if (state.uiLocked) return;
 
+    // If penalty is showing, clicking confirms/hides depending on source
     if (state.penaltyShown && state.penaltyConfirmArmed) {
       state.uiLocked = true;
+
+      const source = state.penaltySource;
+
       hidePenaltyCard(state);
-      nextPlayer();
+
+      // Redraw/info penalties should NOT end the turn
+      if (source !== "redraw") {
+        nextPlayer();
+      }
+
       state.uiLocked = false;
       return;
     }
 
+    // Otherwise reveal penalty deck normally
     if (!state.penaltyShown) {
       state.uiLocked = true;
-      rollPenaltyCard(state, log);
+      rollPenaltyCard(state, log, "deck");
       setTimeout(() => { state.uiLocked = false; }, PENALTY_UNLOCK_MS);
       return;
     }
@@ -136,8 +180,20 @@ function selectCard(index) {
 
   const cards = getCardElements();
 
-  // Jos penalty on auki ja klikataan kortteja, piilota penalty (ei vaihda vuoroa)
+  // If a penalty is currently shown:
   if (state.penaltyShown) {
+    // If it was triggered by selecting "Draw a Penalty Card",
+    // force player to confirm by clicking the penalty deck (no bypass)
+    if (state.penaltySource === "card") {
+      if (!state.penaltyHintShown) {
+        log("Penalty is waiting: click the Penalty Deck to confirm.");
+        state.penaltyHintShown = true;
+      }
+      state.uiLocked = false;
+      return;
+    }
+
+    // Otherwise (manual/info peek), clicking cards just hides it (no turn advance)
     hidePenaltyCard(state);
   }
 
@@ -234,6 +290,19 @@ function selectCard(index) {
     const details = subInstruction ? `${subName} — ${subInstruction}` : `${subName}`;
     log(`${currentPlayer.name} drew ${parentName}: ${details}`);
 
+    // ✅ NEW: If the sub-event mentions penalty deck/card, flip the penalty deck too (info reveal)
+    const penaltyTrigger =
+      /penalty/i.test(subName) ||
+      /penalty/i.test(subInstruction) ||
+      /penalty deck/i.test(challengeText) ||
+      /penalty card/i.test(challengeText);
+
+    if (penaltyTrigger) {
+      // label to make history readable
+      const label = `${parentName}${subName ? `: ${subName}` : ""}`;
+      revealPenaltyDeckInfo(label);
+    }
+
     nextPlayer();
     state.uiLocked = false;
     return;
@@ -241,6 +310,26 @@ function selectCard(index) {
 
   // Normaalikortit / itemit
   const value = getCardDisplayValue(cardData);
+  const txt = String(value).trim();
+
+  // "Draw a Penalty Card" actually draws penalty and requires confirm
+  if (/^Draw a Penalty Card$/i.test(txt)) {
+    flashElement(cards[index]);
+
+    // Reveal penalty deck as if player "drew" it from a card
+    rollPenaltyCard(state, log, "card");
+
+    // If penalty was blocked by Shield/Immunity, rollPenaltyCard doesn't show anything → turn ends normally
+    if (!state.penaltyShown) {
+      nextPlayer();
+      state.uiLocked = false;
+      return;
+    }
+
+    // Penalty is now shown; player must confirm via penalty deck click
+    setTimeout(() => { state.uiLocked = false; }, PENALTY_UNLOCK_MS);
+    return;
+  }
 
   // Item-kortit
   if (state.itemCards.includes(value)) {
@@ -256,7 +345,6 @@ function selectCard(index) {
 
   // Immunity kulutus
   if (state.players[state.currentPlayerIndex].immunity) {
-    const txt = String(value).trim();
     if (/^(Drink\b|Everybody drinks\b)/i.test(txt)) {
       const p = state.players[state.currentPlayerIndex];
       delete p.immunity;
@@ -282,7 +370,8 @@ function selectCard(index) {
 }
 
 function redrawGame() {
-  rollPenaltyCard(state, log);
+  // Redraw reveals penalty but should not end turn on confirm
+  rollPenaltyCard(state, log, "redraw");
   setTimeout(() => {
     resetCards();
   }, REDRAW_REFRESH_MS);
