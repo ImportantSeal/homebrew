@@ -45,6 +45,18 @@
         <header class="game-header">
           <div class="header-row">
             <h1>Homebrew beta</h1>
+
+            <button
+              id="dice-toggle"
+              class="rules-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="dice-modal"
+              aria-expanded="false"
+            >
+              Dice
+            </button>
+
             <button
               id="rules-toggle"
               class="rules-button"
@@ -134,6 +146,50 @@
         <ul>
           <li>Sometimes a picked card becomes Ditto. Click again to confirm and apply the stored Ditto effect.</li>
         </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dice Modal -->
+  <div id="dice-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2>Dice</h2>
+        <button class="modal__close" type="button" data-close aria-label="Close dice">×</button>
+      </div>
+
+      <div class="modal__body">
+        <div class="dice-controls">
+          <label>
+            Die
+            <select id="dice-sides">
+              <option value="4">d4</option>
+              <option value="6" selected>d6</option>
+              <option value="8">d8</option>
+              <option value="10">d10</option>
+              <option value="12">d12</option>
+              <option value="20">d20</option>
+            </select>
+          </label>
+
+          <label>
+            Qty
+            <input id="dice-qty" type="number" min="1" max="20" value="1" />
+          </label>
+
+          <label>
+            Modifier
+            <input id="dice-mod" type="number" min="-50" max="50" value="0" />
+          </label>
+
+          <button id="dice-roll" class="dice-roll" type="button">Roll</button>
+        </div>
+
+        <div id="dice-box" class="dice-box" aria-label="3D dice tray"></div>
+
+        <div id="dice-result" class="dice-result">—</div>
       </div>
     </div>
   </div>
