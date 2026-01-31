@@ -8,7 +8,7 @@ import { randomFromArray, createBag } from '../utils/random.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
 
 import { dealTurnCards } from '../logic/deck.js';
-import { rollPenaltyCard, hidePenaltyCard } from '../logic/penalty.js';
+import { rollPenaltyCard, hidePenaltyCard, showPenaltyPreview } from '../logic/penalty.js';
 import { activateDitto, runDittoEffect } from '../logic/ditto.js';
 import { useItem } from '../logic/items.js';
 import { enableMirrorTargetSelection, primeMirrorFromCard } from '../logic/mirror.js';
@@ -17,47 +17,70 @@ import { renderCards, getCardElements, setCardKind } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { renderItemsBoard } from '../ui/itemsBoard.js';
 
-const PENALTY_UNLOCK_MS = 350;
-const MYSTERY_REVEAL_UNLOCK_MS = 700;
-const DITTO_DOUBLECLICK_GUARD_MS = 1000;
-const REDRAW_REFRESH_MS = 1000;
+import {
+  showGameContainer,
+  setTurnIndicatorText,
+  bindRedrawClick,
+  bindPenaltyDeckClick,
+  bindCloseDropdownsOnOutsideClick
+} from '../ui/uiFacade.js';
 
+const TIMING = {
+  PENALTY_UNLOCK_MS: 350,
+  MYSTERY_REVEAL_UNLOCK_MS: 700,
+  DITTO_DOUBLECLICK_GUARD_MS: 1000,
+  REDRAW_REFRESH_MS: 1000
+};
+
+// ---------- Logging ----------
 function log(message) {
   addHistoryEntry(message);
 }
 
-/**
- * Reveal penalty deck as an "info reveal" (does NOT end turn on confirm).
- * This is used for Special/Crowd/Social sub-events that mention penalty deck/card.
- */
-function revealPenaltyDeckInfo(reasonLabel = "Penalty") {
-  // If we are forcing a penalty confirm from a real "Draw a Penalty Card" selection,
-  // don't override that state.
-  if (state.penaltyShown && state.penaltySource === "card") return;
-
-  // If some other penalty is currently open, close it first.
-  if (state.penaltyShown) {
-    hidePenaltyCard(state);
-  }
-
-  const penalty = randomFromArray(state.penaltyDeck);
-
-  state.penaltyCard = penalty;
-  state.penaltyShown = true;
-  state.penaltyConfirmArmed = true;
-
-  // IMPORTANT: mark as "redraw" so clicking the deck to close it will NOT advance turn
-  state.penaltySource = "redraw";
-  state.penaltyHintShown = false;
-
-  const penaltyDeckEl = document.getElementById('penalty-deck');
-  flipCardAnimation(penaltyDeckEl, penalty);
-
-  // One clean log line (so we don't spam)
-  log(`${reasonLabel} → ${penalty}`);
+// ---------- Small helpers ----------
+function currentPlayer() {
+  return state.players[state.currentPlayerIndex];
 }
 
+function lockUI() {
+  state.uiLocked = true;
+}
+
+function unlockUI() {
+  state.uiLocked = false;
+}
+
+function unlockAfter(ms) {
+  setTimeout(() => { state.uiLocked = false; }, ms);
+}
+
+function isDrawPenaltyCardText(txt) {
+  return /^Draw a Penalty Card$/i.test(String(txt).trim());
+}
+
+function shouldTriggerPenaltyPreview(subName, subInstruction, challengeText) {
+  const a = String(subName || "");
+  const b = String(subInstruction || "");
+  const c = String(challengeText || "");
+  return /penalty/i.test(a) || /penalty/i.test(b) || /penalty deck/i.test(c) || /penalty card/i.test(c);
+}
+
+// Bag key for object card pools
+function getBagKeyForObjectCard(cardData) {
+  if (cardData === state.special) return "special";
+  if (cardData === state.crowdChallenge) return "crowd";
+  return `social:${cardData.name || "unknown"}`;
+}
+
+function ensureBag(stateObj, key, items) {
+  if (!stateObj.bags) stateObj.bags = {};
+  if (!stateObj.bags[key]) stateObj.bags[key] = createBag(items);
+  return stateObj.bags[key];
+}
+
+// ---------- Public API ----------
 export function startGame() {
+  // runtime flags
   state.uiLocked = false;
   state.penaltyConfirmArmed = false;
   state.penaltySource = null;
@@ -66,7 +89,6 @@ export function startGame() {
   state.dittoPending = [null, null, null];
   state.dittoActive = [false, false, false];
 
-  // Ensure bags object exists
   if (!state.bags) state.bags = {};
 
   initGameView();
@@ -74,63 +96,25 @@ export function startGame() {
   updateTurn();
 }
 
+// ---------- Setup ----------
 function initGameView() {
-  const gameContainer = document.getElementById('game-container');
-  gameContainer.style.display = "block";
+  showGameContainer();
   hidePenaltyCard(state);
 }
 
 function setupEventListeners() {
-  document.getElementById('redraw-button').addEventListener('click', () => {
-    redrawGame();
-    const currentPlayer = state.players[state.currentPlayerIndex];
-    log(`${currentPlayer.name} used Redraw to reveal penalty card and refresh cards.`);
-  });
-
-  document.getElementById('penalty-deck').addEventListener('click', () => {
-    if (state.uiLocked) return;
-
-    // If penalty is showing, clicking confirms/hides depending on source
-    if (state.penaltyShown && state.penaltyConfirmArmed) {
-      state.uiLocked = true;
-
-      const source = state.penaltySource;
-
-      hidePenaltyCard(state);
-
-      // Redraw/info penalties should NOT end the turn
-      if (source !== "redraw") {
-        nextPlayer();
-      }
-
-      state.uiLocked = false;
-      return;
-    }
-
-    // Otherwise reveal penalty deck normally
-    if (!state.penaltyShown) {
-      state.uiLocked = true;
-      rollPenaltyCard(state, log, "deck");
-      setTimeout(() => { state.uiLocked = false; }, PENALTY_UNLOCK_MS);
-      return;
-    }
-
-    hidePenaltyCard(state);
-  });
-
-  // Dropdownit kiinni kun klikataan muualle
-  document.addEventListener('click', () => {
-    document.querySelectorAll('.player-dropdown.show')
-      .forEach(d => d.classList.remove('show'));
-  });
+  bindRedrawClick(onRedrawClick);
+  bindPenaltyDeckClick(onPenaltyDeckClick);
+  bindCloseDropdownsOnOutsideClick();
 }
 
+// ---------- Turn flow ----------
 function nextPlayer() {
-  const currentPlayer = state.players[state.currentPlayerIndex];
+  const p = currentPlayer();
 
-  if (currentPlayer.extraLife) {
-    log(`${currentPlayer.name} uses Extra Life to keep their turn.`);
-    delete currentPlayer.extraLife;
+  if (p.extraLife) {
+    log(`${p.name} uses Extra Life to keep their turn.`);
+    delete p.extraLife;
     updateTurn();
     return;
   }
@@ -140,17 +124,12 @@ function nextPlayer() {
 }
 
 function updateTurn() {
-  const turnIndicator = document.getElementById('turn-indicator');
-  const currentPlayer = state.players[state.currentPlayerIndex];
-  turnIndicator.textContent = `${currentPlayer.name}'s Turn`;
+  const p = currentPlayer();
+  setTurnIndicatorText(`${p.name}'s Turn`);
 
-  updateTurnOrder();
+  renderTurnOrder(state);
   renderItems();
   resetCards();
-}
-
-function updateTurnOrder() {
-  renderTurnOrder(state);
 }
 
 function renderItems() {
@@ -160,219 +139,242 @@ function renderItems() {
       pIndex,
       iIndex,
       log,
-      updateTurnOrder,
+      () => renderTurnOrder(state),
       renderItems,
       updateTurn,
-      () => enableMirrorTargetSelection(state, log, updateTurnOrder, renderItems, nextPlayer)
+      () => enableMirrorTargetSelection(state, log, () => renderTurnOrder(state), renderItems, nextPlayer)
     );
   });
 }
 
 function resetCards() {
   dealTurnCards(state);
-  renderCards(state, selectCard);
+  renderCards(state, onCardClick);
   hidePenaltyCard(state);
 }
 
-function selectCard(index) {
+// ---------- UI event handlers ----------
+function onRedrawClick() {
+  redrawGame();
+  const p = currentPlayer();
+  log(`${p.name} used Redraw to reveal penalty card and refresh cards.`);
+}
+
+function onPenaltyDeckClick() {
   if (state.uiLocked) return;
-  state.uiLocked = true;
 
-  const cards = getCardElements();
+  // If penalty is showing, clicking confirms/hides depending on source
+  if (state.penaltyShown && state.penaltyConfirmArmed) {
+    lockUI();
 
-  // If a penalty is currently shown:
+    const source = state.penaltySource;
+    hidePenaltyCard(state);
+
+    // "redraw" = preview/info penalty -> does NOT end turn
+    if (source !== "redraw") {
+      nextPlayer();
+    }
+
+    unlockUI();
+    return;
+  }
+
+  // Otherwise reveal penalty deck normally
+  if (!state.penaltyShown) {
+    lockUI();
+    rollPenaltyCard(state, log, "deck");
+    unlockAfter(TIMING.PENALTY_UNLOCK_MS);
+    return;
+  }
+
+  hidePenaltyCard(state);
+}
+
+function onCardClick(index) {
+  if (state.uiLocked) return;
+  lockUI();
+
+  // If penalty is open, handle it first
   if (state.penaltyShown) {
-    // If it was triggered by selecting "Draw a Penalty Card",
-    // force player to confirm by clicking the penalty deck (no bypass)
+    // If penalty came from selecting the penalty card, you must confirm via penalty deck click
     if (state.penaltySource === "card") {
       if (!state.penaltyHintShown) {
         log("Penalty is waiting: click the Penalty Deck to confirm.");
         state.penaltyHintShown = true;
       }
-      state.uiLocked = false;
+      unlockUI();
       return;
     }
 
-    // Otherwise (manual/info peek), clicking cards just hides it (no turn advance)
+    // Otherwise, clicking cards hides preview/deck penalty (no turn advance)
     hidePenaltyCard(state);
   }
 
-  const currentPlayer = state.players[state.currentPlayerIndex];
+  const cards = getCardElements();
+  const cardEl = cards[index];
 
-  // 1) Mystery: eka klikki vain paljastaa. (EI ADVANCE)
+  // 1) Mystery reveal: first click only reveals
   if (!state.revealed[index]) {
     state.revealed[index] = true;
 
-    // NOW that it's revealed: apply real kind styling for this card
-    setCardKind(state, cards[index], state.currentCards[index], false);
+    setCardKind(state, cardEl, state.currentCards[index], false);
+    flipCardAnimation(cardEl, getCardDisplayValue(state.currentCards[index]));
 
-    flipCardAnimation(cards[index], getCardDisplayValue(state.currentCards[index]));
-    setTimeout(() => { state.uiLocked = false; }, MYSTERY_REVEAL_UNLOCK_MS);
+    unlockAfter(TIMING.MYSTERY_REVEAL_UNLOCK_MS);
     return;
   }
 
-  // Ditto confirm (kortti on jo paljastettu)
+  // 2) Ditto confirm flow
   if (state.dittoActive[index]) {
-    const activationTime = parseInt(cards[index].dataset.dittoTime || "0", 10);
-    if (Date.now() - activationTime < DITTO_DOUBLECLICK_GUARD_MS) {
-      state.uiLocked = false;
+    const activationTime = parseInt(cardEl.dataset.dittoTime || "0", 10);
+    if (Date.now() - activationTime < TIMING.DITTO_DOUBLECLICK_GUARD_MS) {
+      unlockUI();
       return;
     }
 
-    log(`${currentPlayer.name} confirmed Ditto card.`);
-    runDittoEffect(state, index, log, updateTurnOrder, renderItems);
+    const p = currentPlayer();
+    log(`${p.name} confirmed Ditto card.`);
+    runDittoEffect(state, index, log, () => renderTurnOrder(state), renderItems);
 
     state.dittoActive[index] = false;
     state.dittoPending[index] = null;
 
     nextPlayer();
-    state.uiLocked = false;
+    unlockUI();
     return;
   }
 
   const cardData = state.currentCards[index];
 
-  // Mirror mode: primetetään kortti
+  // 3) Mirror prime flow
   if (state.mirror && state.mirror.active && state.mirror.selectedCardIndex === null) {
     primeMirrorFromCard(state, cardData, index, log, randomFromArray);
 
-    log(
-      `Mirror primed with: ${state.mirror.parentName}` +
-      `${state.mirror.subName ? ' - ' + state.mirror.subName : ''}` +
-      `${state.mirror.subInstruction ? ' — ' + state.mirror.subInstruction : ''}. ` +
-      `Now click a player's name to target.`
+    enableMirrorTargetSelection(
+      state,
+      log,
+      () => renderTurnOrder(state),
+      renderItems,
+      nextPlayer
     );
 
-    enableMirrorTargetSelection(state, log, updateTurnOrder, renderItems, nextPlayer);
-
-    state.uiLocked = false;
+    unlockUI();
     return;
   }
 
-  // Haastekortit (object + subcategories)
+  // 4) Object card (Special/Crowd/Social) draw
   if (typeof cardData === 'object' && cardData.subcategories) {
-    // Use shuffle-bag for "feels random" draws
-    if (!state.bags) state.bags = {};
-
-    let bagKey = "";
-
-    if (cardData === state.special) {
-      bagKey = "special";
-    } else if (cardData === state.crowdChallenge) {
-      bagKey = "crowd";
-    } else {
-      // e.g. Challenge parent from socialCards
-      bagKey = `social:${cardData.name || "unknown"}`;
-    }
-
-    if (!state.bags[bagKey]) {
-      state.bags[bagKey] = createBag(cardData.subcategories);
-    }
-
-    const challengeEvent = state.bags[bagKey].next();
-
-    let subName = "";
-    let subInstruction = "";
-    let challengeText = "";
-
-    if (typeof challengeEvent === 'object') {
-      subName = challengeEvent.name || "";
-      subInstruction = challengeEvent.instruction || "";
-      challengeText = subInstruction || subName;
-    } else {
-      subName = String(challengeEvent);
-      challengeText = subName;
-    }
-
-    flipCardAnimation(cards[index], challengeText);
-
-    const parentName = getCardDisplayValue(cardData);
-    const details = subInstruction ? `${subName} — ${subInstruction}` : `${subName}`;
-    log(`${currentPlayer.name} drew ${parentName}: ${details}`);
-
-    // ✅ NEW: If the sub-event mentions penalty deck/card, flip the penalty deck too (info reveal)
-    const penaltyTrigger =
-      /penalty/i.test(subName) ||
-      /penalty/i.test(subInstruction) ||
-      /penalty deck/i.test(challengeText) ||
-      /penalty card/i.test(challengeText);
-
-    if (penaltyTrigger) {
-      // label to make history readable
-      const label = `${parentName}${subName ? `: ${subName}` : ""}`;
-      revealPenaltyDeckInfo(label);
-    }
-
+    handleObjectCardDraw(cardEl, cardData);
     nextPlayer();
-    state.uiLocked = false;
+    unlockUI();
     return;
   }
 
-  // Normaalikortit / itemit
+  // 5) Plain cards / items / drink/give
+  handlePlainCard(cardEl, cardData);
+}
+
+// ---------- Draw handlers ----------
+function handleObjectCardDraw(cardEl, parentCard) {
+  const p = currentPlayer();
+
+  const bagKey = getBagKeyForObjectCard(parentCard);
+  const bag = ensureBag(state, bagKey, parentCard.subcategories);
+  const event = bag.next();
+
+  let subName = "";
+  let subInstruction = "";
+  let shownText = "";
+
+  if (typeof event === "object") {
+    subName = event.name || "";
+    subInstruction = event.instruction || "";
+    shownText = subInstruction || subName;
+  } else {
+    subName = String(event);
+    shownText = subName;
+  }
+
+  flipCardAnimation(cardEl, shownText);
+
+  const parentName = getCardDisplayValue(parentCard);
+  const details = subInstruction ? `${subName} — ${subInstruction}` : `${subName}`;
+  log(`${p.name} drew ${parentName}: ${details}`);
+
+  // If the subevent mentions penalty, also flip penalty deck (preview only)
+  if (shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
+    const label = `${parentName}${subName ? `: ${subName}` : ""}`;
+    showPenaltyPreview(state, log, label);
+  }
+}
+
+function handlePlainCard(cardEl, cardData) {
+  const p = currentPlayer();
   const value = getCardDisplayValue(cardData);
   const txt = String(value).trim();
 
-  // "Draw a Penalty Card" actually draws penalty and requires confirm
-  if (/^Draw a Penalty Card$/i.test(txt)) {
-    flashElement(cards[index]);
+  // Penalty card (must confirm via penalty deck click)
+  if (isDrawPenaltyCardText(txt)) {
+    flashElement(cardEl);
 
-    // Reveal penalty deck as if player "drew" it from a card
     rollPenaltyCard(state, log, "card");
 
-    // If penalty was blocked by Shield/Immunity, rollPenaltyCard doesn't show anything → turn ends normally
+    // If blocked by Shield/Immunity, penalty won't show -> turn ends normally
     if (!state.penaltyShown) {
       nextPlayer();
-      state.uiLocked = false;
+      unlockUI();
       return;
     }
 
-    // Penalty is now shown; player must confirm via penalty deck click
-    setTimeout(() => { state.uiLocked = false; }, PENALTY_UNLOCK_MS);
+    unlockAfter(TIMING.PENALTY_UNLOCK_MS);
     return;
   }
 
-  // Item-kortit
+  // Item cards
   if (state.itemCards.includes(value)) {
-    log(`${currentPlayer.name} acquired item: ${value}`);
-    currentPlayer.inventory.push(value);
-    flashElement(cards[index]);
-    updateTurnOrder();
+    log(`${p.name} acquired item: ${value}`);
+    p.inventory.push(value);
+
+    flashElement(cardEl);
+    renderTurnOrder(state);
     renderItems();
+
     nextPlayer();
-    state.uiLocked = false;
+    unlockUI();
     return;
   }
 
-  // Immunity kulutus
-  if (state.players[state.currentPlayerIndex].immunity) {
+  // Immunity consumption for drink effects
+  if (p.immunity) {
     if (/^(Drink\b|Everybody drinks\b)/i.test(txt)) {
-      const p = state.players[state.currentPlayerIndex];
       delete p.immunity;
       log(`${p.name}'s Immunity prevented drinking from: ${txt}`);
-      flashElement(cards[index]);
+
+      flashElement(cardEl);
       nextPlayer();
-      state.uiLocked = false;
+      unlockUI();
       return;
     }
   }
 
-  // Ditto aktivointi satunnaisesti
+  // Ditto activation chance (same as before)
   if (Math.random() < 0.06) {
-    activateDitto(state, cards[index], index, log);
-    state.uiLocked = false;
+    const idx = parseInt(cardEl.dataset.index || "0", 10);
+    activateDitto(state, cardEl, idx, log);
+    unlockUI();
     return;
   }
 
-  log(`${currentPlayer.name} selected ${value}`);
-  flashElement(cards[index]);
+  log(`${p.name} selected ${value}`);
+  flashElement(cardEl);
+
   nextPlayer();
-  state.uiLocked = false;
+  unlockUI();
 }
 
 function redrawGame() {
-  // Redraw reveals penalty but should not end turn on confirm
   rollPenaltyCard(state, log, "redraw");
   setTimeout(() => {
     resetCards();
-  }, REDRAW_REFRESH_MS);
+  }, TIMING.REDRAW_REFRESH_MS);
 }

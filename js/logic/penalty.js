@@ -1,11 +1,12 @@
 import { flipCardAnimation } from '../animations.js';
 import { randomFromArray } from '../utils/random.js';
+import { getPenaltyDeckEl } from '../ui/uiFacade.js';
 
 /**
  * source:
  *  - "deck"   = user clicked penalty deck
  *  - "card"   = player selected "Draw a Penalty Card"
- *  - "redraw" = redraw revealed penalty (should NOT end turn on confirm)
+ *  - "redraw" = info/preview penalty (should NOT end turn on confirm)
  */
 export function rollPenaltyCard(state, log, source = "deck") {
   if (state.penaltyShown) return;
@@ -34,14 +35,46 @@ export function rollPenaltyCard(state, log, source = "deck") {
   }
 
   const penalty = randomFromArray(state.penaltyDeck);
+
   state.penaltyCard = penalty;
   state.penaltyShown = true;
   state.penaltyConfirmArmed = true;
   state.penaltySource = source;
 
-  const penaltyDeckEl = document.getElementById('penalty-deck');
-  flipCardAnimation(penaltyDeckEl, penalty);
+  const penaltyDeckEl = getPenaltyDeckEl();
+  if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
+
   log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
+}
+
+/**
+ * Shows a penalty as an INFO/PREVIEW (does not advance turn on confirm).
+ * Used for Special/Crowd/Social sub-events that mention penalty deck/card.
+ */
+export function showPenaltyPreview(state, log, label = "Penalty") {
+  // If we are forcing a confirm from a real "Draw a Penalty Card", don't override it.
+  if (state.penaltyShown && state.penaltySource === "card") return;
+
+  // Close any existing preview/deck penalty first (clean UI)
+  if (state.penaltyShown) {
+    hidePenaltyCard(state);
+  }
+
+  const penalty = randomFromArray(state.penaltyDeck);
+
+  state.penaltyCard = penalty;
+  state.penaltyShown = true;
+  state.penaltyConfirmArmed = true;
+
+  // IMPORTANT: mark as "redraw" so penalty-deck click won't advance turn
+  state.penaltySource = "redraw";
+  state.penaltyHintShown = false;
+
+  const penaltyDeckEl = getPenaltyDeckEl();
+  if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
+
+  if (label) log(`${label} → ${penalty}`);
+  return penalty;
 }
 
 export function hidePenaltyCard(state) {
@@ -51,6 +84,6 @@ export function hidePenaltyCard(state) {
   state.penaltySource = null;
   state.penaltyHintShown = false;
 
-  const penaltyDeckEl = document.getElementById('penalty-deck');
-  flipCardAnimation(penaltyDeckEl, "Penalty Deck");
+  const penaltyDeckEl = getPenaltyDeckEl();
+  if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, "Penalty Deck");
 }
