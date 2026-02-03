@@ -94,7 +94,6 @@ export const state = {
       { name: "Zip Zap Zop", instruction: "Pass 'Zip'→'Zap'→'Zop' in order; hesitation or wrong word drinks." },
       { name: "Human Bingo (Speed)", instruction: "Leader calls quick traits (e.g., 'has a pet'); fewest hands raised drink." },
       { name: "Reverse Waterfall", instruction: "Everyone starts drinking; you can stop anytime, but your right neighbor must stop after you." },
-      { name: "Fizz Buzz", instruction: "Count up; say 'Fizz' for multiples of 3, 'Buzz' for 5, 'FizzBuzz' for both—mistakes drink." },
       { name: "Silent Count", instruction: "Without speaking, count up from 1—only one person may speak at a time; overlaps reset and both speakers drink." },
       { name: "Sum to Ten", instruction: "On three, everyone shows 0–5 fingers; if the total equals 10, drawer gives 2, otherwise all drink 1." },
       { name: "Seat Shuffle Sprint", instruction: "On 'Go', everyone shifts one seat left, then right; last to sit each round drinks." },
@@ -141,6 +140,18 @@ export const state = {
       { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
       { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
       { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
+      {
+        name: "Who Knows You",
+        instruction:
+          "Choose a player. They answer a question about you (e.g. 'coffee or tea'). Wrong → they drink 1. Correct → you drink 1.",
+        action: "WHO_KNOWS_YOU"
+      },
+      {
+        name: "Double or Nothing (d6)",
+        instruction:
+          "You drink 4. You may roll a d6: 4–6 → GIVE 8. 1–3 → DRINK 8.",
+        action: "DOUBLE_OR_NOTHING_D6"
+      },
 
       // ===== NEW ONE-SHOT LOGIC CARDS =====
       {
