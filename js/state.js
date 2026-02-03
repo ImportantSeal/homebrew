@@ -54,10 +54,7 @@ export const state = {
         { name: "Staring Contest", instruction: "Pick an opponent. First to blink drinks two." },
         { name: "Hot Take", instruction: "Share a spicy (friendly) opinion. If groans > cheers, drink one; else give one." },
         { name: "Riddle Me", instruction: "Ask a riddle. If solved, you drink one; if not, the group drinks one." },
-        { name: "Simon Says", instruction: "Lead 5 commands. Anyone who messes up drinks one." },
-        { name: "Speed Math", instruction: "Give someone a quick sum (e.g., 7×6−5). Wrong answer drinks one; right lets them give one." },
         { name: "Guess the Number", instruction: "Hold 1–5 fingers behind your back. Closest gives one; exact gives two." },
-        { name: "Left or Right", instruction: "Hide a coin in one hand. Guesser picks; wrong drinks one, right gives one." }
       ]
     }
   ],
@@ -89,15 +86,9 @@ export const state = {
       { name: "Waterfall", instruction: "Starting with you, everyone begins drinking; each person can stop only when the person to their right stops." },
       { name: "Trivia Master", instruction: "Ask a trivia question to the group; wrong answers drink, first correct answer gives one." },
       { name: "Categories", instruction: "Pick a category and go clockwise naming items; first repeat, pause, or miss drinks." },
-      { name: "Red or Black", instruction: "Everyone chooses red or black; flip a card or use RNG—losing color drinks." },
+      { name: "This or That?", instruction: "Everyone chooses between two options; the minority drinks." },
       { name: "Heads or Tails", instruction: "Everyone chooses heads/tails with hands; losing side drinks." },
-      { name: "Zip Zap Zop", instruction: "Pass 'Zip'→'Zap'→'Zop' in order; hesitation or wrong word drinks." },
-      { name: "Human Bingo (Speed)", instruction: "Leader calls quick traits (e.g., 'has a pet'); fewest hands raised drink." },
       { name: "Reverse Waterfall", instruction: "Everyone starts drinking; you can stop anytime, but your right neighbor must stop after you." },
-      { name: "Silent Count", instruction: "Without speaking, count up from 1—only one person may speak at a time; overlaps reset and both speakers drink." },
-      { name: "Sum to Ten", instruction: "On three, everyone shows 0–5 fingers; if the total equals 10, drawer gives 2, otherwise all drink 1." },
-      { name: "Seat Shuffle Sprint", instruction: "On 'Go', everyone shifts one seat left, then right; last to sit each round drinks." },
-      { name: "Red Light, Green Light", instruction: "Leader faces away; move on 'green', stop on 'red'; anyone caught moving drinks." },
       { name: "Last Letter Chain", instruction: "Pick a category; each item must start with the last letter of the previous; first repeat or miss drinks." },
       { name: "Finger Total 21", instruction: "Without talking, on three everyone shows 0–10 fingers; if the total equals 21, drawer gives 3, else all drink 1." }
     ]
