@@ -55,6 +55,8 @@ export const state = {
         { name: "Hot Take", instruction: "Share a spicy (friendly) opinion. If groans > cheers, drink one; else give one." },
         { name: "Riddle Me", instruction: "Ask a riddle. If solved, you drink one; if not, the group drinks one." },
         { name: "Guess the Number", instruction: "Hold 1–5 fingers behind your back. Closest gives one; exact gives two." },
+        { name: "No hands", instruction: "Take a shot without using your hands." },
+
       ]
     }
   ],
@@ -90,7 +92,15 @@ export const state = {
       { name: "Heads or Tails", instruction: "Everyone chooses heads/tails with hands; losing side drinks." },
       { name: "Reverse Waterfall", instruction: "Everyone starts drinking; you can stop anytime, but your right neighbor must stop after you." },
       { name: "Last Letter Chain", instruction: "Pick a category; each item must start with the last letter of the previous; first repeat or miss drinks." },
-      { name: "Finger Total 21", instruction: "Without talking, on three everyone shows 0–10 fingers; if the total equals 21, drawer gives 3, else all drink 1." }
+      { name: "Finger Total 21", instruction: "Without talking, on three everyone shows 0–10 fingers; if the total equals 21, drawer gives 3, else all drink 1." },
+      { name: "Show Most Recent Picture", instruction: "Show the most recent picture you took on your phone." },
+      { name: "Race to the bottom", instruction: "The last player to finish their drink must take a shot." },
+      { name: "Hands up", instruction: "The last player to raise their hand drinks as many sips as there are hands in the room." },
+      { name: "Group Selfie", instruction: "Take a group selfie together." },
+
+      
+      
+
     ]
   },
 
@@ -131,6 +141,12 @@ export const state = {
       { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
       { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
       { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
+      { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
+      { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
+      { name: "", instruction: "" },
+
+
+
       {
         name: "Who Knows You",
         instruction:
