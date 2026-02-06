@@ -19,7 +19,6 @@ export function renderTurnOrder(state) {
       nameSpan.textContent = player.name;
     }
 
-    // ✅ EI dropdownia, EI toggle-clickiä täällä
     playerDiv.appendChild(nameSpan);
     turnOrderElem.appendChild(playerDiv);
 

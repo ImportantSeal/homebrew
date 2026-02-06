@@ -126,6 +126,12 @@ function runSpecialAction(action) {
   const selfIndex = state.currentPlayerIndex;
 
   switch (action) {
+    case "DRINK_AND_DRAW_AGAIN": {
+      applyDrinkEvent(state, selfIndex, 1, "Drink and Draw Again", log);
+      log(`${p.name} keeps their turn and draws new cards.`);
+      return { endTurn: false, refreshCards: true };
+    }
+
     case "RISKY_ADVICE_D20": {
       const r = rollDie(20);
       log(`Risky roll (d20): ${r}`);
@@ -226,7 +232,7 @@ function setupEventListeners() {
 
 // ---------- Turn flow ----------
 function nextPlayer() {
-  // ✅ end-of-turn timing: tick active effects once per finished turn
+  //  end-of-turn timing: tick active effects once per finished turn
   tickEffects(state, log);
 
   const p = currentPlayer();
@@ -339,7 +345,7 @@ function onPenaltyDeckClick() {
 function onCardClick(index) {
   if (state.uiLocked) return;
 
-  // ✅ Block card clicks while an effect is waiting for target pick
+  //  Block card clicks while an effect is waiting for target pick
   if (state.effectSelection?.active) {
     log("Pick the target player in the turn order first.");
     return;
@@ -388,7 +394,7 @@ function onCardClick(index) {
     const p = currentPlayer();
     log(`${p.name} confirmed Ditto card.`);
 
-    // ✅ pass applyDrinkEvent so Ditto drink outcomes can trigger Drink Buddy too
+    //  pass applyDrinkEvent so Ditto drink outcomes can trigger Drink Buddy too
     runDittoEffect(state, index, log, () => renderTurnOrder(state), renderItems, applyDrinkEvent);
 
     state.dittoActive[index] = false;
@@ -422,7 +428,7 @@ function onCardClick(index) {
   if (typeof cardData === 'object' && cardData.subcategories) {
     const endsTurnNow = handleObjectCardDraw(cardEl, cardData);
 
-    // ✅ If we started a target-pick effect, DON'T end the turn yet
+    // If we started a target-pick effect, DON'T end the turn yet
     if (endsTurnNow) {
       nextPlayer();
     }
@@ -478,7 +484,7 @@ function handleObjectCardDraw(cardEl, parentCard) {
     showPenaltyPreview(state, log, label);
   }
 
-  // ✅ Timed Effect Cards
+  // Timed Effect Cards
   if (effectDef && effectDef.type && effectDef.turns) {
     // Targeted effect: enter pick mode, DO NOT end turn yet
     if (effectDef.needsTarget) {
@@ -513,13 +519,19 @@ function handleObjectCardDraw(cardEl, parentCard) {
     renderStatusEffects(state);
   }
 
-  // ✅ NEW: one-shot action cards (Risky/Collector/Minimalist)
+  //  NEW: one-shot action cards (Risky/Collector/Minimalist)
+  let actionResult = null;
   if (action) {
-    runSpecialAction(action);
+    actionResult = runSpecialAction(action);
     renderStatusEffects(state);
   }
 
-  return true;
+  if (actionResult?.refreshCards) {
+    resetCards();
+    renderStatusEffects(state);
+  }
+
+  return actionResult?.endTurn ?? true;
 }
 
 function handlePlainCard(cardEl, cardData) {
@@ -574,7 +586,7 @@ function handlePlainCard(cardEl, cardData) {
     const idx = parseInt(cardEl.dataset.index || "0", 10);
     activateDitto(state, cardEl, idx, log);
 
-    // ✅ NEW: Ditto Magnet trigger
+    //  NEW: Ditto Magnet trigger
     onDittoActivated(state, state.currentPlayerIndex, log);
 
     unlockUI();
@@ -582,7 +594,7 @@ function handlePlainCard(cardEl, cardData) {
     return;
   }
 
-  // ✅ Drink event hook (for Immunity + Drink Buddy logging)
+  //  Drink event hook (for Immunity + Drink Buddy logging)
   const drink = parseDrinkFromText(txt);
   if (drink) {
     if (drink.scope === "all") {

@@ -176,6 +176,11 @@ export const state = {
         instruction: "If you have 0 items, you GIVE as many drinks as the total number of items held by other players.",
         action: "MINIMALIST"
       },
+      {
+        name: "Drink and Draw Again",
+        instruction: "Drink 1. Your turn does not pass, and you draw new cards.",
+        action: "DRINK_AND_DRAW_AGAIN"
+      },
 
       // ===== EFFECT CARDS =====
       {

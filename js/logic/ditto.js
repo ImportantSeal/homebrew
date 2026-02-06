@@ -1,3 +1,5 @@
+// js/ditto/effects.js
+
 import { randomFromArray } from '../utils/random.js';
 
 export function getDittoEventPool() {
