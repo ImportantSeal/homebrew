@@ -97,6 +97,7 @@ export const state = {
       { name: "Race to the bottom", instruction: "The last player to finish their drink must take a shot." },
       { name: "Hands up", instruction: "The last player to raise their hand drinks as many sips as there are hands in the room." },
       { name: "Group Selfie", instruction: "Take a group selfie together." },
+      { name: "Fast Hands", instruction: "Who first takes a drink gives 4 drinks to everyone else." },
 
       
       
