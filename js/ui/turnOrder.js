@@ -12,6 +12,7 @@ export function renderTurnOrder(state) {
 
     const nameSpan = document.createElement('span');
     nameSpan.classList.add('turn-player-name');
+    nameSpan.dataset.index = String(index);
 
     if (index === state.currentPlayerIndex) {
       nameSpan.innerHTML = `<strong>${player.name}</strong>`;

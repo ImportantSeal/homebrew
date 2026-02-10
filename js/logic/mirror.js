@@ -19,8 +19,16 @@ export function enablePlayerNameSelection(state, onPick) {
     e.stopPropagation();
     if (e.stopImmediatePropagation) e.stopImmediatePropagation();
 
-    const clickedName = e.currentTarget.textContent.trim();
-    const targetIndex = state.players.findIndex(p => p.name === clickedName);
+    // Prefer explicit index to avoid text mismatches (e.g. trailing spaces / emojis)
+    const idxAttr = e.currentTarget.dataset.index;
+    let targetIndex = Number.isFinite(Number(idxAttr)) ? Number(idxAttr) : -1;
+
+    // Fallback to name match if dataset missing
+    if (targetIndex < 0) {
+      const clickedName = e.currentTarget.textContent.trim();
+      targetIndex = state.players.findIndex(p => (p.name || "").trim() === clickedName);
+    }
+
     if (targetIndex === -1) return;
 
     onPick?.(targetIndex, cleanup);
