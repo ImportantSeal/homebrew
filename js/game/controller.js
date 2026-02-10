@@ -52,6 +52,13 @@ function currentPlayer() {
   return state.players[state.currentPlayerIndex];
 }
 
+function playerName(index) {
+  const p = state.players?.[index];
+  if (p && p.name) return p.name;
+  const safeIndex = Number.isFinite(index) ? index : 0;
+  return `Player ${safeIndex + 1}`;
+}
+
 function lockUI() {
   state.uiLocked = true;
 }
@@ -119,6 +126,17 @@ function totalOtherItems(state, selfIndex) {
 
 function maxItemsAnyPlayer(state) {
   return Math.max(0, ...state.players.map(p => inventoryCount(p)));
+}
+
+function effectLabelForLog(effect, fallback = "Effect") {
+  if (!effect) return fallback;
+  switch (effect.type) {
+    case "DRINK_BUDDY": return "Drink Buddy";
+    case "LEFT_HAND": return "Left Hand Rule";
+    case "NO_NAMES": return "No Names";
+    case "DITTO_MAGNET": return "Ditto Magnet";
+    default: return effect.type || fallback;
+  }
 }
 
 function runSpecialAction(action) {
@@ -254,7 +272,7 @@ function updateTurn() {
 
   renderTurnOrder(state);
   renderItems();
-  renderStatusEffects(state);
+  renderEffectsPanel();
   resetCards();
 }
 
@@ -271,15 +289,53 @@ function renderItems() {
       () => enableMirrorTargetSelection(state, log, () => renderTurnOrder(state), renderItems, nextPlayer)
     );
 
-    renderStatusEffects(state);
+    renderEffectsPanel();
   });
+}
+
+function renderEffectsPanel() {
+  renderStatusEffects(state, {
+    onRemoveEffect: handleManualEffectRemoval,
+    onRemoveStatus: handleManualStatusRemoval
+  });
+}
+
+function handleManualEffectRemoval({ effect, label }) {
+  if (!effect) return;
+
+  const readable = label || effectLabelForLog(effect);
+  const targetName = typeof effect.targetIndex === "number" ? playerName(effect.targetIndex) : null;
+  const confirmText = targetName
+    ? `Remove ${readable} for ${targetName}?`
+    : `Remove ${readable}?`;
+
+  if (!window.confirm(confirmText)) return;
+
+  state.effects = (state.effects || []).filter(e => e && e.id !== effect.id);
+  log(`${readable}${targetName ? ` for ${targetName}` : ""} removed manually.`);
+  renderEffectsPanel();
+}
+
+function handleManualStatusRemoval({ playerIndex, key, label }) {
+  if (typeof playerIndex !== "number" || !key) return;
+  const player = state.players?.[playerIndex];
+  if (!player || !player[key]) return;
+
+  const readable = label || key;
+  const name = player.name || playerName(playerIndex);
+
+  if (!window.confirm(`Remove ${readable} from ${name}?`)) return;
+
+  delete player[key];
+  log(`${readable} removed from ${name}.`);
+  renderEffectsPanel();
 }
 
 function resetCards() {
   dealTurnCards(state);
   renderCards(state, onCardClick);
   hidePenaltyCard(state);
-  renderStatusEffects(state);
+  renderEffectsPanel();
 }
 
 // ---------- UI event handlers ----------
@@ -292,7 +348,7 @@ function onRedrawClick() {
   redrawGame();
   const p = currentPlayer();
   log(`${p.name} used Redraw to reveal penalty card and refresh cards.`);
-  renderStatusEffects(state);
+  renderEffectsPanel();
 }
 
 function onPenaltyDeckClick() {
@@ -316,7 +372,7 @@ function onPenaltyDeckClick() {
     }
 
     unlockUI();
-    renderStatusEffects(state);
+    renderEffectsPanel();
     return;
   }
 
@@ -334,12 +390,12 @@ function onPenaltyDeckClick() {
     }
 
     unlockAfter(TIMING.PENALTY_UNLOCK_MS);
-    renderStatusEffects(state);
+    renderEffectsPanel();
     return;
   }
 
   hidePenaltyCard(state);
-  renderStatusEffects(state);
+  renderEffectsPanel();
 }
 
 function onCardClick(index) {
@@ -402,7 +458,7 @@ function onCardClick(index) {
 
     nextPlayer();
     unlockUI();
-    renderStatusEffects(state);
+    renderEffectsPanel();
     return;
   }
 
@@ -434,7 +490,7 @@ function onCardClick(index) {
     }
 
     unlockUI();
-    renderStatusEffects(state);
+    renderEffectsPanel();
     return;
   }
 
@@ -494,13 +550,13 @@ function handleObjectCardDraw(cardEl, parentCard) {
         state.currentPlayerIndex,
         log,
         () => {
-          renderStatusEffects(state);
+          renderEffectsPanel();
           // End the turn AFTER target is picked
           nextPlayer();
         }
       );
 
-      renderStatusEffects(state);
+      renderEffectsPanel();
       return false;
     }
 
@@ -516,19 +572,19 @@ function handleObjectCardDraw(cardEl, parentCard) {
       log(`Effect activated: ${effectDef.type} (${effectDef.turns} turns).`);
     }
 
-    renderStatusEffects(state);
+    renderEffectsPanel();
   }
 
   //  NEW: one-shot action cards (Risky/Collector/Minimalist)
   let actionResult = null;
   if (action) {
     actionResult = runSpecialAction(action);
-    renderStatusEffects(state);
+    renderEffectsPanel();
   }
 
   if (actionResult?.refreshCards) {
     resetCards();
-    renderStatusEffects(state);
+    renderEffectsPanel();
   }
 
   return actionResult?.endTurn ?? true;
@@ -549,7 +605,7 @@ function handlePlainCard(cardEl, cardData) {
     if (!state.penaltyShown) {
       nextPlayer();
       unlockUI();
-      renderStatusEffects(state);
+      renderEffectsPanel();
       return;
     }
 
@@ -562,7 +618,7 @@ function handlePlainCard(cardEl, cardData) {
     }
 
     unlockAfter(TIMING.PENALTY_UNLOCK_MS);
-    renderStatusEffects(state);
+    renderEffectsPanel();
     return;
   }
 
@@ -574,7 +630,7 @@ function handlePlainCard(cardEl, cardData) {
     flashElement(cardEl);
     renderTurnOrder(state);
     renderItems();
-    renderStatusEffects(state);
+    renderEffectsPanel();
 
     nextPlayer();
     unlockUI();
@@ -590,7 +646,7 @@ function handlePlainCard(cardEl, cardData) {
     onDittoActivated(state, state.currentPlayerIndex, log);
 
     unlockUI();
-    renderStatusEffects(state);
+    renderEffectsPanel();
     return;
   }
 
@@ -612,7 +668,7 @@ function handlePlainCard(cardEl, cardData) {
 
   nextPlayer();
   unlockUI();
-  renderStatusEffects(state);
+  renderEffectsPanel();
 }
 
 function redrawGame() {

@@ -1,5 +1,5 @@
 // js/ui/statusEffects.js
-// Renders active timed effects + player statuses under the 3 cards.
+// Renders active timed effects + player statuses in the side panel.
 
 function el(tag, className, text) {
   const n = document.createElement(tag);
@@ -55,21 +55,34 @@ function effectAppliesTo(state, eff) {
     case "DRINK_BUDDY": {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
-      return `Link: ${src} → ${tgt}`;
+      return `Link: ${src} -> ${tgt}`;
     }
     default:
       return "Applies to: —";
   }
 }
 
-function addChip(row, label) {
-  const chip = document.createElement('span');
-  chip.className = 'status-chip';
-  chip.textContent = label;
+function addChip(row, label, onRemove) {
+  const chip = document.createElement(onRemove ? 'button' : 'span');
+  if (onRemove) chip.type = 'button';
+  chip.className = 'status-chip' + (onRemove ? ' is-removable' : '');
+
+  chip.appendChild(el("span", "status-chip-label", label));
+
+  if (onRemove) {
+    const close = el("span", "status-chip-close", "×");
+    chip.appendChild(close);
+    chip.title = "Click to remove";
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onRemove();
+    });
+  }
+
   row.appendChild(chip);
 }
 
-function buildEffectCard(state, eff) {
+function buildEffectCard(state, eff, onRemoveEffect) {
   const card = el("div", "effect-card");
   card.dataset.type = eff.type || "GENERIC";
 
@@ -85,6 +98,17 @@ function buildEffectCard(state, eff) {
   const right = el("div", "effect-right");
   const remaining = typeof eff.remainingTurns === "number" ? eff.remainingTurns : 0;
   right.appendChild(el("div", "effect-remaining", `${remaining} turn${remaining === 1 ? "" : "s"} left`));
+
+  if (typeof onRemoveEffect === "function") {
+    const removeBtn = el("button", "effect-remove", "Remove");
+    removeBtn.type = "button";
+    removeBtn.title = "End this effect manually";
+    removeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      onRemoveEffect({ effect: eff, label: effectTitle(eff.type) });
+    });
+    right.appendChild(removeBtn);
+  }
 
   // Progress bar
   const total = Math.max(1, Number(eff.totalTurns || eff.remainingTurns || 1));
@@ -105,7 +129,9 @@ function buildEffectCard(state, eff) {
   return card;
 }
 
-export function renderStatusEffects(state) {
+export function renderStatusEffects(state, options = {}) {
+  const { onRemoveEffect, onRemoveStatus } = options || {};
+
   const root = document.getElementById('status-effects');
   if (!root) return;
 
@@ -123,21 +149,26 @@ export function renderStatusEffects(state) {
     if (hasPendingPick) {
       const pending = state.effectSelection?.pending;
       const pendingCard = el("div", "effect-card is-pending");
-      pendingCard.appendChild(el("div", "effect-left")).appendChild(el("div", "effect-icon", "🎯"));
+      const pendingLeft = el("div", "effect-left");
+      pendingLeft.appendChild(el("div", "effect-icon", "🎯"));
+      pendingCard.appendChild(pendingLeft);
+
       const mid = el("div", "effect-mid");
       mid.appendChild(el("div", "effect-title", "Pick a target"));
       mid.appendChild(el("div", "effect-desc", "Click a player name in the turn order to finish this effect."));
       mid.appendChild(el("div", "effect-applies", pending?.type ? `Effect: ${pending.type}` : "Effect: —"));
       pendingCard.appendChild(mid);
+
       const right = el("div", "effect-right");
-      right.appendChild(el("div", "effect-remaining", "Waiting…"));
+      right.appendChild(el("div", "effect-remaining", "Waiting..."));
       pendingCard.appendChild(right);
+
       pendingCard.appendChild(el("div", "effect-bar")).appendChild(el("span", "effect-bar-fill"));
       root.appendChild(pendingCard);
     }
 
     effects.forEach(eff => {
-      root.appendChild(buildEffectCard(state, eff));
+      root.appendChild(buildEffectCard(state, eff, onRemoveEffect));
     });
   }
 
@@ -145,16 +176,44 @@ export function renderStatusEffects(state) {
   let anyStatuses = false;
   const statusWrap = el("div", "status-section");
 
-  state.players.forEach((p) => {
+  state.players.forEach((p, idx) => {
     const row = el("div", "status-row");
 
     row.appendChild(el("span", "status-player", `${p.name}:`));
 
     let hasForPlayer = false;
-    if (p.shield) { addChip(row, "🛡 Shield"); hasForPlayer = true; }
-    if (p.immunity) { addChip(row, "🧪 Immunity"); hasForPlayer = true; }
-    if (p.skipNextTurn) { addChip(row, "⏭ Skip Next Turn"); hasForPlayer = true; }
-    if (p.extraLife) { addChip(row, "❤️ Extra Life"); hasForPlayer = true; }
+    if (p.shield) {
+      addChip(
+        row,
+        "🛡 Shield",
+        onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "shield", label: "Shield" }) : null
+      );
+      hasForPlayer = true;
+    }
+    if (p.immunity) {
+      addChip(
+        row,
+        "🧪 Immunity",
+        onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "immunity", label: "Immunity" }) : null
+      );
+      hasForPlayer = true;
+    }
+    if (p.skipNextTurn) {
+      addChip(
+        row,
+        "⏭ Skip Next Turn",
+        onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "skipNextTurn", label: "Skip Next Turn" }) : null
+      );
+      hasForPlayer = true;
+    }
+    if (p.extraLife) {
+      addChip(
+        row,
+        "❤️ Extra Life",
+        onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "extraLife", label: "Extra Life" }) : null
+      );
+      hasForPlayer = true;
+    }
 
     if (hasForPlayer) {
       anyStatuses = true;
