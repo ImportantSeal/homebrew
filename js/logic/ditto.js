@@ -77,13 +77,8 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
     }
 
     case 'DRINK_3': {
-      if (currentPlayer.immunity) {
-        delete currentPlayer.immunity;
-        log(`${currentPlayer.name}'s Immunity prevented 'Drink 3!'`);
-      } else {
-        log("Ditto says: Drink 3!");
-        applyDrinkEvent?.(state.currentPlayerIndex, 3, "Ditto: Drink 3");
-      }
+      log("Ditto says: Drink 3!");
+      applyDrinkEvent?.(state.currentPlayerIndex, 3, "Ditto: Drink 3");
       return;
     }
 
@@ -118,9 +113,6 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
         if (p.shield) {
           delete p.shield;
           log(`${p.name}'s Shield blocked the penalty.`);
-        } else if (p.immunity) {
-          delete p.immunity;
-          log(`${p.name}'s Immunity prevented the penalty.`);
         } else {
           log(`${p.name} takes penalty: ${penalty}`);
           // if it's Drink X / Shot etc, trigger drink event

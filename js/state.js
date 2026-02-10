@@ -108,7 +108,97 @@ export const state = {
   special: {
     name: "Special Card",
     subcategories: [
+      { name: "Odds Drink", instruction: "Roll 1-10; if the result is odd, you drink the number shown." },
+      { name: "Even Drink", instruction: "Roll 1-10; if the result is even, you drink the number shown." },
+      { name: "Odds Give", instruction: "Roll 1-10; if the result is odd, you give out the number of drinks shown." },
+      { name: "Even Give", instruction: "Roll 1-10; if the result is even, you give out the number of drinks shown." },
+      { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
+      { name: "Mini King", instruction: "Everyone adds to the Kings cup. Drink the Kings Cup." },
+      { name: "Social", instruction: "Everyone drinks one." },
+      { name: "Double Social", instruction: "Everyone drinks two." },
+      { name: "Youngest Drinks", instruction: "The youngest player drinks one." },
+      { name: "Oldest Drinks", instruction: "The oldest player drinks one." },
+      { name: "Least Drunk Drinks", instruction: "The player with the fewest drinks so far drinks one." },
+      { name: "Most Drunk Gives 3", instruction: "The drunkest player gives out three drinks." },
+      { name: "Singles Drink", instruction: "All single players drink one." },
+      { name: "In Relationship Drink Two", instruction: "All players in a relationship drink two." },
+      { name: "Last Bathroom", instruction: "The player who last used the bathroom drinks one." },
+      { name: "Speed Round", instruction: "Name five items in a category within 10 seconds. Failure means a drink." },
+      { name: "Lilo and Stitch", instruction: "If you have siblings, drink as many sips as the total number of your siblings." },
+      { name: "Sloth", instruction: "Lie on your back and drink." },
+      { name: "To The Western Sky", instruction: "The player to your left must drink." },
+      { name: "Social Distancing", instruction: "Everyone drinks if they are sitting less than 1 meter apart." },
+      { name: "For All Ages", instruction: "Roll 1-10; players whose age ends with that digit give 1; others drink 1." },
+      { name: "Host Tax", instruction: "Host drinks as many sips as there are players at the table." },
+      { name: "Last Arrival ", instruction: "Last arrival drinks the same number as the last Drink-card value shown in Card History. " },
+      { name: "Battery Debt", instruction: "Everyone shows phone battery %. Lowest battery drinks the DIFFERENCE to the highest battery (rounded down, max 8)." },
+      { name: "Notification Curse", instruction: "For the next 60 seconds, the first person who gets ANY notification drinks the last Drink-card value." },
+      { name: "Most Recent Sip", instruction: "The person who last took a sip drinks 3." },
+      { name: "Echo", instruction: "Repeat the last Drink-card value: you drink that amount again. (If last was Everybody drinks, only YOU repeat it.)" },
+      { name: "Name Length Ladder", instruction: "Longest name drinks 3. Shortest name gives 1." },
+      { name: "Birthday Roulette", instruction: "Nearest upcoming birthday gives 2. Farthest birthday drinks 2." },
+      { name: "Left-Handed Justice", instruction: "If you are left-handed: give 2. If not: drink 1. (Yes, it’s unfair.)" },
+      { name: "Glance & Sip", instruction: "Everyone looks at the same person (count to 3). Most looked-at drinks 3." },
+      { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
+      { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
+      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
+      { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
+      { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
+      { name: "", instruction: "" },
 
+
+
+      {
+        name: "Who Knows You",
+        instruction:
+          "Choose a player. They answer a question about you (e.g. 'coffee or tea'). Wrong → they drink 1. Correct → you drink 1.",
+        action: "WHO_KNOWS_YOU"
+      },
+      {
+        name: "Double or Nothing (d6)",
+        instruction:
+          "You drink 4. You may roll a d6: 4–6 → GIVE 8. 1–3 → DRINK 8.",
+        action: "DOUBLE_OR_NOTHING_D6"
+      },
+
+      // ===== NEW ONE-SHOT LOGIC CARDS =====
+      {
+        name: "Risky Advice (d20)",
+        instruction: "Roll a d20. On 1: you down a drink. On 20: everyone else downs. Otherwise: give a genuinely useful tip — if the table says it’s bad, you drink 2.",
+        action: "RISKY_ADVICE_D20"
+      },
+      {
+        name: "The Collector",
+        instruction: "If you currently have the MOST items, you drink as many as you have items.",
+        action: "COLLECTOR"
+      },
+      {
+        name: "The Minimalist",
+        instruction: "If you have 0 items, you GIVE as many drinks as the total number of items held by other players.",
+        action: "MINIMALIST"
+      },
+      {
+        name: "Drink and Draw Again",
+        instruction: "Drink 1. Your turn does not pass, and you draw new cards.",
+        action: "DRINK_AND_DRAW_AGAIN"
+      },
+
+      // ===== EFFECT CARDS =====
+      {
+        name: "Left Hand Rule",
+        instruction: "For the next 6 turns, everyone drinks with their LEFT hand.",
+        effect: { type: "LEFT_HAND", turns: 6 }
+      },
+      {
+        name: "No Names",
+        instruction: "For the next 10 turns, you are not allowed to say ANY names.",
+        effect: { type: "NO_NAMES", turns: 10 }
+      },
+      {
+        name: "Drink Buddy (Pick a target)",
+        instruction: "Pick a player. For the next 6 turns, that player drinks whenever YOU drink.",
+        effect: { type: "DRINK_BUDDY", turns: 6, needsTarget: true }
+      },
       {
         name: "Ditto Magnet (Pick a target)",
         instruction: "Pick a player. For the next 5 turns, if Ditto triggers for them, they take a Shot immediately.",

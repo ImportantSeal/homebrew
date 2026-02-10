@@ -131,7 +131,6 @@ function parseDrinkAmount(text) {
 
 /**
  * Central “drink happened” hook:
- * - consumes Immunity for the drinker
  * - triggers DRINK_BUDDY if drinker is a source
  *
  * NOTE: this is a social game; we mainly LOG the extra drink instruction.
@@ -155,13 +154,6 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
     label = parsed.label;
   }
 
-  // Immunity blocks *this* drink effect
-  if (player.immunity) {
-    delete player.immunity;
-    log?.(`${player.name}'s Immunity prevented: ${label}${reason ? ` (${reason})` : ""}`);
-    return;
-  }
-
   if (!suppressSelfLog) {
     log?.(`${player.name}: ${label}${reason ? ` (${reason})` : ""}`);
   }
@@ -175,12 +167,6 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
     .forEach(e => {
       const tgt = state.players?.[e.targetIndex];
       if (!tgt) return;
-
-      if (tgt.immunity) {
-        delete tgt.immunity;
-        log?.(`${tgt.name}'s Immunity prevented Drink Buddy (${player.name}).`);
-        return;
-      }
 
       log?.(`${tgt.name}: ${label} (Drink Buddy with ${player.name})`);
     });

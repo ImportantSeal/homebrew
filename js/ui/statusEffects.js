@@ -172,7 +172,7 @@ export function renderStatusEffects(state, options = {}) {
     });
   }
 
-  // --- Player statuses (Shield / Immunity / etc.) ---
+  // --- Player statuses (Shield / etc.) ---
   let anyStatuses = false;
   const statusWrap = el("div", "status-section");
 
@@ -187,14 +187,6 @@ export function renderStatusEffects(state, options = {}) {
         row,
         "🛡 Shield",
         onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "shield", label: "Shield" }) : null
-      );
-      hasForPlayer = true;
-    }
-    if (p.immunity) {
-      addChip(
-        row,
-        "🧪 Immunity",
-        onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "immunity", label: "Immunity" }) : null
       );
       hasForPlayer = true;
     }

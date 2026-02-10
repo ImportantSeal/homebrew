@@ -25,15 +25,6 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
     return;
   }
 
-  if (currentPlayer.immunity) {
-    log(`${currentPlayer.name}'s Immunity prevented drinking from the penalty!`);
-    delete currentPlayer.immunity;
-
-    state.penaltyConfirmArmed = false;
-    state.penaltySource = null;
-    return;
-  }
-
   const penalty = randomFromArray(state.penaltyDeck);
 
   state.penaltyCard = penalty;

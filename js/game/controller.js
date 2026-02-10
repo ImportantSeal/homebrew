@@ -381,7 +381,7 @@ function onPenaltyDeckClick() {
     lockUI();
     rollPenaltyCard(state, log, "deck");
 
-    // If a real penalty appeared, hook drink buddy + immunity handling
+    // If a real penalty appeared, hook Drink Buddy handling
     if (state.penaltyShown && state.penaltyCard) {
       const drink = parseDrinkFromText(state.penaltyCard);
       if (drink?.scope === "self") {
@@ -601,7 +601,7 @@ function handlePlainCard(cardEl, cardData) {
 
     rollPenaltyCard(state, log, "card");
 
-    // If blocked by Shield/Immunity, penalty won't show -> turn ends normally
+    // If blocked by Shield, penalty won't show -> turn ends normally
     if (!state.penaltyShown) {
       nextPlayer();
       unlockUI();
@@ -609,7 +609,7 @@ function handlePlainCard(cardEl, cardData) {
       return;
     }
 
-    // If a real penalty appeared, hook drink buddy + immunity handling
+    // If a real penalty appeared, hook Drink Buddy handling
     if (state.penaltyCard) {
       const drink = parseDrinkFromText(state.penaltyCard);
       if (drink?.scope === "self") {
@@ -650,7 +650,7 @@ function handlePlainCard(cardEl, cardData) {
     return;
   }
 
-  //  Drink event hook (for Immunity + Drink Buddy logging)
+  //  Drink event hook (for Drink Buddy logging)
   const drink = parseDrinkFromText(txt);
   if (drink) {
     if (drink.scope === "all") {
