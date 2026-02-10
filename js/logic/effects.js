@@ -137,7 +137,7 @@ function parseDrinkAmount(text) {
  * NOTE: this is a social game; we mainly LOG the extra drink instruction.
  */
 export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, opts = {}) {
-  const { skipBuddy = false } = opts;
+  const { skipBuddy = false, suppressSelfLog = false } = opts;
 
   const player = state.players?.[playerIndex];
   if (!player) return;
@@ -162,7 +162,9 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
     return;
   }
 
-  log?.(`${player.name}: ${label}${reason ? ` (${reason})` : ""}`);
+  if (!suppressSelfLog) {
+    log?.(`${player.name}: ${label}${reason ? ` (${reason})` : ""}`);
+  }
 
   if (skipBuddy) return;
 

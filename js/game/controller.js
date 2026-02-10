@@ -654,8 +654,9 @@ function handlePlainCard(cardEl, cardData) {
   const drink = parseDrinkFromText(txt);
   if (drink) {
     if (drink.scope === "all") {
+      log(`Everybody drinks ${drink.amount}.`);
       state.players.forEach((_, idx) => {
-        applyDrinkEvent(state, idx, drink.amount, "Everybody drinks", log);
+        applyDrinkEvent(state, idx, drink.amount, "Everybody drinks", log, { suppressSelfLog: true });
       });
     } else {
       applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Drink card", log);
