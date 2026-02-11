@@ -23,9 +23,9 @@ export function dealTurnCards(state) {
 
       // Item override chance (works same as before)
       const r = Math.random();
-      if (r < 0.04) {
+      if (r < 0.01) { 
         card = "Immunity";
-      } else if (r < 0.02) {
+      } else if (r < 0.02) {   
         const otherItems = state.itemCards.filter(item => item !== "Immunity");
         card = randomFromArray(otherItems);
       }

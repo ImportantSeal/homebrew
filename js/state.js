@@ -42,8 +42,6 @@ export const state = {
         { name: "Two Truths and a Lie", instruction: "Share two truths and one lie; others guess the lie." },
         { name: "Rock, Paper, Scissors", instruction: "Play R,P,S against someone; loser drinks three." },
         { name: "Random Fact", instruction: "Share an interesting fact – a boring fact means a drink." },
-        { name: "Bucket List Share", instruction: "Everyone shares a bucket list item; the dullest drinks." },
-        { name: "Dream Date", instruction: "Everyone describes their ideal date; the most unoriginal drinks." },
         { name: "This or That", instruction: "Ask someone 'this or that'; hesitation means two drinks." },
         { name: "Share a Secret", instruction: "Everyone must share a secret. If your secret is voted lame, take 1 drink. If you refuse to share, take 3 drinks." },
         { name: "On your feet!", instruction: "Everyone stands up, and the last person standing must drink." },
@@ -144,7 +142,6 @@ export const state = {
       { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
       { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
       { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
-      { name: "", instruction: "" },
 
 
 
