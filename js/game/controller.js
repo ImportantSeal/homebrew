@@ -98,6 +98,14 @@ function ensureBag(stateObj, key, items) {
 function parseDrinkFromText(text) {
   const t = String(text || "").trim();
 
+  // Everybody takes a Shot / Shotgun
+  const allShot = t.match(/^Everybody\s+(takes\s+)?(a\s+)?(Shotgun|Shot)\b/i);
+  if (allShot) return { scope: "all", amount: allShot[3] };
+
+  // Shot / Shotgun (self)
+  if (/^(take\s+a\s+)?Shotgun\b/i.test(t) || /^Shotgun$/i.test(t)) return { scope: "self", amount: "Shotgun" };
+  if (/^(take\s+a\s+)?Shot\b/i.test(t) || /^Shot$/i.test(t)) return { scope: "self", amount: "Shot" };
+
   // Everybody drinks N
   const all = t.match(/^Everybody drinks\s+(\d+)\b/i);
   if (all) return { scope: "all", amount: parseInt(all[1], 10) };
@@ -654,7 +662,10 @@ function handlePlainCard(cardEl, cardData) {
   const drink = parseDrinkFromText(txt);
   if (drink) {
     if (drink.scope === "all") {
-      log(`Everybody drinks ${drink.amount}.`);
+      const everyoneAction = typeof drink.amount === "number"
+        ? `drinks ${drink.amount}.`
+        : (/^Shotgun$/i.test(drink.amount) ? "takes a Shotgun." : "takes a Shot.");
+      log(`Everybody ${everyoneAction}`);
       state.players.forEach((_, idx) => {
         applyDrinkEvent(state, idx, drink.amount, "Everybody drinks", log, { suppressSelfLog: true });
       });

@@ -20,6 +20,7 @@ export function computeKind(state, cardData) {
   }
 
   const value = String(getCardDisplayValue(cardData) ?? "").trim();
+  const isShot = /\bShotgun\b/i.test(value) || /\bShot\b/i.test(value) || /takes a shot/i.test(value);
 
   // Items
   if (state.itemCards && state.itemCards.includes(value)) return 'item';
@@ -28,7 +29,7 @@ export function computeKind(state, cardData) {
   if (/^Draw a Penalty Card$/i.test(value)) return 'penaltycall';
 
   // Mix drink/give
-  const hasDrink = /(Everybody drinks\b|^Drink\b)/i.test(value) || /\bDrink\b/i.test(value);
+  const hasDrink = isShot || /(Everybody drinks\b|^Drink\b)/i.test(value) || /\bDrink\b/i.test(value);
   const hasGive = /\bGive\b/i.test(value) || /^Give\b/i.test(value);
   if (hasDrink && hasGive) return 'mix';
   if (hasGive) return 'give';
