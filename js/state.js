@@ -78,6 +78,8 @@ export const state = {
     "Everybody drinks 2",
     "Everybody drinks 3",
     "Everybody takes a Shot",
+    "Everybody shotgun",
+    "Everybody take a shot + shotgun",
   ],
 
   crowdChallenge: {
