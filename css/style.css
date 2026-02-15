@@ -194,9 +194,13 @@ body::before {
 .center-panel {
   flex: 1 1 auto;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable both-edges;
 }
 .game-header {
   width: 100%;
@@ -308,6 +312,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
   width: 100%;
   max-width: 58rem;
   align-self: stretch;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   gap: 0.4rem;
@@ -340,6 +345,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
 .status-effects {
   width: 100%;
   min-width: 0;
+  min-height: 0;
   margin-top: 0;
 
   border-radius: var(--radius-sm);
