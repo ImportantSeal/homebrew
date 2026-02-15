@@ -7,9 +7,13 @@ const DICEBOX_ORIGIN = `https://unpkg.com/@3d-dice/dice-box@${DICEBOX_VERSION}/d
 const DICEBOX_ASSET_PATH = "assets/";
 const MIN_TRAY_PX = 80;
 const RECENT_LAYOUT_CHANGE_MS = 700;
+const DICE_SCALE_MIN = 3.6;
+const DICE_SCALE_MAX = 4.4;
+const DICE_SCALE_FALLBACK = 4.0;
 
 let diceBox = null;
 let diceBoxInitPromise = null;
+let currentDiceScale = null;
 
 // Roll cancellation pattern (can't cancel physics, but we can cancel UI updates safely)
 let rollToken = 0;
@@ -66,6 +70,29 @@ function markLayoutChange(needsSoftReset = true) {
   if (needsSoftReset) pendingSoftReset = true;
 }
 
+function computeDiceScale() {
+  const tray = document.getElementById('dice-box');
+  if (!tray) return DICE_SCALE_FALLBACK;
+
+  const rect = tray.getBoundingClientRect();
+  const width = rect?.width ?? 0;
+  const height = rect?.height ?? 0;
+
+  if (width < MIN_TRAY_PX || height < MIN_TRAY_PX) return DICE_SCALE_FALLBACK;
+
+  // Keep larger screens from over-scaling the throw area and clipping low on Y-axis.
+  const targetScale = Math.min(width, height) / 72;
+  return Math.max(DICE_SCALE_MIN, Math.min(DICE_SCALE_MAX, targetScale));
+}
+
+function shouldRecreateForScale() {
+  if (!diceBox) return false;
+  if (currentDiceScale == null) return false;
+
+  const nextScale = computeDiceScale();
+  return Math.abs(nextScale - currentDiceScale) >= 0.25;
+}
+
 async function waitForTrayLayout(maxFrames = 10) {
   const tray = document.getElementById('dice-box');
   if (!tray) return false;
@@ -80,6 +107,10 @@ async function waitForTrayLayout(maxFrames = 10) {
 }
 
 async function getDiceBox() {
+  if (shouldRecreateForScale()) {
+    resetDiceBoxInstance();
+  }
+
   if (diceBox) return diceBox;
 
   if (!diceBoxInitPromise) {
@@ -88,20 +119,23 @@ async function getDiceBox() {
       const DiceBox = mod.default;
 
       // Offscreen worker rendering can fail on some fullscreen/GPU setups.
+      const scale = computeDiceScale();
       diceBox = new DiceBox({
         container: "#dice-box",
         assetPath: DICEBOX_ASSET_PATH,
         origin: DICEBOX_ORIGIN,
         offscreen: false,
         theme: "default",
-        scale: 5
+        scale
       });
+      currentDiceScale = scale;
 
       await diceBox.init();
       return diceBox;
     })().catch((err) => {
       diceBox = null;
       diceBoxInitPromise = null;
+      currentDiceScale = null;
       throw err;
     });
   }
@@ -119,6 +153,7 @@ function resetDiceBoxInstance() {
 
   diceBox = null;
   diceBoxInitPromise = null;
+  currentDiceScale = null;
   markLayoutChange(true);
 }
 
