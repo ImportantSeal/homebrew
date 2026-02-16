@@ -59,6 +59,7 @@ body {
   align-items: center;
   justify-content: center;
   min-height: 100vh;
+  min-height: 100dvh;
   position: relative;
   overflow-x: hidden;
 }
@@ -887,6 +888,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
   min-height: 0;
 
   overflow-y: auto;
+  overscroll-behavior: contain;
   scrollbar-gutter: stable both-edges;
 
   border-radius: var(--radius-sm);
@@ -1084,11 +1086,29 @@ body[data-pickmode="effect-target"] .turn-player-name {
 
 /* Responsive */
 @media (max-width: 900px) {
-  :root { --right-panel-width: 100%; }
+  :root {
+    --right-panel-width: 100%;
+    --container-padding: 0.8rem;
+    --cards-gap: 0.45rem;
+    --card-min-width: clamp(4.2rem, 26vw, 5.6rem);
+    --card-max-width: clamp(5.2rem, 29vw, 6.6rem);
+  }
+
+  body {
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding:
+      max(0.5rem, env(safe-area-inset-top))
+      0.5rem
+      max(0.75rem, env(safe-area-inset-bottom));
+  }
+
+  .container { width: 100%; }
 
   .game-main { flex-direction: column; height: auto; }
 
   .left-panel {
+    order: 2;
     width: 100%;
     border-right: none;
     border-bottom: 1px solid rgba(255,255,255,0.10);
@@ -1096,8 +1116,15 @@ body[data-pickmode="effect-target"] .turn-player-name {
     padding-bottom: 0.85rem;
   }
 
+  .center-panel {
+    order: 1;
+    overflow: visible;
+  }
+
   .right-panel {
+    order: 3;
     width: 100%;
+    min-width: 0;
     border-left: none;
     padding-left: 0;
   }
@@ -1105,9 +1132,34 @@ body[data-pickmode="effect-target"] .turn-player-name {
   .items-board { flex-basis: 14rem; max-height: 14rem; }
   .history-section { max-height: 16rem; }
 
+  .dice-box { height: min(34vh, 14rem); }
+
+  .modal__panel {
+    width: calc(100vw - 1rem);
+    max-height: calc(100dvh - 1rem);
+    margin-top: 0.5rem;
+  }
+
   .dice-controls label { min-width: 7.25rem; }
 
   .status-effects { width: 100%; }
+}
+
+@media (max-width: 420px) {
+  :root {
+    --card-min-width: 3.9rem;
+    --card-max-width: 5.2rem;
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  #setup-container button,
+  #redraw-button,
+  .rules-button,
+  .dice-roll,
+  .dice-chip {
+    min-height: 44px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
