@@ -17,8 +17,7 @@ export function useItem(
   log,
   updateTurnOrder,
   renderItemsBoard,
-  updateTurn,
-  enableMirrorTargetSelection
+  updateTurn
 ) {
   const player = state.players[playerIndex];
   const item = player.inventory[itemIndex];
@@ -58,16 +57,15 @@ export function useItem(
 
     case "Mirror":
       state.mirror = {
-        active: true,
-        sourceIndex: playerIndex,
+        active: false,
+        sourceIndex: null,
         selectedCardIndex: null,
         parentName: "",
         subName: "",
         subInstruction: "",
         displayText: ""
       };
-      log(`${player.name} activated Mirror. Click one of the current cards to mirror its effect to a target.`);
-      enableMirrorTargetSelection();
+      log(`${player.name} used Mirror. (No target selection.)`);
       return;
 
     case "Skip Turn":

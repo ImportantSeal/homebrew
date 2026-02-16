@@ -4,14 +4,13 @@ import { state } from '../state.js';
 import { addHistoryEntry } from '../cardHistory.js';
 import { flipCardAnimation, flashElement } from '../animations.js';
 
-import { randomFromArray, createBag } from '../utils/random.js';
+import { createBag } from '../utils/random.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
 
 import { dealTurnCards } from '../logic/deck.js';
 import { rollPenaltyCard, hidePenaltyCard, showPenaltyPreview } from '../logic/penalty.js';
 import { activateDitto, runDittoEffect } from '../logic/ditto.js';
 import { useItem } from '../logic/items.js';
-import { enableMirrorTargetSelection, primeMirrorFromCard } from '../logic/mirror.js';
 
 import {
   addEffect,
@@ -293,8 +292,7 @@ function renderItems() {
       log,
       () => renderTurnOrder(state),
       renderItems,
-      updateTurn,
-      () => enableMirrorTargetSelection(state, log, () => renderTurnOrder(state), renderItems, nextPlayer)
+      updateTurn
     );
 
     renderEffectsPanel();
@@ -472,23 +470,7 @@ function onCardClick(index) {
 
   const cardData = state.currentCards[index];
 
-  // 3) Mirror prime flow
-  if (state.mirror && state.mirror.active && state.mirror.selectedCardIndex === null) {
-    primeMirrorFromCard(state, cardData, index, log, randomFromArray);
-
-    enableMirrorTargetSelection(
-      state,
-      log,
-      () => renderTurnOrder(state),
-      renderItems,
-      nextPlayer
-    );
-
-    unlockUI();
-    return;
-  }
-
-  // 4) Object card (Special/Crowd/Social) draw
+  // 3) Object card (Special/Crowd/Social) draw
   if (typeof cardData === 'object' && cardData.subcategories) {
     const endsTurnNow = handleObjectCardDraw(cardEl, cardData);
 
@@ -502,7 +484,7 @@ function onCardClick(index) {
     return;
   }
 
-  // 5) Plain cards / items / drink/give
+  // 4) Plain cards / items / drink/give
   handlePlainCard(cardEl, cardData);
 }
 
