@@ -3,6 +3,8 @@ import { randomFromArray } from '../utils/random.js';
 
 // Helps reduce "this feels broken" moments:
 // - Avoids dealing exact same "card" twice in the SAME 3-card turn (best-effort).
+const ITEM_OVERRIDE_CHANCE = 0.01;
+
 function cardKey(card) {
   if (card && typeof card === 'object') {
     return `obj:${card.name || 'unnamed'}`;
@@ -21,13 +23,12 @@ export function dealTurnCards(state) {
     for (let attempt = 0; attempt < 10; attempt++) {
       card = pickBaseCard(state);
 
-      // Item override chance (works same as before)
+      // Item override chance:
+      // - higher than before so items are seen in normal-length games
+      // - all items have equal probability (no Immunity bias)
       const r = Math.random();
-      if (r < 0.01) { 
-        card = "Immunity";
-      } else if (r < 0.02) {   
-        const otherItems = state.itemCards.filter(item => item !== "Immunity");
-        card = randomFromArray(otherItems);
+      if (r < ITEM_OVERRIDE_CHANCE) {
+        card = randomFromArray(state.itemCards);
       }
 
       const k = cardKey(card);
