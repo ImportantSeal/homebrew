@@ -1,7 +1,7 @@
 // homebrew/js/game/controller.js
 
 import { state } from '../state.js';
-import { addHistoryEntry } from '../cardHistory.js';
+import { addHistoryEntry, clearHistoryEntries } from '../cardHistory.js';
 import { flipCardAnimation, flashElement } from '../animations.js';
 
 import { createBag } from '../utils/random.js';
@@ -25,6 +25,7 @@ import { renderCards, getCardElements, setCardKind } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { renderItemsBoard } from '../ui/itemsBoard.js';
 import { renderStatusEffects } from '../ui/statusEffects.js';
+import { showCardActionModal } from '../ui/cardActionModal.js';
 
 import {
   showGameContainer,
@@ -43,7 +44,7 @@ const TIMING = {
 
 // ---------- Logging ----------
 function log(message) {
-  addHistoryEntry(message);
+  return addHistoryEntry(message);
 }
 
 // ---------- Small helpers ----------
@@ -124,6 +125,28 @@ function parseDrinkFromText(text) {
   if (self) return { scope: "self", amount: parseInt(self[1], 10) };
 
   return null;
+}
+
+function isDirectDrinkOnlyText(text) {
+  const t = String(text || "").trim();
+  if (!t) return false;
+  if (/\bGive\b/i.test(t)) return false;
+  return Boolean(parseDrinkFromText(t));
+}
+
+function shouldShowActionScreenForPlainCard(text) {
+  const t = String(text || "").trim();
+  if (!t) return false;
+  if (isDrawPenaltyCardText(t)) return false;
+  return !isDirectDrinkOnlyText(t);
+}
+
+function openActionScreen(title, message = "") {
+  showCardActionModal({
+    title,
+    message,
+    fallbackMessage: "Check Card History for details."
+  });
 }
 
 function rollDie(sides) {
@@ -290,6 +313,7 @@ export function startGame() {
   state.effectSelection = { active: false, pending: null };
 
   if (!state.bags) state.bags = {};
+  clearHistoryEntries();
 
   initGameView();
   setupEventListeners();
@@ -583,8 +607,10 @@ function handleObjectCardDraw(cardEl, parentCard) {
   flipCardAnimation(cardEl, shownText);
 
   const parentName = getCardDisplayValue(parentCard);
-  const details = subInstruction ? `${subName} — ${subInstruction}` : `${subName}`;
-  log(`${p.name} drew ${parentName}: ${details}`);
+  const details = subInstruction ? `${subName} - ${subInstruction}` : `${subName}`;
+  const drawMessage = `${p.name} drew ${parentName}: ${details}`;
+  log(drawMessage);
+  openActionScreen(subName || parentName || "Card Action", drawMessage);
 
   // If the subevent mentions penalty, also flip penalty deck (preview only)
   if (shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
@@ -652,6 +678,7 @@ function handlePlainCard(cardEl, cardData) {
   const p = currentPlayer();
   const value = getCardDisplayValue(cardData);
   const txt = String(value).trim();
+  const requiresActionScreen = shouldShowActionScreenForPlainCard(txt);
 
   // Penalty card (must confirm via penalty deck click)
   if (isDrawPenaltyCardText(txt)) {
@@ -729,8 +756,14 @@ function handlePlainCard(cardEl, cardData) {
     } else {
       applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Drink card", log);
     }
-  } else {
+  } else if (!requiresActionScreen) {
     log(`${p.name} selected ${value}`);
+  }
+
+  if (requiresActionScreen) {
+    const actionMessage = `${p.name} action: ${txt}`;
+    log(actionMessage);
+    openActionScreen("Card Action", actionMessage);
   }
 
   flashElement(cardEl);
