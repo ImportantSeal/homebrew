@@ -151,6 +151,11 @@ export const state = {
       { name: "Battery Debt", instruction: "Everyone shows phone battery %. Lowest battery drinks the DIFFERENCE to the highest battery (rounded down, max 8)." },
       { name: "Notification Curse", instruction: "For the next 60 seconds, the first person who gets ANY notification drinks the last Drink-card value." },
       { name: "Most Recent Sip", instruction: "The person who last took a sip drinks 3." },
+      { name: "Oldest Drinks the Gap", instruction: "The oldest player drinks the age difference between the oldest and youngest players." },
+      { name: "Youngest Drinks the Gap", instruction: "The youngest player drinks the age difference between the oldest and youngest players." },
+      { name: "Matching Drink Check", instruction: "Everyone drinking the same beverage as you drinks 1. If nobody matches, you drink 1." },
+      { name: "Below Half, Finish It", instruction: "Anyone whose drink is below the halfway mark must finish it." },
+      { name: "Straight-Line Test", instruction: "Walk in a straight line. If you succeed, give 2 drinks. If you fail, drink water." },
       { name: "Echo", instruction: "Repeat the last Drink-card value: you drink that amount again. (If last was Everybody drinks, only YOU repeat it.)" },
       { name: "Name Length Ladder", instruction: "Longest name drinks 3. Shortest name gives 1." },
       { name: "Birthday Roulette", instruction: "Nearest upcoming birthday gives 2. Farthest birthday drinks 2." },
@@ -215,6 +220,11 @@ export const state = {
         name: "No Swearing",
         instruction: "For the next 10 turns, the next person who swears drinks 4.",
         effect: { type: "NO_SWEARING", turns: 10 }
+      },
+      {
+        name: "Hands Off Your Phone",
+        instruction: "For the next 10 turns, everyone keeps their phone away. The first player who touches their own phone drinks 2. Keep this effect visible and click Remove after it triggers.",
+        effect: { type: "NO_PHONE_TOUCH", turns: 10 }
       },
       {
         name: "Drink Buddy (Pick a target)",

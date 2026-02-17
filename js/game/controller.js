@@ -152,6 +152,7 @@ function effectLabelForLog(effect, fallback = "Effect") {
     case "LEFT_HAND": return "Left Hand Rule";
     case "NO_NAMES": return "No Names";
     case "NO_SWEARING": return "No Swearing";
+    case "NO_PHONE_TOUCH": return "Hands Off Your Phone";
     case "DITTO_MAGNET": return "Ditto Magnet";
     default: return effect.type || fallback;
   }
@@ -365,7 +366,7 @@ function handleManualEffectRemoval({ effect, label }) {
   const readable = label || effectLabelForLog(effect);
   const targetName = typeof effect.targetIndex === "number" ? playerName(effect.targetIndex) : null;
 
-  if (effect.type === "NO_SWEARING") {
+  if (effect.type === "NO_SWEARING" || effect.type === "NO_PHONE_TOUCH") {
     state.effects = (state.effects || []).filter(e => e && e.id !== effect.id);
     log(`${readable} closed manually.`);
     renderEffectsPanel();
@@ -621,6 +622,9 @@ function handleObjectCardDraw(cardEl, parentCard) {
     } else if (effectDef.type === "NO_SWEARING") {
       addEffect(state, createEffect("NO_SWEARING", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
       log(`Effect activated: No Swearing (${effectDef.turns} turns). Remove it after the first player swears.`);
+    } else if (effectDef.type === "NO_PHONE_TOUCH") {
+      addEffect(state, createEffect("NO_PHONE_TOUCH", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
+      log(`Effect activated: Hands Off Your Phone (${effectDef.turns} turns). Remove it after the first player touches their phone.`);
     } else {
       addEffect(state, createEffect(effectDef.type, effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
       log(`Effect activated: ${effectDef.type} (${effectDef.turns} turns).`);

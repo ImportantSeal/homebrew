@@ -49,6 +49,7 @@ function friendlyEffectName(type) {
   if (type === "LEFT_HAND") return "Left Hand Rule";
   if (type === "NO_NAMES") return "No Names";
   if (type === "NO_SWEARING") return "No Swearing";
+  if (type === "NO_PHONE_TOUCH") return "Hands Off Your Phone";
   if (type === "DITTO_MAGNET") return "Ditto Magnet";
   return type;
 }

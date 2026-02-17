@@ -6,6 +6,10 @@ function formatEffectTitle(effect) {
       return "Left Hand Rule";
     case "NO_NAMES":
       return "No Names";
+    case "NO_SWEARING":
+      return "No Swearing";
+    case "NO_PHONE_TOUCH":
+      return "Hands Off Your Phone";
     case "DRINK_BUDDY":
       return "Drink Buddy";
     default:
@@ -21,6 +25,10 @@ function formatEffectDescription(state, effect) {
       return `Everyone drinks with left hand.`;
     case "NO_NAMES":
       return `No names allowed (first/last).`;
+    case "NO_SWEARING":
+      return `Remove after the first swear trigger.`;
+    case "NO_PHONE_TOUCH":
+      return `Remove after the first phone-touch trigger.`;
     case "DRINK_BUDDY": {
       const src = state.players?.[effect.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[effect.targetIndex]?.name ?? "Someone";

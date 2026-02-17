@@ -13,6 +13,7 @@ function effectIcon(type) {
     case "LEFT_HAND": return "🫲";
     case "NO_NAMES": return "🤐";
     case "NO_SWEARING": return "🤬";
+    case "NO_PHONE_TOUCH": return "📵";
     case "DRINK_BUDDY": return "🤝🍻";
     default: return "✨";
   }
@@ -23,6 +24,7 @@ function effectTitle(type) {
     case "LEFT_HAND": return "Left Hand Rule";
     case "NO_NAMES": return "No Names";
     case "NO_SWEARING": return "No Swearing";
+    case "NO_PHONE_TOUCH": return "Hands Off Your Phone";
     case "DRINK_BUDDY": return "Drink Buddy";
     default: return type || "Effect";
   }
@@ -38,6 +40,8 @@ function effectDescription(state, eff) {
     }
     case "NO_SWEARING":
       return "The next player who swears drinks. Click Remove after it triggers.";
+    case "NO_PHONE_TOUCH":
+      return "Everyone keeps their phone away. Click Remove after the first touch.";
     case "DRINK_BUDDY": {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
@@ -57,6 +61,8 @@ function effectAppliesTo(state, eff) {
       return `Applies to: ${tgt}`;
     }
     case "NO_SWEARING":
+      return "Applies to: Everyone";
+    case "NO_PHONE_TOUCH":
       return "Applies to: Everyone";
     case "DRINK_BUDDY": {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
