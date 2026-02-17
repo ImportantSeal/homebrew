@@ -676,9 +676,11 @@ body[data-pickmode="effect-target"] .turn-player-name {
   background: var(--front-bg);
   color: var(--front-text);
   font-weight: 900;
-  font-size: clamp(1.02rem, 1.1vw, 1.4rem);
+  font-size: clamp(0.92rem, 1.05vw, 1.32rem);
   line-height: 1.15;
-  word-break: break-word;
+  word-break: normal;
+  overflow-wrap: break-word;
+  hyphens: none;
   position: relative;
   padding-top: 1.55rem;
 }
@@ -1197,12 +1199,41 @@ body[data-pickmode="effect-target"] .turn-player-name {
   .dice-controls label { min-width: 7.25rem; }
 
   .status-effects { width: 100%; }
+
+  .card .card__front {
+    font-size: clamp(0.72rem, 2.8vw, 0.98rem);
+    line-height: 1.08;
+    padding: 1.3rem 0.35rem 0.35rem;
+  }
+
+  .card.show-front .card__front::before {
+    top: 0.32rem;
+    left: 0.32rem;
+    padding: 0.1rem 0.3rem;
+    font-size: 0.56rem;
+    letter-spacing: 0.06em;
+  }
+
+  .card.show-front .card__front::after {
+    height: 0.3rem;
+  }
 }
 
 @media (max-width: 420px) {
   :root {
     --card-min-width: 3.9rem;
     --card-max-width: 5.2rem;
+  }
+
+  .card .card__front {
+    font-size: clamp(0.56rem, 3.6vw, 0.78rem);
+    line-height: 1.02;
+    padding: 1.1rem 0.25rem 0.3rem;
+  }
+
+  .card.show-front .card__front::before {
+    font-size: 0.5rem;
+    padding: 0.08rem 0.24rem;
   }
 }
 

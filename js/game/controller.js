@@ -608,7 +608,7 @@ function handleObjectCardDraw(cardEl, parentCard) {
 
   const parentName = getCardDisplayValue(parentCard);
   const details = subInstruction ? `${subName} - ${subInstruction}` : `${subName}`;
-  const drawMessage = `${p.name} drew ${parentName}: ${details}`;
+  const drawMessage = ` ${details}`;
   log(drawMessage);
   openActionScreen(subName || parentName || "Card Action", drawMessage);
 
