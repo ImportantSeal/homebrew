@@ -63,7 +63,10 @@ export const state = {
         { name: "Advice to Younger Self", instruction: "Give one piece of advice to your younger self. If you do not want to answer, drink." },
         { name: "Self Roast", instruction: "Roast yourself in one sentence. If you do not want to answer, drink." },
         { name: "Common Misconception", instruction: "Share one thing about yourself that most people get wrong. If you do not want to answer, drink." },
-        { name: "Latest Google Search", instruction: "Everyone shows their most recent Google search." },
+        { name: "Annoying Trait", instruction: "Name one trait of yours that annoys other people. If you refuse, drink 2." },
+        { name: "Unreasonable Pet Peeve", instruction: "Name one everyday thing you irrationally hate. If you refuse, drink 2." },
+        { name: "Never Have I Ever", instruction: "Say 'Never have I ever...' and finish the sentence. Anyone who HAS done it drinks 1 (including you)." },
+        { name: "First Impression", instruction: "Choose a player. Everyone says one word describing their first impression of them. The chosen player gives 2 to the harshest word (or drinks 2)." },
 
       ]
     }
@@ -108,6 +111,10 @@ export const state = {
       { name: "Hands up", instruction: "The last player to raise their hand drinks as many sips as there are hands in the room." },
       { name: "Group Selfie", instruction: "Take a group selfie together." },
       { name: "Fast Hands", instruction: "Who first takes a drink gives 4 drinks to everyone else." },
+      { name: "Latest Google Search", instruction: "Everyone shows their most recent Google search." },
+      { name: "Five-Word Movie Pitch", instruction: "Describe a movie using exactly five words. The first correct guess gives 2 drinks. If nobody guesses within 20 seconds, everyone drinks 1." },
+      { name: "Drinking Pot (d20)", instruction: "Everyone commits 1-6 drinks to the pot. Then everyone rolls a d20; the lowest roll drinks the entire pot. If there is a tie for lowest, tied players re-roll until one loser remains." },
+
 
       
       
@@ -150,6 +157,7 @@ export const state = {
       { name: "Left-Handed Justice", instruction: "If you are left-handed: give 2. If not: drink 1. (Yes, it’s unfair.)" },
       { name: "Glance & Sip", instruction: "Everyone looks at the same person (count to 3). Most looked-at drinks 3." },
       { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
+      { name: "No U", instruction: "Redirect the most recent Drink/Give aimed at you to another player. If none applies, drink 1." },
       { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
       { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
       { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
@@ -205,7 +213,7 @@ export const state = {
       },
       {
         name: "No Swearing",
-        instruction: "For the next 10 turns, the next person who swears drinks 4. Keep this effect visible and click Remove after it triggers.",
+        instruction: "For the next 10 turns, the next person who swears drinks 4.",
         effect: { type: "NO_SWEARING", turns: 10 }
       },
       {
