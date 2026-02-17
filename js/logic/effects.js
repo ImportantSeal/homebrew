@@ -123,6 +123,11 @@ function parseDrinkAmount(text) {
   const m = t.match(/\bDrink\s+(\d+)\b/i);
   if (m) return { amount: parseInt(m[1], 10), label: `Drink ${m[1]}` };
 
+  // Shot + Shotgun
+  if (/^Shot\+Shotgun$/i.test(t) || /^Shot\s*\+\s*Shotgun$/i.test(t)) {
+    return { amount: 3, label: 'Shot + Shotgun' };
+  }
+
   // Shot / Shotgun
   if (/^Shotgun$/i.test(t)) return { amount: 2, label: 'Shotgun' };
   if (/^Shot$/i.test(t)) return { amount: 1, label: 'Shot' };

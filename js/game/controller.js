@@ -97,9 +97,19 @@ function ensureBag(stateObj, key, items) {
 function parseDrinkFromText(text) {
   const t = String(text || "").trim();
 
+  // Everybody take(s) a Shot + Shotgun
+  if (/^Everybody\s+(take|takes)\s+(a\s+)?Shot\s*\+\s*Shotgun\b/i.test(t)) {
+    return { scope: "all", amount: "Shot+Shotgun" };
+  }
+
   // Everybody takes a Shot / Shotgun
-  const allShot = t.match(/^Everybody\s+(takes\s+)?(a\s+)?(Shotgun|Shot)\b/i);
-  if (allShot) return { scope: "all", amount: allShot[3] };
+  const allShot = t.match(/^Everybody\s+((take|takes)\s+)?(a\s+)?(Shotgun|Shot)\b/i);
+  if (allShot) return { scope: "all", amount: allShot[4] };
+
+  // Shot + Shotgun (self)
+  if (/^(take\s+a\s+)?Shot\s*\+\s*Shotgun\b/i.test(t) || /^Shot\s*\+\s*Shotgun$/i.test(t)) {
+    return { scope: "self", amount: "Shot+Shotgun" };
+  }
 
   // Shot / Shotgun (self)
   if (/^(take\s+a\s+)?Shotgun\b/i.test(t) || /^Shotgun$/i.test(t)) return { scope: "self", amount: "Shotgun" };
@@ -152,6 +162,48 @@ function runSpecialAction(action) {
   const selfIndex = state.currentPlayerIndex;
 
   switch (action) {
+    case "WHO_KNOWS_YOU": {
+      const candidates = state.players
+        .map((_, idx) => idx)
+        .filter(idx => idx !== selfIndex);
+
+      if (candidates.length === 0) {
+        log("Who Knows You needs at least two players.");
+        return;
+      }
+
+      const targetIndex = candidates[Math.floor(Math.random() * candidates.length)];
+      const target = playerName(targetIndex);
+
+      log(`Who Knows You target: ${target}.`);
+      log(`${target} answers a question about ${p.name}. Wrong -> ${target} drinks 1. Correct -> ${p.name} drinks 1.`);
+      return;
+    }
+
+    case "DOUBLE_OR_NOTHING_D6": {
+      applyDrinkEvent(state, selfIndex, 4, "Double or Nothing", log);
+
+      const shouldRoll = (typeof window === "undefined")
+        ? true
+        : window.confirm("Roll a d6 for Double or Nothing? (4-6: give 8, 1-3: drink 8)");
+
+      if (!shouldRoll) {
+        log(`${p.name} declined the Double or Nothing roll after drinking 4.`);
+        return;
+      }
+
+      const r = rollDie(6);
+      log(`Double or Nothing roll (d6): ${r}`);
+
+      if (r >= 4) {
+        log(`${p.name} wins: give 8 drinks.`);
+      } else {
+        applyDrinkEvent(state, selfIndex, 8, "Double or Nothing fail", log);
+      }
+
+      return;
+    }
+
     case "DRINK_AND_DRAW_AGAIN": {
       applyDrinkEvent(state, selfIndex, 1, "Drink and Draw Again", log);
       log(`${p.name} keeps their turn and draws new cards.`);
@@ -656,9 +708,16 @@ function handlePlainCard(cardEl, cardData) {
   const drink = parseDrinkFromText(txt);
   if (drink) {
     if (drink.scope === "all") {
-      const everyoneAction = typeof drink.amount === "number"
-        ? `drinks ${drink.amount}.`
-        : (/^Shotgun$/i.test(drink.amount) ? "takes a Shotgun." : "takes a Shot.");
+      let everyoneAction = "";
+      if (typeof drink.amount === "number") {
+        everyoneAction = `drinks ${drink.amount}.`;
+      } else if (/^Shot\+Shotgun$/i.test(drink.amount)) {
+        everyoneAction = "takes a Shot and a Shotgun.";
+      } else if (/^Shotgun$/i.test(drink.amount)) {
+        everyoneAction = "takes a Shotgun.";
+      } else {
+        everyoneAction = "takes a Shot.";
+      }
       log(`Everybody ${everyoneAction}`);
       state.players.forEach((_, idx) => {
         applyDrinkEvent(state, idx, drink.amount, "Everybody drinks", log, { suppressSelfLog: true });
