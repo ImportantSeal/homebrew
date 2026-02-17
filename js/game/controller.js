@@ -722,8 +722,8 @@ function handlePlainCard(cardEl, cardData) {
     return;
   }
 
-  // Ditto activation chance (same as before)
-  if (Math.random() < 0.06) {
+  // Ditto activation chance
+  if (Math.random() < 0.08) { 
     const idx = parseInt(cardEl.dataset.index || "0", 10);
     activateDitto(state, cardEl, idx, log);
 
