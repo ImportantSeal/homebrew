@@ -12,6 +12,7 @@ function effectIcon(type) {
   switch (type) {
     case "LEFT_HAND": return "🫲";
     case "NO_NAMES": return "🤐";
+    case "NO_SWEARING": return "🤬";
     case "DRINK_BUDDY": return "🤝🍻";
     default: return "✨";
   }
@@ -21,6 +22,7 @@ function effectTitle(type) {
   switch (type) {
     case "LEFT_HAND": return "Left Hand Rule";
     case "NO_NAMES": return "No Names";
+    case "NO_SWEARING": return "No Swearing";
     case "DRINK_BUDDY": return "Drink Buddy";
     default: return type || "Effect";
   }
@@ -34,6 +36,8 @@ function effectDescription(state, eff) {
       const tgt = state.players?.[eff.targetIndex]?.name;
       return tgt ? `${tgt} is not allowed to say any names.` : "No names allowed.";
     }
+    case "NO_SWEARING":
+      return "The next player who swears drinks. Click Remove after it triggers.";
     case "DRINK_BUDDY": {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
@@ -52,6 +56,8 @@ function effectAppliesTo(state, eff) {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `Applies to: ${tgt}`;
     }
+    case "NO_SWEARING":
+      return "Applies to: Everyone";
     case "DRINK_BUDDY": {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";

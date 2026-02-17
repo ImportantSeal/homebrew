@@ -39,7 +39,7 @@ export function tickEffects(state, log) {
   if (expired.length > 0) {
     state.effects = state.effects.filter(e => !(typeof e.remainingTurns === 'number' && e.remainingTurns <= 0));
     expired.forEach(e => {
-      log?.(`Effect ended: ${e.type}`);
+      log?.(`Effect ended: ${friendlyEffectName(e.type)}`);
     });
   }
 }
@@ -48,6 +48,7 @@ function friendlyEffectName(type) {
   if (type === "DRINK_BUDDY") return "Drink Buddy";
   if (type === "LEFT_HAND") return "Left Hand Rule";
   if (type === "NO_NAMES") return "No Names";
+  if (type === "NO_SWEARING") return "No Swearing";
   if (type === "DITTO_MAGNET") return "Ditto Magnet";
   return type;
 }

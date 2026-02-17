@@ -54,6 +54,16 @@ export const state = {
         { name: "Riddle Me", instruction: "Ask a riddle. If solved, you drink one; if not, the group drinks one." },
         { name: "Guess the Number", instruction: "Hold 1–5 fingers behind your back. Closest gives one; exact gives two." },
         { name: "No hands", instruction: "Take a shot without using your hands." },
+        { name: "Biggest Red Flag", instruction: "Share the biggest red flag you have noticed in someone. If you do not want to answer, drink." },
+        { name: "Biggest Green Flag", instruction: "Share the biggest green flag you have noticed in someone. If you do not want to answer, drink." },
+        { name: "Five-Year Forecast", instruction: "Give your prediction for your life five years from now. If you do not want to answer, drink." },
+        { name: "Learned the Hard Way", instruction: "Share one thing you learned the hard way. If you do not want to answer, drink." },
+        { name: "Stupid Purchase", instruction: "Share the dumbest thing you have spent money on. If you do not want to answer, drink." },
+        { name: "Biggest Fear", instruction: "Share one thing you are most afraid of. If you do not want to answer, drink." },
+        { name: "Advice to Younger Self", instruction: "Give one piece of advice to your younger self. If you do not want to answer, drink." },
+        { name: "Self Roast", instruction: "Roast yourself in one sentence. If you do not want to answer, drink." },
+        { name: "Common Misconception", instruction: "Share one thing about yourself that most people get wrong. If you do not want to answer, drink." },
+        { name: "Latest Google Search", instruction: "Everyone shows their most recent Google search." },
 
       ]
     }
@@ -192,6 +202,11 @@ export const state = {
         name: "No Names",
         instruction: "For the next 10 turns, you are not allowed to say ANY names.",
         effect: { type: "NO_NAMES", turns: 10 }
+      },
+      {
+        name: "No Swearing",
+        instruction: "For the next 10 turns, the next person who swears drinks 4. Keep this effect visible and click Remove after it triggers.",
+        effect: { type: "NO_SWEARING", turns: 10 }
       },
       {
         name: "Drink Buddy (Pick a target)",

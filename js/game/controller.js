@@ -141,6 +141,7 @@ function effectLabelForLog(effect, fallback = "Effect") {
     case "DRINK_BUDDY": return "Drink Buddy";
     case "LEFT_HAND": return "Left Hand Rule";
     case "NO_NAMES": return "No Names";
+    case "NO_SWEARING": return "No Swearing";
     case "DITTO_MAGNET": return "Ditto Magnet";
     default: return effect.type || fallback;
   }
@@ -311,6 +312,14 @@ function handleManualEffectRemoval({ effect, label }) {
 
   const readable = label || effectLabelForLog(effect);
   const targetName = typeof effect.targetIndex === "number" ? playerName(effect.targetIndex) : null;
+
+  if (effect.type === "NO_SWEARING") {
+    state.effects = (state.effects || []).filter(e => e && e.id !== effect.id);
+    log(`${readable} closed manually.`);
+    renderEffectsPanel();
+    return;
+  }
+
   const confirmText = targetName
     ? `Remove ${readable} for ${targetName}?`
     : `Remove ${readable}?`;
@@ -557,6 +566,9 @@ function handleObjectCardDraw(cardEl, parentCard) {
     } else if (effectDef.type === "NO_NAMES") {
       addEffect(state, createEffect("NO_NAMES", effectDef.turns, { targetIndex: state.currentPlayerIndex }));
       log(`Effect activated: No Names (${effectDef.turns} turns).`);
+    } else if (effectDef.type === "NO_SWEARING") {
+      addEffect(state, createEffect("NO_SWEARING", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
+      log(`Effect activated: No Swearing (${effectDef.turns} turns). Remove it after the first player swears.`);
     } else {
       addEffect(state, createEffect(effectDef.type, effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
       log(`Effect activated: ${effectDef.type} (${effectDef.turns} turns).`);
