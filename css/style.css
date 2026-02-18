@@ -162,6 +162,25 @@ body::before {
   font-size: 0.95rem;
 }
 
+.setup-checkbox {
+  width: min(34rem, 88%);
+  margin: 0.75rem auto 0.15rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.setup-checkbox input[type="checkbox"] {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 /* Main layout */
 .game-main {
   display: flex;

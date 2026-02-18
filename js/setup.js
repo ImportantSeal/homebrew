@@ -6,7 +6,11 @@ export function initSetup() {
   const playerInput = document.getElementById('player-input');
   const addPlayerButton = document.getElementById('add-player-button');
   const playerList = document.getElementById('player-list');
+  const includeItemsCheckbox = document.getElementById('include-items-checkbox');
   const startGameButton = document.getElementById('start-game-button');
+
+  if (includeItemsCheckbox) includeItemsCheckbox.checked = false;
+  state.includeItems = false;
 
   // Lisää pelaaja kun Add Player -nappia klikataan
   addPlayerButton.addEventListener('click', addPlayer);
@@ -20,6 +24,7 @@ export function initSetup() {
 
   startGameButton.addEventListener('click', () => {
     if (state.players.length > 0) {
+      state.includeItems = Boolean(includeItemsCheckbox?.checked);
       setupContainer.style.display = "none";
       startGame();
     }

@@ -1,5 +1,6 @@
 export const state = {
   players: [],
+  includeItems: false,
   currentPlayerIndex: 0,
   bags: {},
 

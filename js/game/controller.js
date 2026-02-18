@@ -708,7 +708,7 @@ function handlePlainCard(cardEl, cardData) {
   }
 
   // Item cards
-  if (state.itemCards.includes(value)) {
+  if (state.includeItems && state.itemCards.includes(value)) {
     log(`${p.name} acquired item: ${value}`);
     p.inventory.push(value);
 
