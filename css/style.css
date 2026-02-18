@@ -1307,10 +1307,10 @@ body[data-pickmode="effect-target"] .turn-player-name {
 @media (max-width: 900px) {
   :root {
     --right-panel-width: 100%;
-    --container-padding: 0.8rem;
+    --container-padding: 0.75rem;
     --cards-gap: 0.45rem;
-    --card-min-width: clamp(4.2rem, 26vw, 5.6rem);
-    --card-max-width: clamp(5.2rem, 29vw, 6.6rem);
+    --card-min-width: clamp(4.8rem, 27vw, 6rem);
+    --card-max-width: clamp(5.8rem, 31vw, 7.2rem);
   }
 
   body {
@@ -1322,7 +1322,10 @@ body[data-pickmode="effect-target"] .turn-player-name {
       max(0.75rem, env(safe-area-inset-bottom));
   }
 
-  .container { width: 100%; }
+  .container {
+    width: 100%;
+    border-radius: 0.8rem;
+  }
 
   #setup-container {
     min-height: 0;
@@ -1353,7 +1356,135 @@ body[data-pickmode="effect-target"] .turn-player-name {
     width: min(20rem, 95vw);
   }
 
-  .game-main { flex-direction: column; height: auto; }
+  .game-main {
+    flex-direction: column;
+    height: auto;
+    gap: 0.85rem;
+  }
+
+  .header-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.45rem;
+  }
+
+  .header-row h1 {
+    justify-self: start;
+    text-align: left;
+    line-height: 1.08;
+    font-size: clamp(1.35rem, 6vw, 1.9rem);
+  }
+
+  .rules-button {
+    min-width: 4.7rem;
+    padding: 0.52rem 0.68rem;
+    font-size: 0.9rem;
+  }
+
+  .turn-order {
+    justify-content: flex-start;
+    gap: 0.28rem;
+    margin-top: 0.2rem;
+  }
+
+  .turn-indicator {
+    width: 100%;
+    margin: 0.5rem 0 0.85rem;
+  }
+
+  .card-container {
+    margin-bottom: 0.65rem;
+  }
+
+  .effects-panel {
+    gap: 0.35rem;
+    margin-top: 0;
+    padding: 0;
+  }
+
+  .effects-panel__header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.2rem;
+  }
+
+  .effects-panel__hint {
+    font-size: 0.9rem;
+    line-height: 1.25;
+  }
+
+  .status-effects {
+    max-height: 13rem;
+  }
+
+  .effect-card {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      "icon text"
+      "meta meta"
+      "bar bar";
+    align-items: start;
+    gap: 0.55rem;
+    padding: 0.58rem 0.62rem;
+  }
+
+  .effect-left {
+    grid-area: icon;
+    align-self: center;
+  }
+
+  .effect-icon {
+    width: 1.8rem;
+    height: 1.8rem;
+    font-size: 1rem;
+  }
+
+  .effect-mid {
+    grid-area: text;
+    min-width: 0;
+  }
+
+  .effect-title {
+    font-size: 1rem;
+    line-height: 1.08;
+  }
+
+  .effect-desc {
+    margin-top: 0.1rem;
+    font-size: 0.9rem;
+    line-height: 1.22;
+  }
+
+  .effect-applies {
+    margin-top: 0.16rem;
+    font-size: 0.84rem;
+    line-height: 1.18;
+  }
+
+  .effect-right {
+    grid-area: meta;
+    width: 100%;
+    justify-content: flex-start;
+    gap: 0.4rem;
+    margin-top: 0.1rem;
+  }
+
+  .effect-remaining {
+    font-size: 0.84rem;
+    padding: 0.18rem 0.5rem;
+  }
+
+  .effect-remove {
+    font-size: 0.82rem;
+    padding: 0.22rem 0.58rem;
+  }
+
+  .effect-bar {
+    grid-area: bar;
+    margin-top: 0.35rem;
+  }
 
   .left-panel {
     order: 2;
@@ -1361,7 +1492,26 @@ body[data-pickmode="effect-target"] .turn-player-name {
     border-right: none;
     border-bottom: 1px solid rgba(255,255,255,0.10);
     padding-right: 0;
-    padding-bottom: 0.85rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .penalty-deck-container {
+    margin-top: 0.15rem;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.55rem;
+  }
+
+  .left-panel .penalty-deck {
+    width: clamp(6rem, 32vw, 7.6rem);
+  }
+
+  #redraw-button {
+    margin-top: 0;
+    min-width: 7.2rem;
+    padding: 0.58rem 0.92rem;
+    font-size: 0.95rem;
   }
 
   .center-panel {
@@ -1375,10 +1525,15 @@ body[data-pickmode="effect-target"] .turn-player-name {
     min-width: 0;
     border-left: none;
     padding-left: 0;
+    gap: 0.45rem;
   }
 
-  .items-board { flex-basis: 14rem; max-height: 14rem; }
-  .history-section { max-height: 16rem; }
+  .right-panel h2 {
+    margin: 0.1rem 0;
+  }
+
+  .items-board { flex-basis: 11.5rem; max-height: 11.5rem; }
+  .history-section { max-height: 13rem; }
 
   .dice-box { height: min(48vh, 21rem); }
 
@@ -1417,8 +1572,23 @@ body[data-pickmode="effect-target"] .turn-player-name {
 
 @media (max-width: 420px) {
   :root {
-    --card-min-width: 3.9rem;
-    --card-max-width: 5.2rem;
+    --card-min-width: 4.3rem;
+    --card-max-width: 5.6rem;
+  }
+
+  .header-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+  }
+
+  .header-row h1 {
+    grid-column: 1 / -1;
+    font-size: clamp(1.25rem, 7vw, 1.6rem);
+  }
+
+  .rules-button {
+    width: 100%;
+    min-width: 0;
   }
 
   .card .card__front {
