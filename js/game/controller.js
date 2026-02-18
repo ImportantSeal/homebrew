@@ -44,6 +44,7 @@ const TIMING = {
 
 const ITEM_RELATED_SPECIAL_ACTIONS = new Set(["COLLECTOR", "MINIMALIST"]);
 const ITEM_RELATED_TEXT = /\bitems?\b/i;
+let penaltyDeckSizeSyncBound = false;
 
 // ---------- Logging ----------
 function log(message) {
@@ -147,11 +148,17 @@ function parseDrinkFromText(text) {
   return null;
 }
 
+function parseGiveFromText(text) {
+  const t = String(text || "").trim();
+  const self = t.match(/\bGive\s+(\d+)\b/i);
+  if (!self) return null;
+  return { amount: parseInt(self[1], 10) };
+}
+
 function isDirectDrinkOnlyText(text) {
   const t = String(text || "").trim();
   if (!t) return false;
-  if (/\bGive\b/i.test(t)) return false;
-  return Boolean(parseDrinkFromText(t));
+  return Boolean(parseDrinkFromText(t) || parseGiveFromText(t));
 }
 
 function shouldShowActionScreenForPlainCard(text) {
@@ -167,6 +174,33 @@ function openActionScreen(title, message = "") {
     message,
     fallbackMessage: "Check Card History for details."
   });
+}
+
+function syncPenaltyDeckSizeToCards() {
+  const penaltyDeckEl = document.getElementById("penalty-deck");
+  const cardEl = document.getElementById("card0");
+  if (!penaltyDeckEl || !cardEl) return;
+
+  const rect = cardEl.getBoundingClientRect();
+  if (rect.width > 0) {
+    penaltyDeckEl.style.width = `${Math.round(rect.width)}px`;
+  }
+}
+
+function bindPenaltyDeckSizeSync() {
+  if (penaltyDeckSizeSyncBound) return;
+  penaltyDeckSizeSyncBound = true;
+
+  const sync = () => requestAnimationFrame(syncPenaltyDeckSizeToCards);
+  window.addEventListener("resize", sync);
+
+  if (typeof ResizeObserver !== "undefined") {
+    const cardContainer = document.querySelector(".card-container");
+    if (cardContainer) {
+      const observer = new ResizeObserver(sync);
+      observer.observe(cardContainer);
+    }
+  }
 }
 
 function rollDie(sides) {
@@ -343,6 +377,8 @@ export function startGame() {
 // ---------- Setup ----------
 function initGameView() {
   showGameContainer();
+  bindPenaltyDeckSizeSync();
+  requestAnimationFrame(syncPenaltyDeckSizeToCards);
   hidePenaltyCard(state);
 }
 
@@ -380,6 +416,7 @@ function updateTurn() {
   renderItems();
   renderEffectsPanel();
   resetCards();
+  requestAnimationFrame(syncPenaltyDeckSizeToCards);
 }
 
 function updateItemsPanelVisibility() {
@@ -463,6 +500,7 @@ function resetCards() {
   renderCards(state, onCardClick);
   hidePenaltyCard(state);
   renderEffectsPanel();
+  requestAnimationFrame(syncPenaltyDeckSizeToCards);
 }
 
 // ---------- UI event handlers ----------
@@ -778,6 +816,7 @@ function handlePlainCard(cardEl, cardData) {
 
   //  Drink event hook (for Drink Buddy logging)
   const drink = parseDrinkFromText(txt);
+  const give = parseGiveFromText(txt);
   if (drink) {
     if (drink.scope === "all") {
       let everyoneAction = "";
@@ -797,6 +836,11 @@ function handlePlainCard(cardEl, cardData) {
     } else {
       applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Drink card", log);
     }
+    if (give) {
+      log(`${p.name} gives ${give.amount}.`);
+    }
+  } else if (give) {
+    log(`${p.name} gives ${give.amount}.`);
   } else if (!requiresActionScreen) {
     log(`${p.name} selected ${value}`);
   }

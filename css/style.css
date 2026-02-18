@@ -5,7 +5,7 @@
 
   --panel-gap: clamp(0.75rem, 2vw, 2.25rem);
   --left-panel-width: 12.5rem;
-  --right-panel-width: clamp(18rem, 26vw, 26rem);
+  --right-panel-width: clamp(17rem, 24vw, 24rem);
 
   --cards-gap: clamp(0.6rem, 1.2vw, 1.25rem);
   --card-min-width: 7.2rem;
