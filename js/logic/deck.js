@@ -27,7 +27,7 @@ export function dealTurnCards(state) {
       // - higher than before so items are seen in normal-length games
       // - all items have equal probability (no Immunity bias)
       const r = Math.random();
-      if (r < ITEM_OVERRIDE_CHANCE) {
+      if (state.includeItems && r < ITEM_OVERRIDE_CHANCE) {
         card = randomFromArray(state.itemCards);
       }
 

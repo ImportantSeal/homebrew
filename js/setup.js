@@ -6,7 +6,50 @@ export function initSetup() {
   const playerInput = document.getElementById('player-input');
   const addPlayerButton = document.getElementById('add-player-button');
   const playerList = document.getElementById('player-list');
+  const includeItemsCheckbox = document.getElementById('include-items-checkbox');
+  const includeItemsMenuToggle = document.getElementById('include-items-menu-toggle');
+  const itemsInfoMenu = document.getElementById('items-info-menu');
   const startGameButton = document.getElementById('start-game-button');
+
+  if (includeItemsCheckbox) includeItemsCheckbox.checked = false;
+  state.includeItems = false;
+
+  function openItemsMenu() {
+    if (!itemsInfoMenu) return;
+    itemsInfoMenu.hidden = false;
+    includeItemsMenuToggle?.setAttribute('aria-expanded', 'true');
+  }
+
+  function closeItemsMenu(restoreFocus = false) {
+    if (!itemsInfoMenu) return;
+    itemsInfoMenu.hidden = true;
+    includeItemsMenuToggle?.setAttribute('aria-expanded', 'false');
+    if (restoreFocus) includeItemsMenuToggle?.focus?.();
+  }
+
+  includeItemsMenuToggle?.addEventListener('click', (event) => {
+    event.stopPropagation();
+    if (itemsInfoMenu?.hidden) openItemsMenu();
+    else closeItemsMenu();
+  });
+
+  itemsInfoMenu?.addEventListener('click', (event) => {
+    event.stopPropagation();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (!itemsInfoMenu || itemsInfoMenu.hidden) return;
+    const target = event.target;
+    if (includeItemsMenuToggle?.contains(target)) return;
+    if (target && target.closest && target.closest('#items-info-menu')) return;
+    closeItemsMenu();
+  });
+
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && itemsInfoMenu && !itemsInfoMenu.hidden) {
+      closeItemsMenu(true);
+    }
+  });
 
   // Lisää pelaaja kun Add Player -nappia klikataan
   addPlayerButton.addEventListener('click', addPlayer);
@@ -20,6 +63,8 @@ export function initSetup() {
 
   startGameButton.addEventListener('click', () => {
     if (state.players.length > 0) {
+      state.includeItems = Boolean(includeItemsCheckbox?.checked);
+      if (itemsInfoMenu && !itemsInfoMenu.hidden) closeItemsMenu();
       setupContainer.style.display = "none";
       startGame();
     }
