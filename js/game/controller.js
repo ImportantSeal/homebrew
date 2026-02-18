@@ -376,12 +376,27 @@ function updateTurn() {
   setTurnIndicatorText(`${p.name}'s Turn`);
 
   renderTurnOrder(state);
+  updateItemsPanelVisibility();
   renderItems();
   renderEffectsPanel();
   resetCards();
 }
 
+function updateItemsPanelVisibility() {
+  const itemsTitle = document.getElementById("items-title");
+  const itemsBoard = document.getElementById("items-board");
+  const showItems = Boolean(state.includeItems);
+
+  if (itemsTitle) itemsTitle.style.display = showItems ? "" : "none";
+  if (itemsBoard) {
+    itemsBoard.style.display = showItems ? "" : "none";
+    if (!showItems) itemsBoard.innerHTML = "";
+  }
+}
+
 function renderItems() {
+  if (!state.includeItems) return;
+
   renderItemsBoard(state, (pIndex, iIndex) => {
     useItem(
       state,

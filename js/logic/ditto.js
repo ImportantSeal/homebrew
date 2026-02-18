@@ -2,8 +2,10 @@
 
 import { randomFromArray } from '../utils/random.js';
 
-export function getDittoEventPool() {
-  return [
+const ITEM_DITTO_TYPES = new Set(['LOSE_ONE_ITEM_ALL', 'STEAL_RANDOM_ITEM']);
+
+export function getDittoEventPool(state) {
+  const pool = [
     { type: 'LOSE_ONE_ITEM_ALL' },
     { type: 'STEAL_RANDOM_ITEM' },
     { type: 'DRINK_3' },
@@ -12,6 +14,9 @@ export function getDittoEventPool() {
     { type: 'RANDOM_CHALLENGE' },
     { type: 'PENALTY_ALL' }
   ];
+
+  if (state?.includeItems) return pool;
+  return pool.filter(ev => !ITEM_DITTO_TYPES.has(ev.type));
 }
 
 export function activateDitto(state, cardElement, cardIndex, log) {
@@ -34,7 +39,8 @@ export function activateDitto(state, cardElement, cardIndex, log) {
   log("Ditto effect activated! Click again to confirm.");
 
   cardElement.dataset.dittoTime = Date.now();
-  state.dittoPending[cardIndex] = randomFromArray(getDittoEventPool());
+  const dittoPool = getDittoEventPool(state);
+  state.dittoPending[cardIndex] = randomFromArray(dittoPool) || { type: 'DRINK_3' };
 }
 
 /**
@@ -47,6 +53,11 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
   if (!ev) {
     log("Ditto had no stored effect (unexpected).");
+    return;
+  }
+
+  if (!state.includeItems && ITEM_DITTO_TYPES.has(ev.type)) {
+    log("Ditto skipped an item-related effect because items are disabled.");
     return;
   }
 
