@@ -12,15 +12,46 @@
   <!-- Pelaajien asetukset -->
   <div id="setup-container" class="container">
     <h1>Player Setup</h1>
-    <input type="text" id="player-input" placeholder="Enter player name" />
-    <button id="add-player-button">Add Player</button>
+    <div class="setup-input-row">
+      <input type="text" id="player-input" placeholder="Enter player name" />
+      <button id="add-player-button" type="button">Add Player</button>
+    </div>
     <ul id="player-list"></ul>
-    <label class="setup-checkbox" for="include-items-checkbox">
-      <input type="checkbox" id="include-items-checkbox" />
-      <span>Include items</span>
-    </label>
-    <button id="start-game-button" disabled>Start Game</button>
+    <div class="setup-actions-row">
+      <button id="start-game-button" type="button" disabled>Start Game</button>
+
+      <div class="setup-items-control">
+        <label class="setup-checkbox" for="include-items-checkbox">
+          <input type="checkbox" id="include-items-checkbox" />
+          <span>Include items</span>
+        </label>
+
+        <button
+          id="include-items-menu-toggle"
+          class="setup-arrow-button"
+          type="button"
+          aria-haspopup="menu"
+          aria-controls="items-info-menu"
+          aria-expanded="false"
+          aria-label="Show item info"
+        ></button>
+
+        <div id="items-info-menu" class="setup-items-menu" role="menu" hidden>
+          <p class="setup-items-menu__title">Items</p>
+          <ul>
+            <li>Item cards can appear during turns.</li>
+            <li>Click an item in your inventory to use it.</li>
+            <li><strong>Shield</strong>: blocks next penalty.</li>
+            <li><strong>Immunity</strong>: cancel next drink.</li>
+            <li><strong>Reveal Free</strong>: reveal mystery card.</li>
+            <li><strong>Mirror</strong>: mirror effect to a target.</li>
+            <li><strong>Skip Turn</strong>: pass now or skip next turn.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </div>
+
 
   <!-- Peli-näkymä -->
   <div id="game-container" class="container" style="display:none;">
