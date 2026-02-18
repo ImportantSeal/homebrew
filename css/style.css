@@ -1351,9 +1351,11 @@ body[data-pickmode="effect-target"] .turn-player-name {
   }
 
   .setup-items-menu {
-    right: 0;
-    transform: none;
-    width: min(20rem, 95vw);
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: min(20rem, calc(100vw - 1rem));
+    max-width: calc(100vw - 1rem);
   }
 
   .game-main {
