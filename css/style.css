@@ -232,6 +232,7 @@ body::before {
   transition: transform 0.15s, filter 0.2s, border-color 0.2s;
   font-size: 0.95rem;
   box-shadow: var(--shadow-soft);
+  touch-action: manipulation;
 }
 .rules-button:hover {
   transform: translateY(-1px);
@@ -1041,6 +1042,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
   font-weight: 800;
   letter-spacing: 0.01em;
   user-select: none;
+  touch-action: manipulation;
 }
 .dice-chip:hover {
   transform: translateY(-1px);
@@ -1115,6 +1117,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
     linear-gradient(135deg, rgba(53,224,199,0.22), rgba(168,85,247,0.22)),
     rgba(10, 14, 28, 0.65);
   box-shadow: var(--shadow-soft);
+  touch-action: manipulation;
 }
 .dice-roll:hover {
   transform: translateY(-1px);

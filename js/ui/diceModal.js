@@ -10,6 +10,7 @@ const RECENT_LAYOUT_CHANGE_MS = 700;
 const DICE_SCALE_MIN = 3.6;
 const DICE_SCALE_MAX = 4.4;
 const DICE_SCALE_FALLBACK = 4.0;
+const TOUCH_CLICK_GUARD_MS = 700;
 
 let diceBox = null;
 let diceBoxInitPromise = null;
@@ -190,6 +191,24 @@ function scheduleResize() {
   });
 }
 
+function bindTap(el, handler) {
+  if (!el || typeof handler !== "function") return;
+
+  let lastTouchAt = 0;
+
+  // Mobile webviews/some browsers can drop or delay click handlers.
+  el.addEventListener('touchend', (e) => {
+    lastTouchAt = Date.now();
+    e.preventDefault();
+    handler(e);
+  }, { passive: false });
+
+  el.addEventListener('click', (e) => {
+    if ((Date.now() - lastTouchAt) < TOUCH_CLICK_GUARD_MS) return;
+    handler(e);
+  });
+}
+
 export function initDiceModal() {
   const toggleBtn = document.getElementById('dice-toggle');
   const modal = document.getElementById('dice-modal');
@@ -255,7 +274,7 @@ export function initDiceModal() {
     }
   };
 
-  toggleBtn.addEventListener('click', () => {
+  bindTap(toggleBtn, () => {
     const openNow = modal.classList.contains('is-open');
     if (openNow) close();
     else open();
@@ -387,7 +406,7 @@ export function initDiceModal() {
   }
 
   // Main Roll button.
-  rollBtn?.addEventListener('click', async (e) => {
+  bindTap(rollBtn, async (e) => {
     e.stopPropagation();
 
     if (!isModalOpen) return;
@@ -400,7 +419,7 @@ export function initDiceModal() {
 
   // Quick buttons: one click = roll.
   quickButtons.forEach((btn) => {
-    btn.addEventListener('click', async (e) => {
+    bindTap(btn, async (e) => {
       e.stopPropagation();
 
       if (!isModalOpen) return;
