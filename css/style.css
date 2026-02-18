@@ -1053,7 +1053,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
 
 .dice-box {
   width: 100%;
-  height: min(46vh, 22rem);
+  height: min(50vh, 24rem);
   border-radius: 0.55rem;
   border: 1px solid rgba(255,255,255,0.12);
   background: rgba(10, 14, 28, 0.40);
@@ -1187,7 +1187,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
   .items-board { flex-basis: 14rem; max-height: 14rem; }
   .history-section { max-height: 16rem; }
 
-  .dice-box { height: min(34vh, 14rem); }
+  .dice-box { height: min(42vh, 18rem); }
 
   .modal__panel {
     width: calc(100vw - 1rem);
