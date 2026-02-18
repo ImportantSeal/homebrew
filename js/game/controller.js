@@ -42,6 +42,9 @@ const TIMING = {
   REDRAW_REFRESH_MS: 1000
 };
 
+const ITEM_RELATED_SPECIAL_ACTIONS = new Set(["COLLECTOR", "MINIMALIST"]);
+const ITEM_RELATED_TEXT = /\bitems?\b/i;
+
 // ---------- Logging ----------
 function log(message) {
   return addHistoryEntry(message);
@@ -84,7 +87,7 @@ function shouldTriggerPenaltyPreview(subName, subInstruction, challengeText) {
 
 // Bag key for object card pools
 function getBagKeyForObjectCard(cardData) {
-  if (cardData === state.special) return "special";
+  if (cardData === state.special) return state.includeItems ? "special:items-on" : "special:no-items";
   if (cardData === state.crowdChallenge) return "crowd";
   return `social:${cardData.name || "unknown"}`;
 }
@@ -93,6 +96,23 @@ function ensureBag(stateObj, key, items) {
   if (!stateObj.bags) stateObj.bags = {};
   if (!stateObj.bags[key]) stateObj.bags[key] = createBag(items);
   return stateObj.bags[key];
+}
+
+function isItemRelatedSpecialSubcategory(entry) {
+  if (!entry || typeof entry !== "object") return false;
+  if (entry.action && ITEM_RELATED_SPECIAL_ACTIONS.has(String(entry.action))) return true;
+
+  const name = String(entry.name || "");
+  const instruction = String(entry.instruction || "");
+  return ITEM_RELATED_TEXT.test(name) || ITEM_RELATED_TEXT.test(instruction);
+}
+
+function getObjectCardPool(cardData) {
+  const source = Array.isArray(cardData?.subcategories) ? cardData.subcategories : [];
+  if (cardData === state.special && !state.includeItems) {
+    return source.filter(entry => !isItemRelatedSpecialSubcategory(entry));
+  }
+  return source;
 }
 
 function parseDrinkFromText(text) {
@@ -578,8 +598,14 @@ function onCardClick(index) {
 function handleObjectCardDraw(cardEl, parentCard) {
   const p = currentPlayer();
 
+  const pool = getObjectCardPool(parentCard);
+  if (pool.length === 0) {
+    log("No valid cards available in this deck.");
+    return true;
+  }
+
   const bagKey = getBagKeyForObjectCard(parentCard);
-  const bag = ensureBag(state, bagKey, parentCard.subcategories);
+  const bag = ensureBag(state, bagKey, pool);
   const event = bag.next();
 
   let subName = "";
