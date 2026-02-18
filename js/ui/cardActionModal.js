@@ -9,6 +9,7 @@ const IDS = {
 
 let initialized = false;
 let returnFocusEl = null;
+let closeHandler = null;
 
 function refs() {
   const modal = document.getElementById(IDS.modal);
@@ -37,6 +38,16 @@ function closeModal(restoreFocus = true) {
   if (!modal || !isOpen(modal)) return;
 
   setOpen(modal, false);
+
+  const handler = closeHandler;
+  closeHandler = null;
+  if (typeof handler === 'function') {
+    try {
+      handler();
+    } catch (err) {
+      console.error('Card action modal close handler failed.', err);
+    }
+  }
 
   if (restoreFocus && returnFocusEl && typeof returnFocusEl.focus === 'function') {
     returnFocusEl.focus();
@@ -69,7 +80,8 @@ export function initCardActionModal() {
 export function showCardActionModal({
   title = 'Card Action',
   message = '',
-  fallbackMessage = 'Check Card History for details.'
+  fallbackMessage = 'Check Card History for details.',
+  onClose = null
 } = {}) {
   initCardActionModal();
 
@@ -83,6 +95,7 @@ export function showCardActionModal({
   if (titleEl) titleEl.textContent = title;
   messageEl.textContent = finalMessage || fallback;
 
+  closeHandler = typeof onClose === 'function' ? onClose : null;
   returnFocusEl = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   setOpen(modal, true);
   panel.focus();

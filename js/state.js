@@ -11,7 +11,7 @@ export const state = {
   penaltyConfirmArmed: false,
 
   // NEW: why penalty is currently shown (affects behavior)
-  // "deck" | "card" | "redraw" | null
+  // "deck" | "card" | "redraw" | "redraw_hold" | null
   penaltySource: null,
 
   // NEW: prevent log spam when player clicks cards while penalty must be confirmed

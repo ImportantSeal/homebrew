@@ -168,12 +168,17 @@ function shouldShowActionScreenForPlainCard(text) {
   return !isDirectDrinkOnlyText(t);
 }
 
-function openActionScreen(title, message = "") {
+function openActionScreen(title, message = "", options = {}) {
   showCardActionModal({
     title,
     message,
-    fallbackMessage: "Check Card History for details."
+    fallbackMessage: "Check Card History for details.",
+    ...options
   });
+}
+
+function isRedrawLockedPenaltyOpen() {
+  return state.penaltyShown && state.penaltySource === "redraw_hold";
 }
 
 function syncPenaltyDeckSizeToCards() {
@@ -260,15 +265,7 @@ function runSpecialAction(action) {
 
     case "DOUBLE_OR_NOTHING_D6": {
       applyDrinkEvent(state, selfIndex, 4, "Double or Nothing", log);
-
-      const shouldRoll = (typeof window === "undefined")
-        ? true
-        : window.confirm("Roll a d6 for Double or Nothing? (4-6: give 8, 1-3: drink 8)");
-
-      if (!shouldRoll) {
-        log(`${p.name} declined the Double or Nothing roll after drinking 4.`);
-        return;
-      }
+      log(`${p.name} drinks 4 and rolls a d6 for Double or Nothing.`);
 
       const r = rollDie(6);
       log(`Double or Nothing roll (d6): ${r}`);
@@ -495,10 +492,12 @@ function handleManualStatusRemoval({ playerIndex, key, label }) {
   renderEffectsPanel();
 }
 
-function resetCards() {
+function resetCards({ keepPenaltyOpen = false } = {}) {
   dealTurnCards(state);
   renderCards(state, onCardClick);
-  hidePenaltyCard(state);
+  if (!keepPenaltyOpen) {
+    hidePenaltyCard(state);
+  }
   renderEffectsPanel();
   requestAnimationFrame(syncPenaltyDeckSizeToCards);
 }
@@ -507,6 +506,15 @@ function resetCards() {
 function onRedrawClick() {
   if (state.effectSelection?.active) {
     log("Pick a target player first (effect selection is active).");
+    return;
+  }
+
+  if (state.penaltyShown) {
+    if (isRedrawLockedPenaltyOpen()) {
+      log("Close the Redraw penalty window first.");
+    } else {
+      log("Resolve the current penalty first.");
+    }
     return;
   }
 
@@ -523,6 +531,14 @@ function onPenaltyDeckClick() {
   }
 
   if (state.uiLocked) return;
+
+  if (isRedrawLockedPenaltyOpen()) {
+    if (!state.penaltyHintShown) {
+      log("Close the Redraw penalty window first.");
+      state.penaltyHintShown = true;
+    }
+    return;
+  }
 
   // If penalty is showing, clicking confirms/hides depending on source
   if (state.penaltyShown && state.penaltyConfirmArmed) {
@@ -580,6 +596,15 @@ function onCardClick(index) {
     if (state.penaltySource === "card") {
       if (!state.penaltyHintShown) {
         log("Penalty is waiting: click the Penalty Deck to confirm.");
+        state.penaltyHintShown = true;
+      }
+      unlockUI();
+      return;
+    }
+
+    if (state.penaltySource === "redraw_hold") {
+      if (!state.penaltyHintShown) {
+        log("Close the Redraw penalty window first.");
         state.penaltyHintShown = true;
       }
       unlockUI();
@@ -869,8 +894,26 @@ function handlePlainCard(cardEl, cardData) {
 }
 
 function redrawGame() {
-  rollPenaltyCard(state, log, "redraw");
+  rollPenaltyCard(state, log, "redraw_hold");
+
+  if (isRedrawLockedPenaltyOpen()) {
+    const penaltyText = String(state.penaltyCard || "").trim();
+    const message = penaltyText
+      ? `Penalty: ${penaltyText}. Close this window to continue.`
+      : "Penalty rolled from Redraw. Close this window to continue.";
+
+    openActionScreen("Redraw Penalty", message, {
+      fallbackMessage: "Close this window to continue.",
+      onClose: () => {
+        if (isRedrawLockedPenaltyOpen()) {
+          hidePenaltyCard(state);
+          renderEffectsPanel();
+        }
+      }
+    });
+  }
+
   setTimeout(() => {
-    resetCards();
+    resetCards({ keepPenaltyOpen: isRedrawLockedPenaltyOpen() });
   }, TIMING.REDRAW_REFRESH_MS);
 }

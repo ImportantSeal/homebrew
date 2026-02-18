@@ -7,6 +7,7 @@ import { getPenaltyDeckEl } from '../ui/uiFacade.js';
  *  - "deck"   = user clicked penalty deck
  *  - "card"   = player selected "Draw a Penalty Card"
  *  - "redraw" = info/preview penalty (should NOT end turn on confirm)
+ *  - "redraw_hold" = redraw penalty that stays open until card-action modal closes
  */
 export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
   if (state.penaltyShown) return;
