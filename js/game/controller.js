@@ -616,7 +616,17 @@ function onCardClick(index) {
     log(`${p.name} confirmed Ditto card.`);
 
     //  pass applyDrinkEvent so Ditto drink outcomes can trigger Drink Buddy too
-    runDittoEffect(state, index, log, () => renderTurnOrder(state), renderItems, applyDrinkEvent);
+    const dittoInfo = runDittoEffect(
+      state,
+      index,
+      log,
+      () => renderTurnOrder(state),
+      renderItems,
+      applyDrinkEvent
+    );
+    if (dittoInfo?.message) {
+      openActionScreen(dittoInfo.title || "Ditto", dittoInfo.message);
+    }
 
     state.dittoActive[index] = false;
     state.dittoPending[index] = null;

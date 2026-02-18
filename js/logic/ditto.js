@@ -50,15 +50,19 @@ export function activateDitto(state, cardElement, cardIndex, log) {
 export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderItemsBoard, applyDrinkEvent) {
   const ev = state.dittoPending?.[cardIndex];
   const currentPlayer = state.players[state.currentPlayerIndex];
+  const infoTitle = "Ditto Effect";
 
   if (!ev) {
     log("Ditto had no stored effect (unexpected).");
-    return;
+    return { title: infoTitle, message: "Ditto had no stored effect." };
   }
 
   if (!state.includeItems && ITEM_DITTO_TYPES.has(ev.type)) {
     log("Ditto skipped an item-related effect because items are disabled.");
-    return;
+    return {
+      title: infoTitle,
+      message: "Ditto skipped an item-related effect because items are disabled."
+    };
   }
 
   switch (ev.type) {
@@ -69,7 +73,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
       });
       updateTurnOrder();
       renderItemsBoard();
-      return;
+      return { title: infoTitle, message: "All players lose one item." };
     }
 
     case 'STEAL_RANDOM_ITEM': {
@@ -79,29 +83,35 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
         const stolen = target.inventory.pop();
         currentPlayer.inventory.push(stolen);
         log(`Ditto stole ${stolen} from ${target.name}!`);
+        updateTurnOrder();
+        renderItemsBoard();
+        return { title: infoTitle, message: `Stole ${stolen} from ${target.name}.` };
       } else {
         log("Ditto tried to steal, but the target player had no items.");
+        updateTurnOrder();
+        renderItemsBoard();
+        return {
+          title: infoTitle,
+          message: "Tried to steal an item, but the target had no items."
+        };
       }
-      updateTurnOrder();
-      renderItemsBoard();
-      return;
     }
 
     case 'DRINK_3': {
       log("Ditto says: Drink 3!");
       applyDrinkEvent?.(state.currentPlayerIndex, 3, "Ditto: Drink 3");
-      return;
+      return { title: infoTitle, message: "Drink 3." };
     }
 
     case 'WATERFALL': {
       log("Ditto started a Waterfall!");
-      return;
+      return { title: infoTitle, message: "Start a Waterfall." };
     }
 
     case 'SHOT': {
       log("Ditto ordered a Shot! Take a shot now.");
       applyDrinkEvent?.(state.currentPlayerIndex, 1, "Ditto: Shot");
-      return;
+      return { title: infoTitle, message: "Take a Shot." };
     }
 
     case 'RANDOM_CHALLENGE': {
@@ -112,20 +122,25 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
         "Challenge: Mini King",
         "Categories"
       ];
-      log(randomFromArray(challenges));
-      return;
+      const challenge = randomFromArray(challenges);
+      log(challenge);
+      return { title: infoTitle, message: challenge };
     }
 
     case 'PENALTY_ALL': {
       const penalty = randomFromArray(state.penaltyDeck);
       log(`Ditto rolled a penalty for everyone: ${penalty}`);
+      let blockedCount = 0;
+      let affectedCount = 0;
 
       state.players.forEach((p, idx) => {
         if (p.shield) {
           delete p.shield;
           log(`${p.name}'s Shield blocked the penalty.`);
+          blockedCount += 1;
         } else {
           log(`${p.name} takes penalty: ${penalty}`);
+          affectedCount += 1;
           // if it's Drink X / Shot etc, trigger drink event
           const m = String(penalty).match(/Drink\s+(\d+)/i);
           if (m) applyDrinkEvent?.(idx, parseInt(m[1], 10), "Ditto penalty all");
@@ -136,11 +151,14 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
       updateTurnOrder();
       renderItemsBoard();
-      return;
+      return {
+        title: infoTitle,
+        message: `Penalty for everyone: ${penalty}. Affected: ${affectedCount}, blocked by Shield: ${blockedCount}.`
+      };
     }
 
     default:
       log("Unknown Ditto effect.");
-      return;
+      return { title: infoTitle, message: "Unknown Ditto effect." };
   }
 }
