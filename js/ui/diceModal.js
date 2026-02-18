@@ -7,9 +7,9 @@ const DICEBOX_ORIGIN = `https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@${DICEBOX
 const DICEBOX_ASSET_PATH = "assets/";
 const MIN_TRAY_PX = 80;
 const RECENT_LAYOUT_CHANGE_MS = 700; 
-const DICE_SCALE_MIN = 4.8; 
-const DICE_SCALE_MAX = 6.4;
-const DICE_SCALE_FALLBACK = 5.4;
+const DICE_SCALE_MIN = 6.2;
+const DICE_SCALE_MAX = 9.8;
+const DICE_SCALE_FALLBACK = 7.2;
 const TOUCH_CLICK_GUARD_MS = 700;
 const DICEBOX_IMPORT_TIMEOUT_MS = 6000;
 const DICEBOX_INIT_TIMEOUT_MS = 6000;
@@ -118,7 +118,9 @@ function computeDiceScale() {
   if (width < MIN_TRAY_PX || height < MIN_TRAY_PX) return DICE_SCALE_FALLBACK;
 
   // Keep larger screens from over-scaling the throw area and clipping low on Y-axis.
-  const targetScale = Math.min(width, height) / 60;
+  const pointerCoarse = window.matchMedia?.("(pointer: coarse)")?.matches === true;
+  const mobileBoost = pointerCoarse ? 1.2 : 1;
+  const targetScale = (Math.min(width, height) / 52) * mobileBoost;
   return Math.max(DICE_SCALE_MIN, Math.min(DICE_SCALE_MAX, targetScale));
 }
 
