@@ -37,6 +37,19 @@ function randomDieValues(sides, qty) {
   return Array.from({ length: qty }, () => Math.floor(Math.random() * sides) + 1);
 }
 
+function formatSignedInt(value) {
+  const n = Number(value) || 0;
+  if (n > 0) return `+${n}`;
+  return String(n);
+}
+
+function formatNotation(qty, sides, modifier = 0) {
+  const mod = Number(modifier) || 0;
+  const base = `${qty}d${sides}`;
+  if (mod === 0) return base;
+  return `${base}${formatSignedInt(mod)}`;
+}
+
 function extractRollArray(dieResults) {
   if (Array.isArray(dieResults)) return dieResults;
   if (Array.isArray(dieResults?.rolls)) return dieResults.rolls;
@@ -257,6 +270,7 @@ export function initDiceModal() {
 
   const sidesSelect = document.getElementById('dice-sides');
   const qtyInput = document.getElementById('dice-qty');
+  const modInput = document.getElementById('dice-mod');
   const rollBtn = document.getElementById('dice-roll');
   const resultEl = document.getElementById('dice-result');
   const trayEl = document.getElementById('dice-box');
@@ -356,13 +370,15 @@ export function initDiceModal() {
     observer.observe(trayEl);
   }
 
-  async function performRoll(sides, qty) {
+  async function performRoll(sides, qty, modifier = 0) {
     const localToken = ++rollToken;
     if (!isModalOpen) return;
 
     setRollingUI(true);
 
-    const notation = `${qty}d${sides}`;
+    const safeModifier = clampInt(modifier, -50, 50, 0);
+    const baseNotation = `${qty}d${sides}`;
+    const notation = formatNotation(qty, sides, safeModifier);
     let values = [];
     let usedFallback = false;
 
@@ -377,19 +393,19 @@ export function initDiceModal() {
             throw new Error("DiceBox.roll is not available");
           }
           const dieResults = await withTimeout(
-            box.roll(notation),
+            box.roll(baseNotation),
             DICEBOX_ROLL_TIMEOUT_MS,
-            `rolling ${notation}`
+            `rolling ${baseNotation}`
           );
           if (!isModalOpen || localToken !== rollToken) return;
           values = parseDieResults(dieResults, sides);
         } catch (err) {
-          console.warn(`Dice roll failed (${notation}); using fallback.`, err);
+          console.warn(`Dice roll failed (${baseNotation}); using fallback.`, err);
         }
       }
 
       if (values.length !== qty) {
-        console.warn(`Dice parse mismatch (${notation}); using fallback.`);
+        console.warn(`Dice parse mismatch (${baseNotation}); using fallback.`);
         usedFallback = true;
         values = randomDieValues(sides, qty);
       }
@@ -408,14 +424,18 @@ export function initDiceModal() {
 
     if (!isModalOpen || localToken !== rollToken) return;
 
-    const sum = values.reduce((a, b) => a + b, 0);
+    const baseSum = values.reduce((a, b) => a + b, 0);
+    const sum = baseSum + safeModifier;
     const detail = values.length ? ` (${values.join(", ")})` : "";
+    const breakdown = safeModifier === 0
+      ? ""
+      : ` [${baseSum}${formatSignedInt(safeModifier)}=${sum}]`;
     const fallbackLabel = usedFallback ? " [fallback]" : "";
 
-    addHistoryEntry(`Dice: ${currentPlayerName()} rolled ${notation}: ${sum}${detail}${fallbackLabel}`);
+    addHistoryEntry(`Dice: ${currentPlayerName()} rolled ${notation}: ${sum}${detail}${breakdown}${fallbackLabel}`);
 
     if (resultEl) {
-      resultEl.textContent = `${notation} -> ${sum}${detail}${fallbackLabel}`;
+      resultEl.textContent = `${notation} -> ${sum}${detail}${breakdown}${fallbackLabel}`;
     }
   }
 
@@ -427,8 +447,10 @@ export function initDiceModal() {
 
     const sides = clampInt(sidesSelect?.value, 2, 100, 20);
     const qty = clampInt(qtyInput?.value, 1, 20, 1);
+    const modifier = clampInt(modInput?.value, -50, 50, 0);
+    if (modInput) modInput.value = String(modifier);
 
-    await performRoll(sides, qty);
+    await performRoll(sides, qty, modifier);
   });
 
   // Quick buttons: one click = roll.
@@ -440,12 +462,14 @@ export function initDiceModal() {
 
       const sides = clampInt(btn.dataset.sides, 2, 100, 20);
       const qty = clampInt(btn.dataset.qty, 1, 20, 1);
+      const modifier = clampInt(modInput?.value, -50, 50, 0);
 
       // Sync UI fields so user sees what's rolling.
       if (sidesSelect) sidesSelect.value = String(sides);
       if (qtyInput) qtyInput.value = String(qty);
+      if (modInput) modInput.value = String(modifier);
 
-      await performRoll(sides, qty);
+      await performRoll(sides, qty, modifier);
     });
   });
 }
