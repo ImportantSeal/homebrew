@@ -15,7 +15,9 @@ export function renderTurnOrder(state) {
     nameSpan.dataset.index = String(index);
 
     if (index === state.currentPlayerIndex) {
-      nameSpan.innerHTML = `<strong>${player.name}</strong>`;
+      const strong = document.createElement('strong');
+      strong.textContent = player.name;
+      nameSpan.appendChild(strong);
     } else {
       nameSpan.textContent = player.name;
     }
