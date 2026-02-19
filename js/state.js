@@ -205,6 +205,15 @@ export const state = {
         instruction: "Drink 1. Your turn does not pass, and you draw new cards.",
         action: "DRINK_AND_DRAW_AGAIN"
       },
+      {
+        name: "Chaos Button",
+        instruction: "Choose one: everybody drinks 3 now, OR you drink 1 and draw one extra card."
+      },
+      {
+        name: "King's Tax",
+        instruction: "Choose a temporary king for six rounds. Anyone who interrupts the king drinks 2.",
+        effect: { type: "KINGS_TAX", turns: 6, needsTarget: true }
+      },
 
       // ===== EFFECT CARDS =====
       {

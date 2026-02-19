@@ -51,6 +51,7 @@ function friendlyEffectName(type) {
   if (type === "NO_SWEARING") return "No Swearing";
   if (type === "NO_PHONE_TOUCH") return "Hands Off Your Phone";
   if (type === "DITTO_MAGNET") return "Ditto Magnet";
+  if (type === "KINGS_TAX") return "King's Tax";
   return type;
 }
 
@@ -107,6 +108,8 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
       log?.(`Drink Buddy: ${tgtName} drinks whenever ${srcName} drinks (${def.turns} turns).`);
     } else if (def.type === "DITTO_MAGNET") {
       log?.(`Ditto Magnet: if Ditto triggers for ${tgtName}, they take a Shot (${def.turns} turns).`);
+    } else if (def.type === "KINGS_TAX") {
+      log?.(`King's Tax: ${tgtName} is king for ${def.turns} turns. Anyone who interrupts them drinks 2.`);
     } else {
       log?.(`Effect set: ${def.type} → ${tgtName} (${def.turns} turns).`);
     }

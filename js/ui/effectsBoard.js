@@ -12,6 +12,8 @@ function formatEffectTitle(effect) {
       return "Hands Off Your Phone";
     case "DRINK_BUDDY":
       return "Drink Buddy";
+    case "KINGS_TAX":
+      return "King's Tax";
     default:
       return effect.title || "Effect";
   }
@@ -33,6 +35,10 @@ function formatEffectDescription(state, effect) {
       const src = state.players?.[effect.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[effect.targetIndex]?.name ?? "Someone";
       return `${tgt} drinks whenever ${src} drinks.`;
+    }
+    case "KINGS_TAX": {
+      const king = state.players?.[effect.targetIndex]?.name ?? "Someone";
+      return `${king} is king. Anyone interrupting drinks 2.`;
     }
     default:
       return effect.description || "";

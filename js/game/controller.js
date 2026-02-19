@@ -236,6 +236,7 @@ function effectLabelForLog(effect, fallback = "Effect") {
     case "NO_SWEARING": return "No Swearing";
     case "NO_PHONE_TOUCH": return "Hands Off Your Phone";
     case "DITTO_MAGNET": return "Ditto Magnet";
+    case "KINGS_TAX": return "King's Tax";
     default: return effect.type || fallback;
   }
 }

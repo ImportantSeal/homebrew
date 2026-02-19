@@ -15,6 +15,7 @@ function effectIcon(type) {
     case "NO_SWEARING": return "🤬";
     case "NO_PHONE_TOUCH": return "📵";
     case "DRINK_BUDDY": return "🤝🍻";
+    case "KINGS_TAX": return "👑";
     default: return "✨";
   }
 }
@@ -26,6 +27,7 @@ function effectTitle(type) {
     case "NO_SWEARING": return "No Swearing";
     case "NO_PHONE_TOUCH": return "Hands Off Your Phone";
     case "DRINK_BUDDY": return "Drink Buddy";
+    case "KINGS_TAX": return "King's Tax";
     default: return type || "Effect";
   }
 }
@@ -46,6 +48,12 @@ function effectDescription(state, eff) {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `${tgt} drinks whenever ${src} drinks.`;
+    }
+    case "KINGS_TAX": {
+      const king = state.players?.[eff.targetIndex]?.name;
+      return king
+        ? `${king} is king. Anyone who interrupts them drinks 2.`
+        : "A temporary king is active. Anyone interrupting them drinks 2.";
     }
     default:
       return "An effect is active.";
@@ -68,6 +76,10 @@ function effectAppliesTo(state, eff) {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `Link: ${src} -> ${tgt}`;
+    }
+    case "KINGS_TAX": {
+      const king = state.players?.[eff.targetIndex]?.name ?? "Player";
+      return `King: ${king}`;
     }
     default:
       return "Applies to: —";
@@ -168,7 +180,7 @@ export function renderStatusEffects(state, options = {}) {
       const mid = el("div", "effect-mid");
       mid.appendChild(el("div", "effect-title", "Pick a target"));
       mid.appendChild(el("div", "effect-desc", "Click a player name in the turn order to finish this effect."));
-      mid.appendChild(el("div", "effect-applies", pending?.type ? `Effect: ${pending.type}` : "Effect: —"));
+      mid.appendChild(el("div", "effect-applies", pending?.type ? `Effect: ${effectTitle(pending.type)}` : "Effect: —"));
       pendingCard.appendChild(mid);
 
       const right = el("div", "effect-right");
