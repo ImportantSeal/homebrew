@@ -401,7 +401,20 @@ function nextPlayer() {
     return;
   }
 
-  state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
+  const playerCount = state.players.length;
+  for (let i = 0; i < playerCount; i++) {
+    state.currentPlayerIndex = (state.currentPlayerIndex + 1) % playerCount;
+
+    const next = currentPlayer();
+    if (next?.skipNextTurn) {
+      delete next.skipNextTurn;
+      log(`${next.name} skips this turn.`);
+      continue;
+    }
+
+    break;
+  }
+
   updateTurn();
 }
 
