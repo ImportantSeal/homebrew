@@ -1,6 +1,10 @@
 import { flipCardAnimation } from '../animations.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
 
+function isActivationKey(event) {
+  return event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar';
+}
+
 export function getCardElements() {
   return [
     document.getElementById('card0'),
@@ -73,5 +77,10 @@ export function renderCards(state, onSelectCard) {
     }
 
     cards[i].onclick = () => onSelectCard(i);
+    cards[i].onkeydown = (event) => {
+      if (!isActivationKey(event)) return;
+      event.preventDefault();
+      onSelectCard(i);
+    };
   }
 }
