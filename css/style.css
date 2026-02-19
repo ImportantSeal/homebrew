@@ -1134,7 +1134,33 @@ body[data-pickmode="effect-target"] .turn-player-name {
 .modal__body li { margin: 0.3rem 0; color: rgba(234,240,255,0.86); }
 
 .modal--card-action .modal__panel {
-  width: min(34rem, 92vw);
+  width: min(36rem, 92vw);
+}
+
+.modal--card-action .modal__header {
+  padding: 0.9rem 1rem 0.85rem;
+  background:
+    linear-gradient(180deg, rgba(25, 34, 64, 0.96), rgba(18, 24, 46, 0.9));
+}
+
+.modal--card-action .modal__header h2 {
+  font-family: "Plus Jakarta Sans", "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: clamp(1.15rem, 1.35vw, 1.5rem);
+  font-weight: 800;
+  letter-spacing: 0.005em;
+}
+
+.modal--card-action .modal__close {
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 0.8rem;
+  font-size: 1.35rem;
+}
+
+.modal--card-action .modal__body {
+  padding: clamp(0.95rem, 2.4vw, 1.25rem);
+  display: grid;
+  gap: 0.9rem;
 }
 
 .card-action__lead {
@@ -1144,32 +1170,41 @@ body[data-pickmode="effect-target"] .turn-player-name {
 }
 
 .card-action__message {
-  border-radius: 0.85rem;
-  border: 1px solid rgba(255,255,255,0.15);
+  position: relative;
+  border-radius: 0.95rem;
+  border: 1px solid rgba(255,255,255,0.14);
   background:
-    radial-gradient(260px 160px at 25% 15%, rgba(53,224,199,0.12), transparent 62%),
-    rgba(10, 14, 28, 0.55);
-  color: rgba(255,255,255,0.95);
-  font-weight: 700;
-  line-height: 1.35;
-  padding: 0.85rem 0.9rem;
+    linear-gradient(160deg, rgba(53,224,199,0.08), rgba(168,85,247,0.08) 64%, rgba(10,14,28,0.5)),
+    rgba(9, 13, 25, 0.72);
+  color: rgba(244,248,255,0.97);
+  font-family: "Plus Jakarta Sans", "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  font-size: clamp(1.02rem, 0.98rem + 0.2vw, 1.15rem);
+  font-weight: 500;
+  line-height: 1.56;
+  letter-spacing: 0.003em;
+  text-wrap: pretty;
+  padding: clamp(0.95rem, 2.3vw, 1.2rem) clamp(0.9rem, 2.4vw, 1.15rem);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
 .card-action__button {
   width: 100%;
-  margin-top: 0.9rem;
+  margin-top: 0.25rem;
   border: 1px solid rgba(255,255,255,0.16);
   color: var(--text);
-  padding: 0.65rem 0.95rem;
-  border-radius: 0.8rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 0.85rem;
   cursor: pointer;
-  font-size: 1rem;
+  font-size: clamp(1rem, 0.95rem + 0.15vw, 1.08rem);
   font-weight: 800;
+  letter-spacing: 0.01em;
+  min-height: 2.9rem;
   transition: transform 0.15s, filter 0.2s, border-color 0.2s;
   background:
-    linear-gradient(135deg, rgba(53,224,199,0.22), rgba(168,85,247,0.22)),
+    linear-gradient(135deg, rgba(53,224,199,0.2), rgba(168,85,247,0.24)),
     rgba(10, 14, 28, 0.65);
   box-shadow: var(--shadow-soft);
+  touch-action: manipulation;
 }
 
 .card-action__button:hover {
@@ -1547,6 +1582,37 @@ body[data-pickmode="effect-target"] .turn-player-name {
 
   .modal--card-action .modal__panel {
     width: calc(100vw - 1rem);
+    margin-top: 0.4rem;
+  }
+
+  .modal--card-action .modal__header {
+    padding: 0.75rem 0.85rem 0.7rem;
+  }
+
+  .modal--card-action .modal__header h2 {
+    font-size: 1.06rem;
+  }
+
+  .modal--card-action .modal__close {
+    width: 2.35rem;
+    height: 2.35rem;
+    font-size: 1.2rem;
+  }
+
+  .modal--card-action .modal__body {
+    padding: 0.85rem;
+    gap: 0.75rem;
+  }
+
+  .modal--card-action .card-action__message {
+    font-size: clamp(0.98rem, 2.9vw, 1.08rem);
+    line-height: 1.55;
+    padding: 0.85rem 0.78rem 0.95rem;
+  }
+
+  .modal--card-action .card-action__button {
+    margin-top: 0.05rem;
+    padding: 0.72rem 0.85rem;
   }
 
   .dice-controls label { min-width: 7.25rem; }
@@ -1602,6 +1668,24 @@ body[data-pickmode="effect-target"] .turn-player-name {
   .card.show-front .card__front::before {
     font-size: 0.5rem;
     padding: 0.08rem 0.24rem;
+  }
+
+  .modal--card-action .modal__panel {
+    width: calc(100vw - 0.6rem);
+  }
+
+  .modal--card-action .modal__body {
+    padding: 0.72rem;
+  }
+
+  .modal--card-action .card-action__message {
+    font-size: 0.97rem;
+    line-height: 1.5;
+  }
+
+  .modal--card-action .card-action__button {
+    font-size: 0.98rem;
+    min-height: 2.75rem;
   }
 }
 

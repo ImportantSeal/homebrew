@@ -11,6 +11,20 @@ let initialized = false;
 let returnFocusEl = null;
 let closeHandler = null;
 
+function escapeRegExp(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function normalizeMessage(title, message) {
+  const safeTitle = String(title || '').trim();
+  const safeMessage = String(message || '').trim();
+  if (!safeTitle || !safeMessage) return safeMessage;
+
+  const prefixedTitle = new RegExp(`^${escapeRegExp(safeTitle)}\\s*[-:]\\s*`, 'i');
+  const normalized = safeMessage.replace(prefixedTitle, '').trim();
+  return normalized || safeMessage;
+}
+
 function refs() {
   const modal = document.getElementById(IDS.modal);
   if (!modal) return {};
@@ -88,11 +102,13 @@ export function showCardActionModal({
   const { modal, panel, titleEl, messageEl } = refs();
   if (!modal || !panel || !messageEl) return;
 
+  const safeTitle = String(title || '').trim() || 'Card Action';
   const fallback = String(fallbackMessage || '').trim();
   const fromHistory = getLastHistoryEntry();
-  const finalMessage = String(message || fromHistory || fallback).trim();
+  const resolvedMessage = String(message || fromHistory || fallback).trim();
+  const finalMessage = normalizeMessage(safeTitle, resolvedMessage);
 
-  if (titleEl) titleEl.textContent = title;
+  if (titleEl) titleEl.textContent = safeTitle;
   messageEl.textContent = finalMessage || fallback;
 
   closeHandler = typeof onClose === 'function' ? onClose : null;

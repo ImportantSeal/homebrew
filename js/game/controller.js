@@ -721,10 +721,16 @@ function handleObjectCardDraw(cardEl, parentCard) {
   flipCardAnimation(cardEl, shownText);
 
   const parentName = getCardDisplayValue(parentCard);
-  const details = subInstruction ? `${subName} - ${subInstruction}` : `${subName}`;
-  const drawMessage = ` ${details}`;
-  log(drawMessage);
-  openActionScreen(subName || parentName || "Card Action", drawMessage);
+  const actionTitle = subName || parentName || "Card Action";
+  const drawMessage = (subInstruction && subName)
+    ? `${subName} - ${subInstruction}`
+    : (subInstruction || subName);
+  const actionMessage = subInstruction || shownText || subName || "";
+
+  if (drawMessage) {
+    log(drawMessage);
+  }
+  openActionScreen(actionTitle, actionMessage || drawMessage);
 
   // If the subevent mentions penalty, also flip penalty deck (preview only)
   if (shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
