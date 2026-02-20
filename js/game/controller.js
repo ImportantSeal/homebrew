@@ -7,7 +7,7 @@ import { createBag } from '../utils/random.js';
 
 import { dealTurnCards } from '../logic/deck.js';
 import { hidePenaltyCard } from '../logic/penalty.js';
-import { tickEffects } from '../logic/effects.js';
+import { tickEffects, cancelTargetedEffectSelection } from '../logic/effects.js';
 import { useItem } from '../logic/items.js';
 
 import { renderCards } from '../ui/cards.js';
@@ -125,6 +125,8 @@ const { onRedrawClick, onPenaltyDeckClick, onCardClick } = createCardHandlers({
 });
 
 export function startGame() {
+  cancelTargetedEffectSelection(state);
+
   // runtime flags
   state.uiLocked = false;
   state.penaltyConfirmArmed = false;
@@ -136,7 +138,16 @@ export function startGame() {
 
   // reset effects for a fresh game
   state.effects = [];
-  state.effectSelection = { active: false, pending: null };
+  state.effectSelection = { active: false, pending: null, cleanup: null };
+  state.mirror = {
+    active: false,
+    sourceIndex: null,
+    selectedCardIndex: null,
+    parentName: "",
+    subName: "",
+    subInstruction: "",
+    displayText: ""
+  };
 
   if (!state.bags) state.bags = {};
   clearHistoryEntries();

@@ -7,6 +7,20 @@ function makeId() {
   return `eff_${Date.now()}_${Math.floor(Math.random() * 1e9)}`;
 }
 
+function clearPickMode() {
+  if (typeof document === "undefined" || !document.body?.dataset) return;
+  delete document.body.dataset.pickmode;
+}
+
+function setEffectSelectionState(state, overrides = {}) {
+  state.effectSelection = {
+    active: false,
+    pending: null,
+    cleanup: null,
+    ...overrides
+  };
+}
+
 export function addEffect(state, effect) {
   if (!Array.isArray(state.effects)) state.effects = [];
   state.effects.push(effect);
@@ -55,26 +69,31 @@ function friendlyEffectName(type) {
   return type;
 }
 
+export function cancelTargetedEffectSelection(state) {
+  if (activeCleanup) {
+    activeCleanup();
+    activeCleanup = null;
+  }
+
+  setEffectSelectionState(state);
+  clearPickMode();
+}
+
 /**
  * "Pick a target" mode for targeted effects like DRINK_BUDDY / DITTO_MAGNET.
  * - Adds highlight mode to turn order names
  * - Blocks other actions until target picked (controller handles the guard)
  */
 export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDone) {
-  // Clean any previous selection just in case
-  if (activeCleanup) {
-    activeCleanup();
-    activeCleanup = null;
-  }
-
-  state.effectSelection = {
+  cancelTargetedEffectSelection(state);
+  setEffectSelectionState(state, {
     active: true,
     pending: {
       type: def.type,
       turns: def.turns,
       sourceIndex
     }
-  };
+  });
 
   // Visual hint: highlight player names while picking
   document.body.dataset.pickmode = 'effect-target';
@@ -97,9 +116,8 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
     addEffect(state, eff);
 
     // Exit pick mode
-    state.effectSelection.active = false;
-    state.effectSelection.pending = null;
-    delete document.body.dataset.pickmode;
+    setEffectSelectionState(state);
+    clearPickMode();
 
     const srcName = state.players?.[sourceIndex]?.name ?? "Someone";
     const tgtName = state.players?.[targetIndex]?.name ?? "Someone";
@@ -116,6 +134,8 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
 
     onDone?.(targetIndex);
   });
+
+  state.effectSelection.cleanup = activeCleanup;
 
   return activeCleanup;
 }
