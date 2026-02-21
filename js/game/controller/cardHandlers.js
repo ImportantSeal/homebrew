@@ -169,6 +169,35 @@ export function createCardHandlers({
     renderEffectsPanel();
   }
 
+  function onPenaltyRefreshClick() {
+    if (state.effectSelection?.active) {
+      log("Pick a target player first (effect selection is active).");
+      return;
+    }
+
+    if (state.uiLocked || !state.penaltyShown) return;
+
+    if (isRedrawLockedPenaltyOpen(state)) {
+      if (!state.penaltyHintShown) {
+        log("Close the Redraw penalty window first.");
+        state.penaltyHintShown = true;
+      }
+      return;
+    }
+
+    // Preserve mandatory confirm flow for "Draw a Penalty Card".
+    if (state.penaltySource === "card") {
+      if (!state.penaltyHintShown) {
+        log("Penalty is waiting: click the Penalty Deck to confirm.");
+        state.penaltyHintShown = true;
+      }
+      return;
+    }
+
+    hidePenaltyCard(state);
+    renderEffectsPanel();
+  }
+
   function handleObjectCardDraw(cardEl, parentCard) {
     const pool = getObjectCardPool(state, parentCard);
     if (pool.length === 0) {
@@ -474,6 +503,7 @@ export function createCardHandlers({
 
   return {
     onRedrawClick,
+    onPenaltyRefreshClick,
     onPenaltyDeckClick,
     onCardClick
   };

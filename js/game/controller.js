@@ -19,6 +19,7 @@ import {
   showGameContainer,
   setTurnIndicatorText,
   bindRedrawClick,
+  bindPenaltyRefreshClick,
   bindPenaltyDeckClick,
   bindCloseDropdownsOnOutsideClick
 } from '../ui/uiFacade.js';
@@ -106,7 +107,7 @@ const { renderEffectsPanel } = createEffectsPanelController({
   playerName
 });
 
-const { onRedrawClick, onPenaltyDeckClick, onCardClick } = createCardHandlers({
+const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } = createCardHandlers({
   state,
   timing: TIMING,
   createBag,
@@ -166,6 +167,7 @@ function initGameView() {
 
 function setupEventListeners() {
   bindRedrawClick(onRedrawClick);
+  bindPenaltyRefreshClick(onPenaltyRefreshClick);
   bindPenaltyDeckClick(onPenaltyDeckClick);
   bindCloseDropdownsOnOutsideClick();
 }

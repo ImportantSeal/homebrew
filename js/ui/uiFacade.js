@@ -7,6 +7,7 @@ import { bindTap } from '../utils/tap.js';
 const cache = new Map();
 const listeners = {
   redrawUnbind: null,
+  penaltyRefreshUnbind: null,
   penaltyDeckUnbind: null,
   closeDropdownsBound: false
 };
@@ -38,6 +39,14 @@ export function bindRedrawClick(handler) {
 
   if (typeof listeners.redrawUnbind === 'function') listeners.redrawUnbind();
   listeners.redrawUnbind = bindTap(btn, handler);
+}
+
+export function bindPenaltyRefreshClick(handler) {
+  const btn = getEl('penalty-refresh-button');
+  if (!btn) return;
+
+  if (typeof listeners.penaltyRefreshUnbind === 'function') listeners.penaltyRefreshUnbind();
+  listeners.penaltyRefreshUnbind = bindTap(btn, handler);
 }
 
 export function bindPenaltyDeckClick(handler) {
