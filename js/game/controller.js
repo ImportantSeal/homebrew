@@ -9,6 +9,7 @@ import { dealTurnCards } from '../logic/deck.js';
 import { hidePenaltyCard } from '../logic/penalty.js';
 import { tickEffects, cancelTargetedEffectSelection } from '../logic/effects.js';
 import { useItem } from '../logic/items.js';
+import { enableLeaveGuard } from '../navigationGuard.js';
 
 import { renderCards } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
@@ -127,6 +128,7 @@ const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } 
 
 export function startGame() {
   cancelTargetedEffectSelection(state);
+  enableLeaveGuard();
 
   // runtime flags
   state.uiLocked = false;
