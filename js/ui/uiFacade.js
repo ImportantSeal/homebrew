@@ -2,10 +2,12 @@
 // Central place for DOM lookups + simple UI bindings.
 // Goal: game logic modules should not query the DOM directly.
 
+import { bindTap } from '../utils/tap.js';
+
 const cache = new Map();
 const listeners = {
-  redraw: null,
-  penaltyDeck: null,
+  redrawUnbind: null,
+  penaltyDeckUnbind: null,
   closeDropdownsBound: false
 };
 
@@ -34,18 +36,16 @@ export function bindRedrawClick(handler) {
   const btn = getEl('redraw-button');
   if (!btn) return;
 
-  if (listeners.redraw) btn.removeEventListener('click', listeners.redraw);
-  listeners.redraw = handler;
-  btn.addEventListener('click', handler);
+  if (typeof listeners.redrawUnbind === 'function') listeners.redrawUnbind();
+  listeners.redrawUnbind = bindTap(btn, handler);
 }
 
 export function bindPenaltyDeckClick(handler) {
   const el = getPenaltyDeckEl();
   if (!el) return;
 
-  if (listeners.penaltyDeck) el.removeEventListener('click', listeners.penaltyDeck);
-  listeners.penaltyDeck = handler;
-  el.addEventListener('click', handler);
+  if (typeof listeners.penaltyDeckUnbind === 'function') listeners.penaltyDeckUnbind();
+  listeners.penaltyDeckUnbind = bindTap(el, handler);
 }
 
 export function bindCloseDropdownsOnOutsideClick() {

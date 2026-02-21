@@ -1,16 +1,19 @@
 // js/logic/mirror.js
 
+import { bindTap } from '../utils/tap.js';
+
 /**
  * Generic player name click selection helper.
- * - Adds click listeners to .turn-player-name
+ * - Adds touch/click listeners to .turn-player-name
  * - Uses stopImmediatePropagation so it won't also toggle dropdown
  * - Returns cleanup()
  */
 export function enablePlayerNameSelection(state, onPick) {
   const nameEls = document.querySelectorAll('.turn-player-name');
+  const unbinders = [];
 
   const cleanup = () => {
-    nameEls.forEach(el => el.removeEventListener('click', onClick));
+    unbinders.forEach(unbind => unbind());
   };
 
   const onClick = (e) => {
@@ -34,7 +37,9 @@ export function enablePlayerNameSelection(state, onPick) {
     onPick?.(targetIndex, cleanup);
   };
 
-  nameEls.forEach(el => el.addEventListener('click', onClick));
+  nameEls.forEach(el => {
+    unbinders.push(bindTap(el, onClick));
+  });
   return cleanup;
 }
 

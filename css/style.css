@@ -418,6 +418,7 @@ body::before {
 .turn-player-name {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   padding: 0.35rem 0.6rem;
   border-radius: 999px;
   background: rgba(255,255,255,0.06);
@@ -426,6 +427,10 @@ body::before {
   transition: filter 0.2s, border-color 0.2s;
   user-select: none;
   line-height: 1;
+  font: inherit;
+  appearance: none;
+  -webkit-appearance: none;
+  touch-action: manipulation;
 }
 .turn-player-name strong { color: rgba(255,255,255,0.96); font-weight: 900; }
 .turn-order > span { color: rgba(234,240,255,0.35); margin: 0 0.15rem; }
@@ -1029,6 +1034,8 @@ body[data-pickmode="effect-target"] .turn-player-name {
 
 .items-board .item-badge {
   display: inline-flex;
+  align-items: center;
+  justify-content: center;
   padding: 0.18rem 0.55rem;
   margin: 0.15rem;
   border-radius: 999px;
@@ -1037,6 +1044,10 @@ body[data-pickmode="effect-target"] .turn-player-name {
   border: 1px solid rgba(255,255,255,0.12);
   color: rgba(234,240,255,0.90);
   user-select: none;
+  font: inherit;
+  line-height: 1.1;
+  appearance: none;
+  -webkit-appearance: none;
 }
 .items-board .item-badge.clickable {
   cursor: pointer;
@@ -1697,6 +1708,18 @@ body[data-pickmode="effect-target"] .turn-player-name {
   .dice-chip,
   .card-action__button {
     min-height: 44px;
+  }
+
+  .turn-player-name {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.5rem 0.85rem;
+  }
+
+  .items-board .item-badge.clickable {
+    min-height: 44px;
+    min-width: 44px;
+    padding: 0.4rem 0.75rem;
   }
 }
 

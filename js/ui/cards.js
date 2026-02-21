@@ -1,5 +1,6 @@
 import { flipCardAnimation } from '../animations.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
+import { bindTap } from '../utils/tap.js';
 
 function isActivationKey(event) {
   return event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar';
@@ -76,7 +77,11 @@ export function renderCards(state, onSelectCard) {
       flipCardAnimation(cards[i], getCardDisplayValue(state.currentCards[i]));
     }
 
-    cards[i].onclick = () => onSelectCard(i);
+    if (typeof cards[i]._unbindTap === 'function') {
+      cards[i]._unbindTap();
+    }
+    cards[i]._unbindTap = bindTap(cards[i], () => onSelectCard(i));
+
     cards[i].onkeydown = (event) => {
       if (!isActivationKey(event)) return;
       event.preventDefault();

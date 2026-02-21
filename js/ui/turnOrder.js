@@ -10,7 +10,8 @@ export function renderTurnOrder(state) {
     const playerDiv = document.createElement('div');
     playerDiv.classList.add('turn-player-wrapper');
 
-    const nameSpan = document.createElement('span');
+    const nameSpan = document.createElement('button');
+    nameSpan.type = 'button';
     nameSpan.classList.add('turn-player-name');
     nameSpan.dataset.index = String(index);
 
