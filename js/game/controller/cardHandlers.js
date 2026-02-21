@@ -77,6 +77,7 @@ export function createCardHandlers({
         : "Penalty rolled from Redraw. Close this window to continue.";
 
       openActionScreen("Redraw Penalty", message, {
+        variant: "penalty",
         fallbackMessage: "Close this window to continue.",
         onClose: () => {
           if (isRedrawLockedPenaltyOpen(state)) {
@@ -213,7 +214,7 @@ export function createCardHandlers({
     if (drawMessage) {
       log(drawMessage);
     }
-    openActionScreen(actionTitle, actionMessage || drawMessage);
+    openActionScreen(actionTitle, actionMessage || drawMessage, { variant: "normal" });
 
     // If the subevent mentions penalty, also flip penalty deck (preview only).
     if (shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
@@ -358,7 +359,7 @@ export function createCardHandlers({
     if (requiresActionScreen) {
       const actionMessage = `${p.name} action: ${txt}`;
       log(actionMessage);
-      openActionScreen("Card Action", actionMessage);
+      openActionScreen("Card Action", actionMessage, { variant: "normal" });
     }
 
     flashElement(cardEl);
@@ -439,7 +440,7 @@ export function createCardHandlers({
         applyDrinkEvent
       );
       if (dittoInfo?.message) {
-        openActionScreen(dittoInfo.title || "Ditto", dittoInfo.message);
+        openActionScreen(dittoInfo.title || "Ditto", dittoInfo.message, { variant: "ditto" });
       }
 
       state.dittoActive[index] = false;

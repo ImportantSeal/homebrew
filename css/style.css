@@ -1148,17 +1148,83 @@ body[data-pickmode="effect-target"] .turn-player-name {
   width: min(36rem, 92vw);
 }
 
+.modal--card-action {
+  --action-header-top: rgba(25, 34, 64, 0.96);
+  --action-header-bottom: rgba(18, 24, 46, 0.9);
+  --action-border: rgba(117, 232, 216, 0.28);
+  --action-accent: rgba(111, 255, 234, 0.94);
+  --action-badge-bg: rgba(62, 209, 195, 0.16);
+  --action-badge-text: rgba(214, 255, 248, 0.96);
+  --action-badge-label: "Info";
+  --action-message-start: rgba(53, 224, 199, 0.1);
+  --action-message-mid: rgba(101, 141, 255, 0.1);
+  --action-message-end: rgba(10, 14, 28, 0.5);
+  --action-button-start: rgba(53, 224, 199, 0.22);
+  --action-button-end: rgba(101, 141, 255, 0.24);
+}
+
+.modal--card-action[data-variant="ditto"] {
+  --action-header-top: rgba(34, 28, 70, 0.96);
+  --action-header-bottom: rgba(24, 20, 50, 0.9);
+  --action-border: rgba(188, 140, 255, 0.32);
+  --action-accent: rgba(226, 176, 255, 0.96);
+  --action-badge-bg: rgba(162, 96, 255, 0.24);
+  --action-badge-text: rgba(246, 230, 255, 0.98);
+  --action-badge-label: "Ditto";
+  --action-message-start: rgba(145, 90, 255, 0.18);
+  --action-message-mid: rgba(92, 226, 255, 0.12);
+  --action-message-end: rgba(8, 9, 30, 0.52);
+  --action-button-start: rgba(145, 90, 255, 0.27);
+  --action-button-end: rgba(92, 226, 255, 0.24);
+}
+
+.modal--card-action[data-variant="penalty"] {
+  --action-header-top: rgba(65, 24, 28, 0.97);
+  --action-header-bottom: rgba(42, 16, 20, 0.93);
+  --action-border: rgba(255, 140, 114, 0.34);
+  --action-accent: rgba(255, 182, 143, 0.98);
+  --action-badge-bg: rgba(227, 88, 68, 0.24);
+  --action-badge-text: rgba(255, 232, 224, 0.98);
+  --action-badge-label: "Penalty";
+  --action-message-start: rgba(235, 87, 87, 0.2);
+  --action-message-mid: rgba(255, 171, 87, 0.14);
+  --action-message-end: rgba(36, 14, 18, 0.55);
+  --action-button-start: rgba(235, 87, 87, 0.29);
+  --action-button-end: rgba(255, 171, 87, 0.24);
+}
+
 .modal--card-action .modal__header {
   padding: 0.9rem 1rem 0.85rem;
   background:
-    linear-gradient(180deg, rgba(25, 34, 64, 0.96), rgba(18, 24, 46, 0.9));
+    linear-gradient(180deg, var(--action-header-top), var(--action-header-bottom));
+  border-bottom: 1px solid var(--action-border);
 }
 
 .modal--card-action .modal__header h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: "Plus Jakarta Sans", "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
   font-size: clamp(1.15rem, 1.35vw, 1.5rem);
   font-weight: 800;
   letter-spacing: 0.005em;
+}
+
+.modal--card-action .modal__header h2::before {
+  content: var(--action-badge-label);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--action-border);
+  background: var(--action-badge-bg);
+  color: var(--action-badge-text);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .modal--card-action .modal__close {
@@ -1166,6 +1232,12 @@ body[data-pickmode="effect-target"] .turn-player-name {
   height: 2.5rem;
   border-radius: 0.8rem;
   font-size: 1.35rem;
+  border-color: var(--action-border);
+}
+
+.modal--card-action .modal__close:hover {
+  border-color: var(--action-accent);
+  filter: brightness(1.08);
 }
 
 .modal--card-action .modal__body {
@@ -1183,9 +1255,9 @@ body[data-pickmode="effect-target"] .turn-player-name {
 .card-action__message {
   position: relative;
   border-radius: 0.95rem;
-  border: 1px solid rgba(255,255,255,0.14);
+  border: 1px solid var(--action-border);
   background:
-    linear-gradient(160deg, rgba(53,224,199,0.08), rgba(168,85,247,0.08) 64%, rgba(10,14,28,0.5)),
+    linear-gradient(160deg, var(--action-message-start), var(--action-message-mid) 64%, var(--action-message-end)),
     rgba(9, 13, 25, 0.72);
   color: rgba(244,248,255,0.97);
   font-family: "Plus Jakarta Sans", "Montserrat", system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
@@ -1195,13 +1267,15 @@ body[data-pickmode="effect-target"] .turn-player-name {
   letter-spacing: 0.003em;
   text-wrap: pretty;
   padding: clamp(0.95rem, 2.3vw, 1.2rem) clamp(0.9rem, 2.4vw, 1.15rem);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.06),
+    inset 0.2rem 0 0 rgba(255,255,255,0.03);
 }
 
 .card-action__button {
   width: 100%;
   margin-top: 0.25rem;
-  border: 1px solid rgba(255,255,255,0.16);
+  border: 1px solid var(--action-border);
   color: var(--text);
   padding: 0.75rem 0.95rem;
   border-radius: 0.85rem;
@@ -1212,7 +1286,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
   min-height: 2.9rem;
   transition: transform 0.15s, filter 0.2s, border-color 0.2s;
   background:
-    linear-gradient(135deg, rgba(53,224,199,0.2), rgba(168,85,247,0.24)),
+    linear-gradient(135deg, var(--action-button-start), var(--action-button-end)),
     rgba(10, 14, 28, 0.65);
   box-shadow: var(--shadow-soft);
   touch-action: manipulation;
@@ -1221,7 +1295,7 @@ body[data-pickmode="effect-target"] .turn-player-name {
 .card-action__button:hover {
   transform: translateY(-1px);
   filter: brightness(1.06);
-  border-color: rgba(255,255,255,0.22);
+  border-color: var(--action-accent);
 }
 
 .card-action__button:focus-visible {
@@ -1602,6 +1676,12 @@ body[data-pickmode="effect-target"] .turn-player-name {
 
   .modal--card-action .modal__header h2 {
     font-size: 1.06rem;
+  }
+
+  .modal--card-action .modal__header h2::before {
+    font-size: 0.56rem;
+    padding: 0.16rem 0.4rem;
+    letter-spacing: 0.06em;
   }
 
   .modal--card-action .modal__close {

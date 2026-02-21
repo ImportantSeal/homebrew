@@ -10,6 +10,7 @@ const IDS = {
 let initialized = false;
 let returnFocusEl = null;
 let closeHandler = null;
+const VALID_VARIANTS = new Set(['normal', 'ditto', 'penalty']);
 
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -23,6 +24,11 @@ function normalizeMessage(title, message) {
   const prefixedTitle = new RegExp(`^${escapeRegExp(safeTitle)}\\s*[-:]\\s*`, 'i');
   const normalized = safeMessage.replace(prefixedTitle, '').trim();
   return normalized || safeMessage;
+}
+
+function resolveVariant(variant) {
+  const normalized = String(variant || '').trim().toLowerCase();
+  return VALID_VARIANTS.has(normalized) ? normalized : 'normal';
 }
 
 function refs() {
@@ -95,6 +101,7 @@ export function showCardActionModal({
   title = 'Card Action',
   message = '',
   fallbackMessage = 'Check Card History for details.',
+  variant = 'normal',
   onClose = null
 } = {}) {
   initCardActionModal();
@@ -107,9 +114,11 @@ export function showCardActionModal({
   const fromHistory = getLastHistoryEntry();
   const resolvedMessage = String(message || fromHistory || fallback).trim();
   const finalMessage = normalizeMessage(safeTitle, resolvedMessage);
+  const finalVariant = resolveVariant(variant);
 
   if (titleEl) titleEl.textContent = safeTitle;
   messageEl.textContent = finalMessage || fallback;
+  modal.dataset.variant = finalVariant;
 
   closeHandler = typeof onClose === 'function' ? onClose : null;
   returnFocusEl = document.activeElement instanceof HTMLElement ? document.activeElement : null;
