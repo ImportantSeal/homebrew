@@ -11,6 +11,7 @@ const DICE_SCALE_MIN = 6.2;
 const DICE_SCALE_MAX = 9.8;
 const DICE_SCALE_FALLBACK = 7.2;
 const TOUCH_CLICK_GUARD_MS = 700;
+const TOUCH_MOVE_TOLERANCE_PX = 10;
 const DICEBOX_IMPORT_TIMEOUT_MS = 6000;
 const DICEBOX_INIT_TIMEOUT_MS = 6000;
 const DICEBOX_ROLL_TIMEOUT_MS = 7000;
@@ -247,13 +248,83 @@ function bindTap(el, handler) {
   if (!el || typeof handler !== "function") return;
 
   let lastTouchAt = 0;
+  let activeTouchId = null;
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchMoved = false;
+
+  const onTouchStart = (e) => {
+    const touch = e.changedTouches?.[0];
+    if (!touch) return;
+
+    activeTouchId = touch.identifier;
+    touchStartX = touch.clientX;
+    touchStartY = touch.clientY;
+    touchMoved = false;
+  };
+
+  const onTouchMove = (e) => {
+    if (activeTouchId === null) return;
+
+    const touches = e.changedTouches;
+    if (!touches) return;
+
+    for (let i = 0; i < touches.length; i++) {
+      const touch = touches[i];
+      if (touch.identifier !== activeTouchId) continue;
+
+      if (
+        Math.abs(touch.clientX - touchStartX) > TOUCH_MOVE_TOLERANCE_PX ||
+        Math.abs(touch.clientY - touchStartY) > TOUCH_MOVE_TOLERANCE_PX
+      ) {
+        touchMoved = true;
+      }
+      return;
+    }
+  };
+
+  const onTouchEnd = (e) => {
+    lastTouchAt = Date.now();
+
+    if (activeTouchId === null) return;
+
+    const touches = e.changedTouches;
+    if (!touches) {
+      activeTouchId = null;
+      touchMoved = false;
+      return;
+    }
+
+    for (let i = 0; i < touches.length; i++) {
+      const touch = touches[i];
+      if (touch.identifier !== activeTouchId) continue;
+
+      const moved =
+        touchMoved ||
+        Math.abs(touch.clientX - touchStartX) > TOUCH_MOVE_TOLERANCE_PX ||
+        Math.abs(touch.clientY - touchStartY) > TOUCH_MOVE_TOLERANCE_PX;
+
+      activeTouchId = null;
+      touchMoved = false;
+
+      if (moved) return;
+
+      e.preventDefault();
+      handler(e);
+      return;
+    }
+  };
+
+  const onTouchCancel = () => {
+    activeTouchId = null;
+    touchMoved = false;
+  };
 
   // Mobile webviews/some browsers can drop or delay click handlers.
-  el.addEventListener('touchend', (e) => {
-    lastTouchAt = Date.now();
-    e.preventDefault();
-    handler(e);
-  }, { passive: false });
+  el.addEventListener('touchstart', onTouchStart, { passive: true });
+  el.addEventListener('touchmove', onTouchMove, { passive: true });
+  el.addEventListener('touchend', onTouchEnd, { passive: false });
+  el.addEventListener('touchcancel', onTouchCancel, { passive: true });
 
   el.addEventListener('click', (e) => {
     if ((Date.now() - lastTouchAt) < TOUCH_CLICK_GUARD_MS) return;
