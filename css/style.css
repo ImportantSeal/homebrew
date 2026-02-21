@@ -1814,6 +1814,19 @@ body[data-pickmode="effect-target"] .turn-player-name {
     min-height: 44px;
   }
 
+  #setup-container .setup-arrow-button {
+    min-width: 44px;
+  }
+
+  .modal__close {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .effect-remove {
+    min-height: 44px;
+  }
+
   .turn-player-name {
     min-height: 44px;
     min-width: 44px;
