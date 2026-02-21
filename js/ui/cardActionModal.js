@@ -1,4 +1,5 @@
 import { getLastHistoryEntry } from '../cardHistory.js';
+import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 
 const IDS = {
   modal: 'card-action-modal',
@@ -49,8 +50,14 @@ function isOpen(modal) {
 
 function setOpen(modal, open) {
   if (!modal) return;
+  const currentlyOpen = isOpen(modal);
+  if (currentlyOpen === open) return;
+
   modal.classList.toggle('is-open', open);
   modal.setAttribute('aria-hidden', open ? 'false' : 'true');
+
+  if (open) lockModalScroll();
+  else unlockModalScroll();
 }
 
 function closeModal(restoreFocus = true) {

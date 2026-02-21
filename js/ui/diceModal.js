@@ -1,6 +1,7 @@
 // js/ui/diceModal.js
 import { addHistoryEntry } from '../cardHistory.js';
 import { state } from '../state.js';
+import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 
 const DICEBOX_VERSION = "1.1.4";
 const DICEBOX_ORIGIN = `https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@${DICEBOX_VERSION}/dist/`;
@@ -359,10 +360,13 @@ export function initDiceModal() {
   }
 
   const open = async () => {
+    if (isModalOpen) return;
+
     isModalOpen = true;
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     toggleBtn.setAttribute('aria-expanded', 'true');
+    lockModalScroll();
     markLayoutChange(true);
 
     resetDiceUI();
@@ -388,6 +392,8 @@ export function initDiceModal() {
   };
 
   const close = () => {
+    if (!isModalOpen) return;
+
     // Invalidate any in-flight roll so it can't overwrite UI later.
     rollToken++;
 
@@ -395,6 +401,7 @@ export function initDiceModal() {
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     toggleBtn.setAttribute('aria-expanded', 'false');
+    unlockModalScroll();
     toggleBtn.focus();
 
     resetDiceUI();

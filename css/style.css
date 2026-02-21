@@ -64,6 +64,11 @@ body {
   overflow-x: hidden;
 }
 
+body.modal-open {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 body::before {
   content: "";
   position: fixed;
