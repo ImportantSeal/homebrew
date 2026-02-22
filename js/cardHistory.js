@@ -12,9 +12,6 @@ export function addHistoryEntry(message) {
   if (!historyContainer || !text) return null;
 
   const historyScroller = historyContainer.closest('.history-section') || historyContainer;
-  const distanceFromBottom =
-    historyScroller.scrollHeight - historyScroller.scrollTop - historyScroller.clientHeight;
-  const shouldStickToBottom = distanceFromBottom <= 24;
 
   if (!Array.isArray(state.cardHistory)) state.cardHistory = [];
   state.cardHistory.push(text);
@@ -26,11 +23,12 @@ export function addHistoryEntry(message) {
   entry.textContent = text;
   historyContainer.appendChild(entry);
 
-  if (shouldStickToBottom) {
-    historyScroller.scrollTo({
-      top: historyScroller.scrollHeight,
-      behavior: "smooth"
-    });
+  const scrollToBottom = () => {
+    historyScroller.scrollTop = historyScroller.scrollHeight;
+  };
+  scrollToBottom();
+  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(scrollToBottom);
   }
 
   return text;
