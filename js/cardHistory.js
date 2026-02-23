@@ -6,6 +6,23 @@ function normalizeMessage(message) {
   return String(message ?? "").trim();
 }
 
+function createHistoryEntryElement(text, index) {
+  const entry = document.createElement('article');
+  entry.className = 'history-entry is-latest';
+  entry.dataset.rawText = text;
+
+  const meta = document.createElement('div');
+  meta.className = 'history-entry__meta';
+  meta.textContent = `Turn log #${index}`;
+
+  const content = document.createElement('div');
+  content.className = 'history-entry__text';
+  content.textContent = text;
+
+  entry.append(meta, content);
+  return entry;
+}
+
 export function addHistoryEntry(message) {
   const historyContainer = document.getElementById('card-history');
   const text = normalizeMessage(message);
@@ -19,9 +36,15 @@ export function addHistoryEntry(message) {
     state.cardHistory.splice(0, state.cardHistory.length - MAX_HISTORY_ENTRIES);
   }
 
-  const entry = document.createElement('p');
-  entry.textContent = text;
+  const latest = historyContainer.querySelector('.history-entry.is-latest');
+  if (latest) latest.classList.remove('is-latest');
+
+  const entry = createHistoryEntryElement(text, state.cardHistory.length);
   historyContainer.appendChild(entry);
+
+  while (historyContainer.childElementCount > MAX_HISTORY_ENTRIES) {
+    historyContainer.firstElementChild?.remove();
+  }
 
   const scrollToBottom = () => {
     historyScroller.scrollTop = historyScroller.scrollHeight;
@@ -41,7 +64,13 @@ export function getLastHistoryEntry() {
 
   const historyContainer = document.getElementById('card-history');
   const last = historyContainer?.lastElementChild;
-  const text = last?.textContent ? String(last.textContent).trim() : "";
+  const raw = typeof last?.dataset?.rawText === 'string'
+    ? String(last.dataset.rawText).trim()
+    : "";
+  if (raw) return raw;
+
+  const textNode = last?.querySelector?.('.history-entry__text');
+  const text = textNode?.textContent ? String(textNode.textContent).trim() : "";
   return text || null;
 }
 

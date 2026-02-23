@@ -26,7 +26,16 @@ export function showGameContainer() {
 
 export function setTurnIndicatorText(text) {
   const el = getEl('turn-indicator');
-  if (el) el.textContent = text;
+  if (!el) return;
+
+  const nextText = String(text ?? "");
+  const didChange = el.textContent !== nextText;
+  el.textContent = nextText;
+  if (!didChange) return;
+
+  el.classList.remove('turn-indicator--pulse');
+  void el.offsetWidth;
+  el.classList.add('turn-indicator--pulse');
 }
 
 export function getPenaltyDeckEl() {
