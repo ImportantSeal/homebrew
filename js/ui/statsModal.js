@@ -49,9 +49,10 @@ function formatValue(value) {
   return Number(value || 0).toLocaleString('fi-FI');
 }
 
-function createMetric(label, value) {
+function createMetric(label, value, variant = '') {
   const metric = document.createElement('div');
   metric.className = 'stats-metric';
+  if (variant) metric.classList.add(`stats-metric--${variant}`);
 
   const metricLabel = document.createElement('span');
   metricLabel.className = 'stats-metric__label';
@@ -207,29 +208,38 @@ function createSummary(snapshot) {
   return summary;
 }
 
-function createPlayerCard(entry) {
+function createPlayerCard(entry, playerIndex = 0) {
   const card = document.createElement('article');
   card.className = 'stats-player';
 
   const header = document.createElement('header');
   header.className = 'stats-player__header';
 
+  const identity = document.createElement('div');
+  identity.className = 'stats-player__identity';
+
+  const rank = document.createElement('span');
+  rank.className = 'stats-player__rank';
+  rank.textContent = `#${playerIndex + 1}`;
+
   const name = document.createElement('h3');
+  name.className = 'stats-player__name';
   name.textContent = entry.playerName;
 
   const picked = document.createElement('span');
   picked.className = 'stats-player__picked';
   picked.textContent = `${formatValue(entry.cardsSelected)} cards`;
 
-  header.append(name, picked);
+  identity.append(rank, name);
+  header.append(identity, picked);
 
   const metrics = document.createElement('div');
   metrics.className = 'stats-player__metrics';
   metrics.append(
-    createMetric('Drinks taken', entry.drinksTaken),
-    createMetric('Drinks given', entry.drinksGiven),
-    createMetric('Mystery picks', entry.mysteryCardsSelected),
-    createMetric('Penalties', entry.penaltiesTaken)
+    createMetric('Drinks taken', entry.drinksTaken, 'taken'),
+    createMetric('Drinks given', entry.drinksGiven, 'given'),
+    createMetric('Mystery picks', entry.mysteryCardsSelected, 'mystery'),
+    createMetric('Penalties', entry.penaltiesTaken, 'penalty')
   );
 
   const allKinds = topKinds(entry.kindCounts, CARD_KIND_ORDER.length);
@@ -281,8 +291,8 @@ function renderStats() {
 
   empty.hidden = true;
   board.appendChild(createSummary(snapshot));
-  snapshot.forEach((entry) => {
-    board.appendChild(createPlayerCard(entry));
+  snapshot.forEach((entry, index) => {
+    board.appendChild(createPlayerCard(entry, index));
   });
 }
 
