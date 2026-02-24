@@ -1,5 +1,6 @@
 import { state } from './state.js';
 import { startGame } from './game.js';
+import { applyPlayerColor, ensurePlayerColor, ensurePlayerColors } from './utils/playerColors.js';
 
 export function initSetup() {
   const setupContainer = document.getElementById('setup-container');
@@ -63,6 +64,7 @@ export function initSetup() {
 
   startGameButton.addEventListener('click', () => {
     if (state.players.length > 0) {
+      ensurePlayerColors(state.players);
       state.includeItems = Boolean(includeItemsCheckbox?.checked);
       if (itemsInfoMenu && !itemsInfoMenu.hidden) closeItemsMenu();
       setupContainer.style.display = "none";
@@ -73,7 +75,9 @@ export function initSetup() {
   function addPlayer() {
     const name = playerInput.value.trim();
     if (name && !state.players.some(p => p.name === name)) {
-      state.players.push({ name: name, inventory: [] });
+      const player = { name, inventory: [] };
+      ensurePlayerColor(player, state.players.length);
+      state.players.push(player);
       updatePlayerList();
       playerInput.value = "";
       startGameButton.disabled = state.players.length === 0;
@@ -82,8 +86,11 @@ export function initSetup() {
 
   function updatePlayerList() {
     playerList.innerHTML = "";
-    state.players.forEach(player => {
+    state.players.forEach((player, index) => {
+      const color = ensurePlayerColor(player, index);
       const li = document.createElement('li');
+      li.classList.add('player-name-token');
+      applyPlayerColor(li, color);
       li.textContent = player.name;
       playerList.appendChild(li);
     });

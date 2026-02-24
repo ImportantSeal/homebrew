@@ -1,4 +1,5 @@
 import { bindTap } from '../utils/tap.js';
+import { applyPlayerColor, ensurePlayerColor } from '../utils/playerColors.js';
 
 export function renderItemsBoard(state, onUseItem) {
   const board = document.getElementById('items-board');
@@ -8,9 +9,11 @@ export function renderItemsBoard(state, onUseItem) {
   state.players.forEach((player, pIndex) => {
     const row = document.createElement('div');
     row.className = 'player-row';
+    const color = ensurePlayerColor(player, pIndex);
 
     const nameSpan = document.createElement('span');
-    nameSpan.className = 'player-name';
+    nameSpan.className = 'player-name player-name-token';
+    applyPlayerColor(nameSpan, color);
     nameSpan.textContent = player.name + ':';
     row.appendChild(nameSpan);
 

@@ -5,6 +5,7 @@ import { addHistoryEntry, clearHistoryEntries } from '../cardHistory.js';
 import { resetStats } from '../stats.js';
 
 import { createBag } from '../utils/random.js';
+import { ensurePlayerColors } from '../utils/playerColors.js';
 
 import { dealTurnCards } from '../logic/deck.js';
 import { hidePenaltyCard } from '../logic/penalty.js';
@@ -148,6 +149,7 @@ const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } 
 export function startGame() {
   cancelTargetedEffectSelection(state);
   enableLeaveGuard();
+  ensurePlayerColors(state.players);
 
   // runtime flags
   state.uiLocked = false;

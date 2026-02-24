@@ -2,6 +2,7 @@ import { state } from '../state.js';
 import { CARD_KIND_LABELS, CARD_KIND_ORDER, STATS_UPDATED_EVENT, getStatsSnapshot } from '../stats.js';
 import { bindTap } from '../utils/tap.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
+import { applyPlayerColor, ensurePlayerColors, getPlayerColorByName, setPlayerColoredText } from '../utils/playerColors.js';
 
 const IDS = {
   toggle: 'stats-toggle',
@@ -198,7 +199,7 @@ function createSummary(snapshot) {
 
     const value = document.createElement('strong');
     value.className = 'stats-summary__value';
-    value.textContent = item.text;
+    setPlayerColoredText(value, item.text, state.players);
 
     cell.append(label, value);
     grid.appendChild(cell);
@@ -222,9 +223,11 @@ function createPlayerCard(entry, playerIndex = 0) {
   rank.className = 'stats-player__rank';
   rank.textContent = `#${playerIndex + 1}`;
 
+  const color = getPlayerColorByName(state.players, entry.playerName);
   const name = document.createElement('h3');
-  name.className = 'stats-player__name';
+  name.className = 'stats-player__name player-name-token';
   name.textContent = entry.playerName;
+  applyPlayerColor(name, color);
 
   const picked = document.createElement('span');
   picked.className = 'stats-player__picked';
@@ -281,6 +284,7 @@ function renderStats() {
   const { board, empty } = refs();
   if (!board || !empty) return;
 
+  ensurePlayerColors(state.players);
   const snapshot = getStatsSnapshot(state);
   board.innerHTML = '';
 
