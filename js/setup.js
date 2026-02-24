@@ -76,7 +76,7 @@ export function initSetup() {
     const name = playerInput.value.trim();
     if (name && !state.players.some(p => p.name === name)) {
       const player = { name, inventory: [] };
-      ensurePlayerColor(player, state.players.length);
+      ensurePlayerColor(player, state.players.length, state.players);
       state.players.push(player);
       updatePlayerList();
       playerInput.value = "";
@@ -87,7 +87,7 @@ export function initSetup() {
   function updatePlayerList() {
     playerList.innerHTML = "";
     state.players.forEach((player, index) => {
-      const color = ensurePlayerColor(player, index);
+      const color = ensurePlayerColor(player, index, state.players);
       const li = document.createElement('li');
       li.classList.add('player-name-token');
       applyPlayerColor(li, color);

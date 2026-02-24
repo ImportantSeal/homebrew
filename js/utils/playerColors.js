@@ -1,19 +1,21 @@
 const PLAYER_COLOR_PALETTE = [
-  '#56D7FF',
-  '#FF8F70',
-  '#92F27D',
-  '#FFC66B',
-  '#D39BFF',
-  '#7EF0D0',
-  '#FF7FCF',
-  '#7FD6A3',
-  '#FFB0E2',
-  '#A7C4FF',
-  '#8FE39A',
-  '#F7DE6A'
+  '#EE6868',
+  '#EEAB68',
+  '#EEEE68',
+  '#ABEE68',
+  '#68EE68',
+  '#68EEAB',
+  '#68EEEE',
+  '#68ABEE',
+  '#6868EE',
+  '#AB68EE',
+  '#EE68EE',
+  '#EE68AB'
 ];
 
+const PLAYER_COLOR_MIN_DISTANCE = 60;
 const NAME_CHAR_RE = /[0-9A-Za-z\u00C0-\u024F]/;
+const HEX_COLOR_RE = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 
 function trimText(value) {
   return typeof value === 'string' ? value.trim() : '';
@@ -33,6 +35,99 @@ function colorFromName(name, index = 0) {
   const key = normalizedName || `player-${safeIndex + 1}`;
   const hash = hashText(key) + (safeIndex * 17);
   return PLAYER_COLOR_PALETTE[Math.abs(hash) % PLAYER_COLOR_PALETTE.length];
+}
+
+function normalizeHexColor(color) {
+  const value = trimText(color);
+  if (!HEX_COLOR_RE.test(value)) return '';
+
+  if (value.length === 4) {
+    const r = value.charAt(1);
+    const g = value.charAt(2);
+    const b = value.charAt(3);
+    return `#${r}${r}${g}${g}${b}${b}`.toUpperCase();
+  }
+
+  return value.toUpperCase();
+}
+
+function hexToRgb(color) {
+  const normalized = normalizeHexColor(color);
+  if (!normalized) return null;
+
+  const r = Number.parseInt(normalized.slice(1, 3), 16);
+  const g = Number.parseInt(normalized.slice(3, 5), 16);
+  const b = Number.parseInt(normalized.slice(5, 7), 16);
+  if ([r, g, b].some((value) => Number.isNaN(value))) return null;
+
+  return { r, g, b };
+}
+
+function colorDistance(colorA, colorB) {
+  if (!colorA || !colorB) return 0;
+  const dr = colorA.r - colorB.r;
+  const dg = colorA.g - colorB.g;
+  const db = colorA.b - colorB.b;
+  return Math.sqrt((dr * dr) + (dg * dg) + (db * db));
+}
+
+function shuffle(values = []) {
+  const next = Array.isArray(values) ? [...values] : [];
+  for (let index = next.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [next[index], next[randomIndex]] = [next[randomIndex], next[index]];
+  }
+  return next;
+}
+
+function collectUsedColors(players = [], excludedPlayer = null) {
+  if (!Array.isArray(players)) return [];
+
+  const seen = new Set();
+  const used = [];
+  for (const player of players) {
+    if (!player || typeof player !== 'object' || player === excludedPlayer) continue;
+    const color = normalizeHexColor(player.color);
+    if (!color || seen.has(color)) continue;
+    seen.add(color);
+    used.push(color);
+  }
+  return used;
+}
+
+function pickRandomDistinctColor(usedColors = []) {
+  const palette = shuffle(PLAYER_COLOR_PALETTE.map((color) => normalizeHexColor(color)).filter(Boolean));
+  if (!palette.length) return colorFromName('');
+
+  const usedSet = new Set(usedColors.map((color) => normalizeHexColor(color)).filter(Boolean));
+  const usedRgb = [...usedSet].map((color) => hexToRgb(color)).filter(Boolean);
+  const available = palette.filter((color) => !usedSet.has(color));
+  const candidates = available.length ? available : palette;
+
+  for (const candidate of candidates) {
+    const rgb = hexToRgb(candidate);
+    if (!rgb) continue;
+    const tooClose = usedRgb.some((used) => colorDistance(rgb, used) < PLAYER_COLOR_MIN_DISTANCE);
+    if (!tooClose) return candidate;
+  }
+
+  let bestColor = candidates[0];
+  let bestDistance = -1;
+  for (const candidate of candidates) {
+    const rgb = hexToRgb(candidate);
+    if (!rgb) continue;
+
+    const minDistance = usedRgb.length
+      ? Math.min(...usedRgb.map((used) => colorDistance(rgb, used)))
+      : Number.POSITIVE_INFINITY;
+
+    if (minDistance > bestDistance) {
+      bestDistance = minDistance;
+      bestColor = candidate;
+    }
+  }
+
+  return bestColor || palette[0];
 }
 
 function isBoundaryChar(char) {
@@ -61,7 +156,7 @@ function getUniquePlayerNames(players = []) {
       return {
         name,
         nameLower: name.toLowerCase(),
-        color: ensurePlayerColor(player, index),
+        color: ensurePlayerColor(player, index, players),
         index
       };
     })
@@ -69,20 +164,25 @@ function getUniquePlayerNames(players = []) {
     .sort((a, b) => b.name.length - a.name.length);
 }
 
-export function ensurePlayerColor(player, index = 0) {
+export function ensurePlayerColor(player, index = 0, players = []) {
   if (!player || typeof player !== 'object') return colorFromName('', index);
 
   const existingColor = trimText(player.color);
-  if (existingColor) return existingColor;
+  if (existingColor) {
+    const normalized = normalizeHexColor(existingColor);
+    if (normalized && normalized !== existingColor) player.color = normalized;
+    return normalized || existingColor;
+  }
 
-  const color = colorFromName(player.name, index);
+  const usedColors = collectUsedColors(players, player);
+  const color = pickRandomDistinctColor(usedColors);
   player.color = color;
   return color;
 }
 
 export function ensurePlayerColors(players = []) {
   if (!Array.isArray(players)) return [];
-  return players.map((player, index) => ensurePlayerColor(player, index));
+  return players.map((player, index) => ensurePlayerColor(player, index, players));
 }
 
 export function getPlayerColorByIndex(players = [], playerIndex = 0) {
@@ -95,7 +195,7 @@ export function getPlayerColorByIndex(players = [], playerIndex = 0) {
     return colorFromName('', safeIndex);
   }
 
-  return ensurePlayerColor(players[safeIndex], safeIndex);
+  return ensurePlayerColor(players[safeIndex], safeIndex, players);
 }
 
 export function findPlayerIndexByName(players = [], playerName = '') {
