@@ -38,8 +38,25 @@ const TIMING = {
 
 let penaltyDeckSizeSyncBound = false;
 
-function log(message) {
-  return addHistoryEntry(message);
+function resolveHistoryLogKind(options = {}) {
+  if (options && typeof options === 'object' && typeof options.kind === 'string') {
+    const explicitKind = options.kind.trim();
+    if (explicitKind) return explicitKind;
+  }
+
+  if (typeof state.historyLogKind === 'string') {
+    const contextualKind = state.historyLogKind.trim();
+    if (contextualKind) return contextualKind;
+  }
+
+  return null;
+}
+
+function log(message, options = {}) {
+  const kind = resolveHistoryLogKind(options);
+  return kind
+    ? addHistoryEntry(message, { kind })
+    : addHistoryEntry(message);
 }
 
 function currentPlayer() {
@@ -133,6 +150,7 @@ export function startGame() {
 
   // runtime flags
   state.uiLocked = false;
+  state.historyLogKind = null;
   state.penaltyConfirmArmed = false;
   state.penaltySource = null;
   state.penaltyHintShown = false;

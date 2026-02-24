@@ -13,7 +13,7 @@ import {
   onDittoActivated
 } from '../../logic/effects.js';
 
-import { getCardElements, setCardKind } from '../../ui/cards.js';
+import { computeKind, getCardElements, setCardKind } from '../../ui/cards.js';
 
 import {
   getBagKeyForObjectCard,
@@ -448,57 +448,63 @@ export function createCardHandlers({
       return;
     }
 
-    // 2) Ditto confirm flow.
-    if (state.dittoActive[index]) {
-      const activationTime = parseInt(cardEl.dataset.dittoTime || "0", 10);
-      if (Date.now() - activationTime < timing.DITTO_DOUBLECLICK_GUARD_MS) {
+    const cardData = state.currentCards[index];
+    const previousHistoryLogKind = state.historyLogKind ?? null;
+    state.historyLogKind = computeKind(state, cardData);
+
+    try {
+      // 2) Ditto confirm flow.
+      if (state.dittoActive[index]) {
+        const activationTime = parseInt(cardEl.dataset.dittoTime || "0", 10);
+        if (Date.now() - activationTime < timing.DITTO_DOUBLECLICK_GUARD_MS) {
+          unlockUI();
+          return;
+        }
+
+        const p = currentPlayer();
+        log(`${p.name} confirmed Ditto card.`);
+
+        // Pass applyDrinkEvent so Ditto drink outcomes can trigger Drink Buddy too.
+        const dittoInfo = runDittoEffect(
+          state,
+          index,
+          log,
+          () => renderTurnOrder(state),
+          renderItems,
+          applyDrinkEvent
+        );
+        if (dittoInfo?.message) {
+          openActionScreen(dittoInfo.title || "Ditto", dittoInfo.message, { variant: "ditto" });
+        }
+
+        state.dittoActive[index] = false;
+        state.dittoPending[index] = null;
+
+        nextPlayer();
         unlockUI();
+        renderEffectsPanel();
         return;
       }
 
-      const p = currentPlayer();
-      log(`${p.name} confirmed Ditto card.`);
+      // 3) Object card (Special/Crowd/Social) draw.
+      if (typeof cardData === "object" && cardData.subcategories) {
+        const endsTurnNow = handleObjectCardDraw(cardEl, cardData);
 
-      // Pass applyDrinkEvent so Ditto drink outcomes can trigger Drink Buddy too.
-      const dittoInfo = runDittoEffect(
-        state,
-        index,
-        log,
-        () => renderTurnOrder(state),
-        renderItems,
-        applyDrinkEvent
-      );
-      if (dittoInfo?.message) {
-        openActionScreen(dittoInfo.title || "Ditto", dittoInfo.message, { variant: "ditto" });
+        // If we started a target-pick effect, do not end turn yet.
+        if (endsTurnNow) {
+          nextPlayer();
+        }
+
+        unlockUI();
+        renderEffectsPanel();
+        return;
       }
 
-      state.dittoActive[index] = false;
-      state.dittoPending[index] = null;
-
-      nextPlayer();
-      unlockUI();
-      renderEffectsPanel();
-      return;
+      // 4) Plain cards / items / drink/give.
+      handlePlainCard(cardEl, cardData);
+    } finally {
+      state.historyLogKind = previousHistoryLogKind;
     }
-
-    const cardData = state.currentCards[index];
-
-    // 3) Object card (Special/Crowd/Social) draw.
-    if (typeof cardData === "object" && cardData.subcategories) {
-      const endsTurnNow = handleObjectCardDraw(cardEl, cardData);
-
-      // If we started a target-pick effect, do not end turn yet.
-      if (endsTurnNow) {
-        nextPlayer();
-      }
-
-      unlockUI();
-      renderEffectsPanel();
-      return;
-    }
-
-    // 4) Plain cards / items / drink/give.
-    handlePlainCard(cardEl, cardData);
   }
 
   return {

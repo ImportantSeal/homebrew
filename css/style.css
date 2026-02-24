@@ -1156,12 +1156,32 @@ body[data-pickmode="effect-target"] .turn-player-name {
 }
 
 .history-entry {
+  --history-active-glow: rgba(53,224,199,0.12);
+  --history-active-border: rgba(53,224,199,0.34);
+  --history-active-ring: rgba(53,224,199,0.12);
+  --history-active-bg: linear-gradient(165deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02)),
+                       rgba(13, 18, 35, 0.78);
+  --history-active-strip: linear-gradient(90deg, rgba(53,224,199,0.70), rgba(53,224,199,0.10));
+
+  position: relative;
+  overflow: hidden;
   border-radius: 0.72rem;
   border: 1px solid rgba(255,255,255,0.12);
   background:
     linear-gradient(165deg, rgba(255,255,255,0.035), rgba(255,255,255,0.015)),
     rgba(13, 18, 35, 0.72);
   padding: 0.56rem 0.62rem;
+}
+.history-entry::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.24rem;
+  background: var(--history-active-strip);
+  opacity: 0;
+  transition: opacity 160ms ease;
 }
 
 .history-entry__meta {
@@ -1181,12 +1201,96 @@ body[data-pickmode="effect-target"] .turn-player-name {
 }
 
 .history-entry.is-latest {
-  border-color: rgba(53,224,199,0.34);
-  box-shadow: 0 0 0 1px rgba(53,224,199,0.12);
+  border-color: var(--history-active-border);
+  box-shadow: 0 0 0 1px var(--history-active-ring);
   background:
-    radial-gradient(220px 120px at 16% 20%, rgba(53,224,199,0.12), transparent 65%),
-    linear-gradient(165deg, rgba(255,255,255,0.045), rgba(255,255,255,0.02)),
-    rgba(13, 18, 35, 0.78);
+    radial-gradient(220px 120px at 16% 20%, var(--history-active-glow), transparent 65%),
+    var(--history-active-bg);
+}
+.history-entry.is-latest::after {
+  opacity: 1;
+}
+
+.history-entry.is-latest[data-kind="normal"] {
+  --history-active-glow: rgba(255,255,255,0.08);
+  --history-active-border: rgba(255,255,255,0.26);
+  --history-active-ring: rgba(255,255,255,0.08);
+  --history-active-strip: linear-gradient(90deg, rgba(11,16,32,0.10), rgba(11,16,32,0.02));
+}
+.history-entry.is-latest[data-kind="drink"] {
+  --history-active-glow: rgba(53,224,199,0.15);
+  --history-active-border: rgba(53,224,199,0.36);
+  --history-active-ring: rgba(53,224,199,0.14);
+  --history-active-bg: radial-gradient(180px 140px at 30% 25%, rgba(53,224,199,0.22), transparent 60%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,18,48,0.92));
+  --history-active-strip: linear-gradient(90deg, rgba(53,224,199,0.70), rgba(53,224,199,0.10));
+}
+.history-entry.is-latest[data-kind="give"] {
+  --history-active-glow: rgba(72,222,128,0.15);
+  --history-active-border: rgba(72,222,128,0.34);
+  --history-active-ring: rgba(72,222,128,0.13);
+  --history-active-bg: radial-gradient(180px 140px at 30% 25%, rgba(72,222,128,0.22), transparent 60%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,32,20,0.88));
+  --history-active-strip: linear-gradient(90deg, rgba(72,222,128,0.72), rgba(72,222,128,0.10));
+}
+.history-entry.is-latest[data-kind="mix"] {
+  --history-active-glow: rgba(255,176,32,0.14);
+  --history-active-border: rgba(255,176,32,0.34);
+  --history-active-ring: rgba(255,176,32,0.12);
+  --history-active-bg: radial-gradient(180px 140px at 30% 25%, rgba(255,176,32,0.20), transparent 60%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(44,24,10,0.90));
+  --history-active-strip: linear-gradient(90deg, rgba(255,176,32,0.80), rgba(255,176,32,0.12));
+}
+.history-entry.is-latest[data-kind="penaltycall"] {
+  --history-active-glow: rgba(255,59,59,0.16);
+  --history-active-border: rgba(255,59,59,0.34);
+  --history-active-ring: rgba(255,59,59,0.12);
+  --history-active-bg: radial-gradient(200px 150px at 30% 25%, rgba(255,79,216,0.18), transparent 62%),
+                       radial-gradient(180px 140px at 70% 70%, rgba(255,59,59,0.22), transparent 62%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(40,10,12,0.90));
+  --history-active-strip: linear-gradient(90deg, rgba(255,59,59,0.85), rgba(255,59,59,0.12));
+}
+.history-entry.is-latest[data-kind="item"] {
+  --history-active-glow: rgba(168,85,247,0.16);
+  --history-active-border: rgba(168,85,247,0.34);
+  --history-active-ring: rgba(168,85,247,0.12);
+  --history-active-bg: radial-gradient(200px 160px at 30% 25%, rgba(168,85,247,0.20), transparent 62%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(24,10,44,0.90));
+  --history-active-strip: linear-gradient(90deg, rgba(168,85,247,0.85), rgba(168,85,247,0.12));
+}
+.history-entry.is-latest[data-kind="social"] {
+  --history-active-glow: rgba(53,224,199,0.15);
+  --history-active-border: rgba(53,224,199,0.34);
+  --history-active-ring: rgba(53,224,199,0.13);
+  --history-active-bg: radial-gradient(200px 160px at 30% 25%, rgba(53,224,199,0.20), transparent 62%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,44,40,0.90));
+  --history-active-strip: linear-gradient(90deg, rgba(53,224,199,0.85), rgba(53,224,199,0.12));
+}
+.history-entry.is-latest[data-kind="crowd"] {
+  --history-active-glow: rgba(255,79,216,0.14);
+  --history-active-border: rgba(255,79,216,0.34);
+  --history-active-ring: rgba(255,79,216,0.12);
+  --history-active-bg: radial-gradient(220px 170px at 30% 25%, rgba(255,79,216,0.18), transparent 62%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(44,10,34,0.90));
+  --history-active-strip: linear-gradient(90deg, rgba(255,79,216,0.85), rgba(255,79,216,0.12));
+}
+.history-entry.is-latest[data-kind="special"] {
+  --history-active-glow: rgba(168,85,247,0.16);
+  --history-active-border: rgba(168,85,247,0.34);
+  --history-active-ring: rgba(168,85,247,0.12);
+  --history-active-bg: radial-gradient(220px 170px at 30% 25%, rgba(168,85,247,0.20), transparent 62%),
+                       radial-gradient(220px 170px at 75% 70%, rgba(53,224,199,0.14), transparent 65%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(18,10,40,0.90));
+  --history-active-strip: linear-gradient(90deg, rgba(168,85,247,0.85), rgba(53,224,199,0.55));
+}
+.history-entry.is-latest[data-kind="ditto"] {
+  --history-active-glow: rgba(168,85,247,0.16);
+  --history-active-border: rgba(168,85,247,0.34);
+  --history-active-ring: rgba(168,85,247,0.12);
+  --history-active-bg: radial-gradient(220px 170px at 30% 25%, rgba(168,85,247,0.22), transparent 62%),
+                       radial-gradient(220px 170px at 75% 70%, rgba(255,79,216,0.16), transparent 65%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(26,10,40,0.90));
+  --history-active-strip: linear-gradient(90deg, rgba(168,85,247,0.80), rgba(255,79,216,0.20));
 }
 
 /* Modal */
