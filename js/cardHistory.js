@@ -1,4 +1,5 @@
 import { state } from './state.js';
+import { ensurePlayerColors, setPlayerColoredText } from './utils/playerColors.js';
 
 const MAX_HISTORY_ENTRIES = 300;
 const HISTORY_CARD_KINDS = new Set([
@@ -36,7 +37,7 @@ function createHistoryEntryElement(text, index, kind) {
 
   const content = document.createElement('div');
   content.className = 'history-entry__text';
-  content.textContent = text;
+  setPlayerColoredText(content, text, state.players);
 
   entry.append(meta, content);
   return entry;
@@ -47,6 +48,7 @@ export function addHistoryEntry(message, options = {}) {
   const text = normalizeMessage(message);
   const kind = normalizeKind(options && typeof options === 'object' ? options.kind : null);
   if (!historyContainer || !text) return null;
+  ensurePlayerColors(state.players);
 
   const historyScroller = historyContainer.closest('.history-section') || historyContainer;
 

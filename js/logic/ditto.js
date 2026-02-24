@@ -1,6 +1,7 @@
 // js/ditto/effects.js
 
 import { randomFromArray } from '../utils/random.js';
+import { recordPenaltyTaken } from '../stats.js';
 
 const ITEM_DITTO_TYPES = new Set(['LOSE_ONE_ITEM_ALL', 'STEAL_RANDOM_ITEM']);
 
@@ -141,6 +142,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
         } else {
           log(`${p.name} takes penalty: ${penalty}`);
           affectedCount += 1;
+          recordPenaltyTaken(state, idx);
           // if it's Drink X / Shot etc, trigger drink event
           const m = String(penalty).match(/Drink\s+(\d+)/i);
           if (m) applyDrinkEvent?.(idx, parseInt(m[1], 10), "Ditto penalty all");

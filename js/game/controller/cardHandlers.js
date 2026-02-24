@@ -28,6 +28,7 @@ import {
 } from './helpers.js';
 
 import { runSpecialAction } from './specialActions.js';
+import { recordCardSelection, recordGiveDrinks } from '../../stats.js';
 
 function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
   if (effectDef.type === "LEFT_HAND") {
@@ -376,12 +377,12 @@ export function createCardHandlers({
       } else {
         applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Drink card", log);
       }
-      if (give) {
-        log(`${p.name} gives ${give.amount}.`);
-      }
-    } else if (give) {
+    }
+
+    if (give) {
+      recordGiveDrinks(state, state.currentPlayerIndex, give.amount);
       log(`${p.name} gives ${give.amount}.`);
-    } else if (!requiresActionScreen) {
+    } else if (!drink && !requiresActionScreen) {
       log(`${p.name} selected ${value}`);
     }
 
@@ -449,8 +450,9 @@ export function createCardHandlers({
     }
 
     const cardData = state.currentCards[index];
+    const selectedKind = computeKind(state, cardData);
     const previousHistoryLogKind = state.historyLogKind ?? null;
-    state.historyLogKind = computeKind(state, cardData);
+    state.historyLogKind = selectedKind;
 
     try {
       // 2) Ditto confirm flow.
@@ -485,6 +487,11 @@ export function createCardHandlers({
         renderEffectsPanel();
         return;
       }
+
+      recordCardSelection(state, state.currentPlayerIndex, {
+        kind: selectedKind,
+        mystery: index === state.hiddenIndex
+      });
 
       // 3) Object card (Special/Crowd/Social) draw.
       if (typeof cardData === "object" && cardData.subcategories) {

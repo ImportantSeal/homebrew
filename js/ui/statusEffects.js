@@ -1,5 +1,6 @@
 // js/ui/statusEffects.js
 // Renders active timed effects + player statuses in the side panel.
+import { applyPlayerColor, ensurePlayerColor, setPlayerColoredText } from '../utils/playerColors.js';
 
 function el(tag, className, text) {
   const n = document.createElement(tag);
@@ -116,8 +117,13 @@ function buildEffectCard(state, eff, onRemoveEffect) {
 
   const mid = el("div", "effect-mid");
   mid.appendChild(el("div", "effect-title", effectTitle(eff.type)));
-  mid.appendChild(el("div", "effect-desc", effectDescription(state, eff)));
-  mid.appendChild(el("div", "effect-applies", effectAppliesTo(state, eff)));
+  const desc = el("div", "effect-desc");
+  setPlayerColoredText(desc, effectDescription(state, eff), state.players);
+  mid.appendChild(desc);
+
+  const applies = el("div", "effect-applies");
+  setPlayerColoredText(applies, effectAppliesTo(state, eff), state.players);
+  mid.appendChild(applies);
 
   const right = el("div", "effect-right");
   const remaining = typeof eff.remainingTurns === "number" ? eff.remainingTurns : 0;
@@ -203,7 +209,9 @@ export function renderStatusEffects(state, options = {}) {
   state.players.forEach((p, idx) => {
     const row = el("div", "status-row");
 
-    row.appendChild(el("span", "status-player", `${p.name}:`));
+    const statusPlayer = el("span", "status-player player-name-token", `${p.name}:`);
+    applyPlayerColor(statusPlayer, ensurePlayerColor(p, idx));
+    row.appendChild(statusPlayer);
 
     let hasForPlayer = false;
     if (p.shield) {

@@ -63,6 +63,10 @@ export function createInitialState() {
     cardHistory: [],
     penaltyCard: null,
     penaltyShown: false,
+    stats: {
+      players: [],
+      updatedAt: 0
+    },
 
     mirror: createMirrorState()
   };

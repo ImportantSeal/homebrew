@@ -1,5 +1,6 @@
 // js/logic/effects.js
 import { enablePlayerNameSelection } from './mirror.js';
+import { recordDrinkTaken } from '../stats.js';
 
 let activeCleanup = null;
 
@@ -187,6 +188,8 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
   if (!suppressSelfLog) {
     log?.(`${player.name}: ${label}${reason ? ` (${reason})` : ""}`);
   }
+
+  recordDrinkTaken(state, playerIndex, amount);
 
   if (skipBuddy) return;
 

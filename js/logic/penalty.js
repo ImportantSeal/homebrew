@@ -1,6 +1,7 @@
 import { flipCardAnimation } from '../animations.js';
 import { randomFromArray } from '../utils/random.js';
 import { getPenaltyDeckEl } from '../ui/uiFacade.js';
+import { recordPenaltyTaken } from '../stats.js';
 
 /**
  * source:
@@ -35,6 +36,7 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
+  recordPenaltyTaken(state, state.currentPlayerIndex);
 
   log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
 

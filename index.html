@@ -96,6 +96,17 @@
             </button>
 
             <button
+              id="stats-toggle"
+              class="rules-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="stats-modal"
+              aria-expanded="false"
+            >
+              Stats
+            </button>
+
+            <button
               id="rules-toggle"
               class="rules-button"
               type="button"
@@ -252,6 +263,23 @@
         <div id="dice-box" class="dice-box" aria-label="3D dice tray"></div>
 
         <div id="dice-result" class="dice-result">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Modal -->
+  <div id="stats-modal" class="modal modal--stats" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close-stats></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2>Stats</h2>
+        <button class="modal__close" type="button" data-close-stats aria-label="Close stats">&times;</button>
+      </div>
+
+      <div class="modal__body">
+        <p id="stats-empty" class="stats-empty" hidden>No stats yet. Start drawing cards to populate this view.</p>
+        <div id="stats-board" class="stats-board"></div>
       </div>
     </div>
   </div>
