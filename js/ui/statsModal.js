@@ -78,20 +78,30 @@ function topKinds(kindCounts, limit = 4) {
 }
 
 function resolveLeader(snapshot, key) {
-  let leader = null;
+  const leaders = [];
+  let bestValue = 0;
 
   snapshot.forEach((entry) => {
     const value = Number(entry?.[key] || 0);
-    if (!leader || value > leader.value) {
-      leader = {
-        playerName: entry.playerName,
-        value
-      };
+    if (value <= 0) return;
+
+    if (value > bestValue) {
+      bestValue = value;
+      leaders.length = 0;
+      leaders.push(String(entry.playerName || ''));
+      return;
+    }
+
+    if (value === bestValue) {
+      leaders.push(String(entry.playerName || ''));
     }
   });
 
-  if (!leader || leader.value <= 0) return null;
-  return leader;
+  if (!leaders.length || bestValue <= 0) return null;
+  return {
+    playerNames: leaders,
+    value: bestValue
+  };
 }
 
 function resolveTopGlobalKind(snapshot) {
@@ -106,21 +116,35 @@ function resolveTopGlobalKind(snapshot) {
     });
   });
 
-  let topKind = null;
+  const topKinds = [];
   let topCount = 0;
   CARD_KIND_ORDER.forEach((kind) => {
     const count = totals[kind];
     if (count > topCount) {
-      topKind = kind;
+      topKinds.length = 0;
+      topKinds.push(kind);
       topCount = count;
+      return;
+    }
+
+    if (count > 0 && count === topCount) {
+      topKinds.push(kind);
     }
   });
 
-  if (!topKind || topCount <= 0) return null;
+  if (!topKinds.length || topCount <= 0) return null;
   return {
-    label: CARD_KIND_LABELS[topKind] || topKind,
+    labels: topKinds.map((kind) => CARD_KIND_LABELS[kind] || kind),
     count: topCount
   };
+}
+
+function joinLeaderNames(playerNames = []) {
+  return playerNames.filter(Boolean).join(', ');
+}
+
+function joinKindLabels(labels = []) {
+  return labels.filter(Boolean).join(', ');
 }
 
 function createSummary(snapshot) {
@@ -143,23 +167,23 @@ function createSummary(snapshot) {
   const summaryItems = [
     {
       label: 'Most picked type',
-      text: topKind ? `${topKind.label} (${formatValue(topKind.count)})` : '-'
+      text: topKind ? `${joinKindLabels(topKind.labels)} (${formatValue(topKind.count)})` : '-'
     },
     {
       label: 'Most drinks taken',
-      text: drinkLeader ? `${drinkLeader.playerName} (${formatValue(drinkLeader.value)})` : '-'
+      text: drinkLeader ? `${joinLeaderNames(drinkLeader.playerNames)} (${formatValue(drinkLeader.value)})` : '-'
     },
     {
       label: 'Most drinks given',
-      text: giveLeader ? `${giveLeader.playerName} (${formatValue(giveLeader.value)})` : '-'
+      text: giveLeader ? `${joinLeaderNames(giveLeader.playerNames)} (${formatValue(giveLeader.value)})` : '-'
     },
     {
       label: 'Most penalties',
-      text: penaltyLeader ? `${penaltyLeader.playerName} (${formatValue(penaltyLeader.value)})` : '-'
+      text: penaltyLeader ? `${joinLeaderNames(penaltyLeader.playerNames)} (${formatValue(penaltyLeader.value)})` : '-'
     },
     {
       label: 'Most mystery picks',
-      text: mysteryLeader ? `${mysteryLeader.playerName} (${formatValue(mysteryLeader.value)})` : '-'
+      text: mysteryLeader ? `${joinLeaderNames(mysteryLeader.playerNames)} (${formatValue(mysteryLeader.value)})` : '-'
     }
   ];
 
@@ -208,8 +232,13 @@ function createPlayerCard(entry) {
     createMetric('Penalties', entry.penaltiesTaken)
   );
 
-  const topKindText = entry.topKind
-    ? `${entry.topKind.label} (${formatValue(entry.topKind.count)})`
+  const allKinds = topKinds(entry.kindCounts, CARD_KIND_ORDER.length);
+  const highestKindCount = allKinds[0]?.count || 0;
+  const topKindLabels = allKinds
+    .filter((kindEntry) => kindEntry.count === highestKindCount)
+    .map((kindEntry) => kindEntry.label);
+  const topKindText = highestKindCount > 0
+    ? `${joinKindLabels(topKindLabels)} (${formatValue(highestKindCount)})`
     : 'No picks yet';
 
   const topKind = document.createElement('p');
