@@ -9,6 +9,7 @@ const listeners = {
   redrawUnbind: null,
   penaltyRefreshUnbind: null,
   penaltyDeckUnbind: null,
+  turnOrderUnbind: null,
   closeDropdownsBound: false
 };
 
@@ -64,6 +65,22 @@ export function bindPenaltyDeckClick(handler) {
 
   if (typeof listeners.penaltyDeckUnbind === 'function') listeners.penaltyDeckUnbind();
   listeners.penaltyDeckUnbind = bindTap(el, handler);
+}
+
+export function bindTurnOrderPlayerClick(handler) {
+  const el = getEl('turn-order');
+  if (!el) return;
+
+  if (typeof listeners.turnOrderUnbind === 'function') listeners.turnOrderUnbind();
+  listeners.turnOrderUnbind = bindTap(el, (event) => {
+    const target = event.target;
+    if (!target || !target.closest) return;
+
+    const playerBtn = target.closest('.turn-player-name');
+    if (!playerBtn || !el.contains(playerBtn)) return;
+
+    handler?.(playerBtn, event);
+  });
 }
 
 export function bindCloseDropdownsOnOutsideClick() {

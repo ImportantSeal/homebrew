@@ -22,6 +22,7 @@ import {
   bindRedrawClick,
   bindPenaltyRefreshClick,
   bindPenaltyDeckClick,
+  bindTurnOrderPlayerClick,
   bindCloseDropdownsOnOutsideClick
 } from '../ui/uiFacade.js';
 
@@ -171,7 +172,34 @@ function setupEventListeners() {
   bindRedrawClick(onRedrawClick);
   bindPenaltyRefreshClick(onPenaltyRefreshClick);
   bindPenaltyDeckClick(onPenaltyDeckClick);
+  bindTurnOrderPlayerClick(onTurnOrderPlayerClick);
   bindCloseDropdownsOnOutsideClick();
+}
+
+function onTurnOrderPlayerClick(playerBtn) {
+  if (state.effectSelection?.active) return;
+
+  const rawIndex = Number(playerBtn?.dataset?.index);
+  if (!Number.isInteger(rawIndex)) return;
+
+  jumpToPlayerTurn(rawIndex);
+}
+
+function jumpToPlayerTurn(targetIndex) {
+  const playerCount = state.players.length;
+  if (playerCount === 0) return;
+  if (targetIndex < 0 || targetIndex >= playerCount) return;
+  if (targetIndex === state.currentPlayerIndex) return;
+
+  const fromName = playerName(state.currentPlayerIndex);
+  const toName = playerName(targetIndex);
+
+  // Manual switch should not stay locked from previous animation flow.
+  state.uiLocked = false;
+  state.currentPlayerIndex = targetIndex;
+
+  log(`Turn manually switched: ${fromName} -> ${toName}.`);
+  updateTurn();
 }
 
 function nextPlayer() {
