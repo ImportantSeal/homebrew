@@ -154,7 +154,7 @@ function createSummary(snapshot) {
   summary.className = 'stats-summary';
 
   const title = document.createElement('h3');
-  title.textContent = 'Game Leaders';
+  title.textContent = 'Game Overview';
   summary.appendChild(title);
 
   const grid = document.createElement('div');
@@ -295,6 +295,10 @@ function renderStats() {
 
   empty.hidden = true;
   board.appendChild(createSummary(snapshot));
+  const playersHeading = document.createElement('h3');
+  playersHeading.className = 'stats-board__section-title';
+  playersHeading.textContent = 'Players';
+  board.appendChild(playersHeading);
   snapshot.forEach((entry, index) => {
     board.appendChild(createPlayerCard(entry, index));
   });
