@@ -1,3 +1,5 @@
+import { recordGiveDrinks } from '../../stats.js';
+
 function rollDie(sides) {
   return Math.floor(Math.random() * sides) + 1;
 }
@@ -58,6 +60,7 @@ export function runSpecialAction(action, context) {
 
       if (r >= 4) {
         log(`${p.name} wins: give 8 drinks.`);
+        recordGiveDrinks(state, selfIndex, 8);
       } else {
         applyDrinkEvent(state, selfIndex, 8, "Double or Nothing fail", log);
       }
@@ -125,6 +128,7 @@ export function runSpecialAction(action, context) {
       }
 
       log(`The Minimalist: you have 0 items -> GIVE ${give} drinks (total items held by others).`);
+      recordGiveDrinks(state, selfIndex, give);
       return;
     }
 

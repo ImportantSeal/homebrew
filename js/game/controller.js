@@ -2,6 +2,7 @@
 
 import { state } from '../state.js';
 import { addHistoryEntry, clearHistoryEntries } from '../cardHistory.js';
+import { resetStats } from '../stats.js';
 
 import { createBag } from '../utils/random.js';
 
@@ -173,6 +174,7 @@ export function startGame() {
 
   if (!state.bags) state.bags = {};
   clearHistoryEntries();
+  resetStats(state);
 
   initGameView();
   setupEventListeners();
