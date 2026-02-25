@@ -36,6 +36,8 @@ export const gameData = {
         { name: "Unreasonable Pet Peeve", instruction: "Name one everyday thing you irrationally hate. If you refuse, drink 2." },
         { name: "Never Have I Ever", instruction: "Say 'Never have I ever...' and finish the sentence. Anyone who HAS done it drinks 1 (including you)." },
         { name: "First Impression", instruction: "Choose a player. Everyone says one word describing their first impression of them. The chosen player gives 2 to the harshest word (or drinks 2)." },
+        { name: "The Bluff", instruction: "Make a bold claim about something you have done. Any player may challenge you. If the challenger is right, you drink 3. If the challenger is wrong, the challenger drinks 3. If nobody challenges, no drinks." },
+        { name: "Give Count Guess", instruction: "Guess how many drinks you have given so far. If your guess is exact, give that many drinks (max 10). If your guess is wrong, drink your guessed amount (max 10)." },
 
       ]
     }
@@ -50,6 +52,7 @@ export const gameData = {
     "Drink 4",
     "Drink 5",
     "Drink 6",
+    "Take a Shot",
     "Give 1",
     "Give 2",
     "Give 3",
@@ -136,6 +139,16 @@ export const gameData = {
       { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to ALL players." },
       { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
       { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
+      { name: "Clean Sheet Punishment", instruction: "If your Penalties are 0, draw a Penalty Card." },
+      { name: "Generous Leader", instruction: "Player(s) with the most Drinks given give 3." },
+      { name: "Quiet Hands", instruction: "Player(s) with the least Drinks given drink 2." },
+      { name: "Dry Streak Breaker", instruction: "Player(s) with the least Drinks taken drink 5." },
+      { name: "Tank Reward", instruction: "Player(s) with the most Drinks taken give 2." },
+      { name: "Specialist Toll", instruction: "Player(s) with the highest Special count drink 1 and give 2." },
+      { name: "Penalty Veteran Reward", instruction: "Player(s) with the most Penalties give 5." },
+      { name: "Untouched Tank", instruction: "If your Drinks taken is 0, drink 9." },
+      { name: "No-Show Giver", instruction: "If your Drinks given is 0, drink 9." },
+      { name: "Mix Master", instruction: "Player(s) with the highest Drink + Give count drink 3 and give 3." },
 
 
 
