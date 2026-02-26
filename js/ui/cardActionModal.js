@@ -64,6 +64,15 @@ function closeModal(restoreFocus = true) {
   const { modal } = refs();
   if (!modal || !isOpen(modal)) return;
 
+  if (restoreFocus && returnFocusEl && typeof returnFocusEl.focus === 'function') {
+    returnFocusEl.focus();
+  }
+
+  const activeEl = document.activeElement;
+  if (activeEl instanceof HTMLElement && modal.contains(activeEl)) {
+    activeEl.blur();
+  }
+
   setOpen(modal, false);
 
   const handler = closeHandler;
@@ -76,9 +85,6 @@ function closeModal(restoreFocus = true) {
     }
   }
 
-  if (restoreFocus && returnFocusEl && typeof returnFocusEl.focus === 'function') {
-    returnFocusEl.focus();
-  }
   returnFocusEl = null;
 }
 
@@ -128,7 +134,12 @@ export function showCardActionModal({
   modal.dataset.variant = finalVariant;
 
   closeHandler = typeof onClose === 'function' ? onClose : null;
-  returnFocusEl = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  const activeEl = document.activeElement;
+  if (activeEl instanceof HTMLElement && !modal.contains(activeEl)) {
+    returnFocusEl = activeEl;
+  } else if (!returnFocusEl || (returnFocusEl instanceof HTMLElement && modal.contains(returnFocusEl))) {
+    returnFocusEl = null;
+  }
   setOpen(modal, true);
   panel.focus();
 }
