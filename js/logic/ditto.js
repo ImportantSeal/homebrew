@@ -100,7 +100,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
     case 'DRINK_3': {
       log("Ditto says: Drink 3!");
-      applyDrinkEvent?.(state.currentPlayerIndex, 3, "Ditto: Drink 3");
+      applyDrinkEvent?.(state, state.currentPlayerIndex, 3, "Ditto: Drink 3", log);
       return { title: infoTitle, message: "Drink 3." };
     }
 
@@ -111,7 +111,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
     case 'SHOT': {
       log("Ditto ordered a Shot! Take a shot now.");
-      applyDrinkEvent?.(state.currentPlayerIndex, 1, "Ditto: Shot");
+      applyDrinkEvent?.(state, state.currentPlayerIndex, "Shot", "Ditto: Shot", log);
       return { title: infoTitle, message: "Take a Shot." };
     }
 
@@ -145,9 +145,9 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
           recordPenaltyTaken(state, idx);
           // if it's Drink X / Shot etc, trigger drink event
           const m = String(penalty).match(/Drink\s+(\d+)/i);
-          if (m) applyDrinkEvent?.(idx, parseInt(m[1], 10), "Ditto penalty all");
-          else if (/^Shotgun$/i.test(String(penalty))) applyDrinkEvent?.(idx, 2, "Ditto penalty all: Shotgun");
-          else if (/^Shot$/i.test(String(penalty))) applyDrinkEvent?.(idx, 1, "Ditto penalty all: Shot");
+          if (m) applyDrinkEvent?.(state, idx, parseInt(m[1], 10), "Ditto penalty all", log);
+          else if (/^Shotgun$/i.test(String(penalty))) applyDrinkEvent?.(state, idx, "Shotgun", "Ditto penalty all: Shotgun", log);
+          else if (/^Shot$/i.test(String(penalty))) applyDrinkEvent?.(state, idx, "Shot", "Ditto penalty all: Shot", log);
         }
       });
 
