@@ -74,6 +74,59 @@ function applyEveryoneDrink(state, amount, reason, log, applyDrinkEvent) {
   });
 }
 
+function applyEveryoneElseDrink(state, selfIndex, amount, reason, log, applyDrinkEvent) {
+  if (!Array.isArray(state?.players) || typeof applyDrinkEvent !== 'function') return;
+
+  state.players.forEach((_, idx) => {
+    if (idx === selfIndex) return;
+    applyDrinkEvent(state, idx, amount, reason, log, { suppressSelfLog: true });
+  });
+}
+
+function ensureInventory(player) {
+  if (!player || typeof player !== 'object') return [];
+  if (!Array.isArray(player.inventory)) player.inventory = [];
+  return player.inventory;
+}
+
+function createTargetPlayerChoiceAction({
+  key = 'TARGET_PICK',
+  title = 'Pick a Player',
+  message = 'Pick one player to continue.',
+  state,
+  selfIndex,
+  optionVariant = 'danger',
+  onPick
+} = {}) {
+  const players = Array.isArray(state?.players) ? state.players : [];
+  const options = players
+    .map((player, idx) => ({
+      idx,
+      name: normalizeChoiceText(player?.name, `Player ${idx + 1}`)
+    }))
+    .filter(player => player.idx !== selfIndex)
+    .map(({ idx, name }) => ({
+      id: `target_${idx}`,
+      label: name,
+      variant: optionVariant,
+      run: (context) => {
+        if (typeof onPick !== 'function') return {};
+        const result = onPick(context, idx, name);
+        return result && typeof result === 'object' ? result : {};
+      }
+    }));
+
+  if (options.length === 0) return null;
+
+  return createChoiceAction({
+    key,
+    title,
+    message,
+    variant: 'choice',
+    options
+  });
+}
+
 export function runSpecialChoiceAction(choiceAction, optionId, context) {
   if (!choiceAction || choiceAction.type !== 'choice') return null;
 
@@ -182,6 +235,627 @@ export function runSpecialAction(action, context) {
         endTurn: false,
         choice
       };
+    }
+
+    case "SELFISH_SWITCH": {
+      const choice = createChoiceAction({
+        key: "SELFISH_SWITCH",
+        title: "Selfish Switch",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "drink_4",
+            label: "Drink 4",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, 4, "Selfish Switch", innerLog);
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "give_6",
+            label: "Give 6 drinks total",
+            variant: "primary",
+            run: ({ state: innerState, currentPlayerIndex: innerIndex, log: innerLog }) => {
+              recordGiveDrinks(innerState, innerIndex, 6);
+              innerLog?.(`${innerState.players?.[innerIndex]?.name || p.name} gives 6 drinks total.`);
+              return { endTurn: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Selfish Switch choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "MERCY_OR_MAYHEM":
+    case "MERCY_CLAUSE": {
+      const cardTitle = action === "MERCY_CLAUSE" ? "Mercy Clause" : "Mercy or Mayhem";
+
+      const choice = createChoiceAction({
+        key: action,
+        title: cardTitle,
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "everybody_drinks_1",
+            label: "Everybody drinks 1",
+            variant: "primary",
+            run: ({ state: innerState, log: innerLog, applyDrinkEvent: applyInnerDrinkEvent }) => {
+              applyEveryoneDrink(innerState, 1, cardTitle, innerLog, applyInnerDrinkEvent);
+              innerLog?.("Everybody drinks 1.");
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "pick_player_drinks_4",
+            label: "Pick one player to drink 4",
+            variant: "danger",
+            run: ({ state: innerState, currentPlayerIndex: innerIndex, log: innerLog }) => {
+              const targetChoice = createTargetPlayerChoiceAction({
+                key: `${action}_TARGET`,
+                title: cardTitle,
+                message: "Pick one player to drink 4.",
+                state: innerState,
+                selfIndex: innerIndex,
+                optionVariant: "danger",
+                onPick: ({
+                  state: targetState,
+                  log: targetLog,
+                  applyDrinkEvent: applyTargetDrinkEvent
+                }, targetIndex, targetName) => {
+                  applyTargetDrinkEvent(targetState, targetIndex, 4, cardTitle, targetLog);
+                  targetLog?.(`${targetName} drinks 4 (${cardTitle}).`);
+                  return { endTurn: true };
+                }
+              });
+
+              if (!targetChoice) {
+                innerLog?.(`${cardTitle} needs at least two players.`);
+                return { endTurn: true };
+              }
+
+              return { endTurn: false, choice: targetChoice };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log(`${cardTitle} choice setup failed.`);
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "LAST_CALL_INSURANCE": {
+      const choice = createChoiceAction({
+        key: "LAST_CALL_INSURANCE",
+        title: "Last Call Insurance",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "take_shot",
+            label: "Take a Shot",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, "Shot", "Last Call Insurance", innerLog);
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "everybody_drinks_2",
+            label: "Everybody drinks 2",
+            variant: "primary",
+            run: ({ state: innerState, log: innerLog, applyDrinkEvent: applyInnerDrinkEvent }) => {
+              applyEveryoneDrink(innerState, 2, "Last Call Insurance", innerLog, applyInnerDrinkEvent);
+              innerLog?.("Everybody drinks 2.");
+              return { endTurn: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Last Call Insurance choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "PENALTY_INSURANCE": {
+      const choice = createChoiceAction({
+        key: "PENALTY_INSURANCE",
+        title: "Penalty Insurance",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "draw_penalty",
+            label: "Draw a Penalty card",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent,
+              rollPenaltyCard: rollInnerPenaltyCard
+            }) => {
+              if (innerState.penaltyShown) {
+                innerLog?.("Resolve the current penalty first.");
+                return { endTurn: false };
+              }
+
+              if (typeof rollInnerPenaltyCard !== "function") {
+                innerLog?.("Penalty Insurance could not roll the penalty deck.");
+                return { endTurn: true };
+              }
+
+              rollInnerPenaltyCard(innerState, innerLog, "card", applyInnerDrinkEvent);
+
+              if (!innerState.penaltyShown) {
+                innerLog?.("Penalty Insurance: penalty was blocked by Shield.");
+                return { endTurn: true };
+              }
+
+              innerLog?.("Penalty Insurance: click the Penalty Deck to confirm and continue.");
+              return { endTurn: false };
+            }
+          },
+          {
+            id: "drink_5_avoid",
+            label: "Drink 5 to avoid the penalty",
+            variant: "primary",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, 5, "Penalty Insurance", innerLog);
+              innerLog?.("Penalty avoided.");
+              return { endTurn: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Penalty Insurance choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "DEAL_WITH_DEVIL": {
+      const choice = createChoiceAction({
+        key: "DEAL_WITH_DEVIL",
+        title: "Deal with Devil",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "penalty_then_give_6",
+            label: "Draw a Penalty card, then give 6",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent,
+              rollPenaltyCard: rollInnerPenaltyCard
+            }) => {
+              recordGiveDrinks(innerState, innerIndex, 6);
+              innerLog?.(`${innerState.players?.[innerIndex]?.name || p.name} gives 6 drinks total.`);
+
+              if (innerState.penaltyShown) {
+                innerLog?.("Resolve the current penalty first.");
+                return { endTurn: false };
+              }
+
+              if (typeof rollInnerPenaltyCard !== "function") {
+                innerLog?.("Deal with Devil could not roll the penalty deck.");
+                return { endTurn: true };
+              }
+
+              rollInnerPenaltyCard(innerState, innerLog, "card", applyInnerDrinkEvent);
+
+              if (!innerState.penaltyShown) {
+                innerLog?.("Deal with Devil: penalty was blocked by Shield.");
+                return { endTurn: true };
+              }
+
+              innerLog?.("Deal with Devil: click the Penalty Deck to confirm and continue.");
+              return { endTurn: false };
+            }
+          },
+          {
+            id: "drink_4",
+            label: "Drink 4",
+            variant: "primary",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, 4, "Deal with Devil", innerLog);
+              return { endTurn: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Deal with Devil choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "IMMUNITY_OR_SUFFER": {
+      const choice = createChoiceAction({
+        key: "IMMUNITY_OR_SUFFER",
+        title: "Immunity or Suffer",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "gain_immunity_drink_5",
+            label: "Gain Immunity and drink 5",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              if (!innerState.includeItems) {
+                innerLog?.("Items are disabled. Immunity cannot be gained.");
+                applyInnerDrinkEvent(innerState, innerIndex, 5, "Immunity or Suffer", innerLog);
+                return { endTurn: true };
+              }
+
+              const player = innerState.players?.[innerIndex];
+              const inventory = ensureInventory(player);
+              inventory.push("Immunity");
+
+              applyInnerDrinkEvent(innerState, innerIndex, 5, "Immunity or Suffer", innerLog);
+              innerLog?.(`${player?.name || p.name} gained item: Immunity.`);
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "skip_item_drink_2",
+            label: "Skip item and drink 2",
+            variant: "primary",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, 2, "Immunity or Suffer", innerLog);
+              return { endTurn: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Immunity or Suffer choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "ITEM_BUYOUT": {
+      const choice = createChoiceAction({
+        key: "ITEM_BUYOUT",
+        title: "Item Buyout",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "discard_1_give_8",
+            label: "Discard 1 item and give 8",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              if (!innerState.includeItems) {
+                innerLog?.("Items are disabled. Item Buyout falls back to Drink 3.");
+                applyInnerDrinkEvent(innerState, innerIndex, 3, "Item Buyout", innerLog);
+                return { endTurn: true };
+              }
+
+              const player = innerState.players?.[innerIndex];
+              const inventory = ensureInventory(player);
+              if (inventory.length <= 0) {
+                innerLog?.("You have no item to discard. Drink 3 instead.");
+                applyInnerDrinkEvent(innerState, innerIndex, 3, "Item Buyout", innerLog);
+                return { endTurn: true };
+              }
+
+              const removed = inventory.shift();
+              recordGiveDrinks(innerState, innerIndex, 8);
+              innerLog?.(`${player?.name || p.name} discarded ${removed} and gives 8 drinks total.`);
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "keep_items_drink_3",
+            label: "Keep items and drink 3",
+            variant: "primary",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, 3, "Item Buyout", innerLog);
+              return { endTurn: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Item Buyout choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "FINAL_OFFER": {
+      const choice = createChoiceAction({
+        key: "FINAL_OFFER",
+        title: "Final Offer",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "shot_end_turn",
+            label: "Take a Shot and end turn",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, "Shot", "Final Offer", innerLog);
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "drink_5_draw_again",
+            label: "Drink 5 and draw one extra card",
+            variant: "primary",
+            run: ({
+              state: innerState,
+              currentPlayer: innerPlayer,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              const actorName = innerPlayer?.name || p.name;
+              applyInnerDrinkEvent(innerState, innerIndex, 5, "Final Offer", innerLog);
+              innerLog?.(`${actorName} keeps their turn and draws one extra card.`);
+              return { endTurn: false, refreshCards: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Final Offer choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "COLD_EXIT": {
+      const choice = createChoiceAction({
+        key: "COLD_EXIT",
+        title: "Cold Exit",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "drink_4_end_turn",
+            label: "Drink 4 and end turn",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, 4, "Cold Exit", innerLog);
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "give_2_redraw",
+            label: "Give 2 and redraw cards",
+            variant: "primary",
+            run: ({ state: innerState, currentPlayerIndex: innerIndex, log: innerLog }) => {
+              recordGiveDrinks(innerState, innerIndex, 2);
+              innerLog?.(`${innerState.players?.[innerIndex]?.name || p.name} gives 2 and redraws cards.`);
+              return { endTurn: false, refreshCards: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Cold Exit choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "ALL_IN_TAX": {
+      const choice = createChoiceAction({
+        key: "ALL_IN_TAX",
+        title: "All-In Tax",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "drink_3",
+            label: "Drink 3",
+            variant: "primary",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyInnerDrinkEvent(innerState, innerIndex, 3, "All-In Tax", innerLog);
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "give_3_draw_penalty",
+            label: "Give 3 and draw a Penalty card",
+            variant: "danger",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent,
+              rollPenaltyCard: rollInnerPenaltyCard
+            }) => {
+              recordGiveDrinks(innerState, innerIndex, 3);
+              innerLog?.(`${innerState.players?.[innerIndex]?.name || p.name} gives 3 and draws a penalty.`);
+
+              if (innerState.penaltyShown) {
+                innerLog?.("Resolve the current penalty first.");
+                return { endTurn: false };
+              }
+
+              if (typeof rollInnerPenaltyCard !== "function") {
+                innerLog?.("All-In Tax could not roll the penalty deck.");
+                return { endTurn: true };
+              }
+
+              rollInnerPenaltyCard(innerState, innerLog, "card", applyInnerDrinkEvent);
+
+              if (!innerState.penaltyShown) {
+                innerLog?.("All-In Tax: penalty was blocked by Shield.");
+                return { endTurn: true };
+              }
+
+              innerLog?.("All-In Tax: click the Penalty Deck to confirm and continue.");
+              return { endTurn: false };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("All-In Tax choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "MUTUAL_DAMAGE": {
+      const choice = createChoiceAction({
+        key: "MUTUAL_DAMAGE",
+        title: "Mutual Damage",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "you_and_target_drink_3",
+            label: "You and one player both drink 3",
+            variant: "danger",
+            run: ({ state: innerState, currentPlayerIndex: innerIndex, log: innerLog }) => {
+              const targetChoice = createTargetPlayerChoiceAction({
+                key: "MUTUAL_DAMAGE_TARGET",
+                title: "Mutual Damage",
+                message: "Pick one player. You both drink 3.",
+                state: innerState,
+                selfIndex: innerIndex,
+                optionVariant: "danger",
+                onPick: ({
+                  state: targetState,
+                  currentPlayerIndex: actorIndex,
+                  log: targetLog,
+                  applyDrinkEvent: applyTargetDrinkEvent
+                }, targetIndex, targetName) => {
+                  const actorName = targetState.players?.[actorIndex]?.name || p.name;
+                  applyTargetDrinkEvent(targetState, actorIndex, 3, "Mutual Damage", targetLog);
+                  applyTargetDrinkEvent(targetState, targetIndex, 3, "Mutual Damage", targetLog);
+                  targetLog?.(`${actorName} and ${targetName} both drink 3.`);
+                  return { endTurn: true };
+                }
+              });
+
+              if (!targetChoice) {
+                innerLog?.("Mutual Damage needs at least two players.");
+                return { endTurn: true };
+              }
+
+              return { endTurn: false, choice: targetChoice };
+            }
+          },
+          {
+            id: "everybody_else_drinks_1",
+            label: "Everybody else drinks 1",
+            variant: "primary",
+            run: ({
+              state: innerState,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              applyEveryoneElseDrink(innerState, innerIndex, 1, "Mutual Damage", innerLog, applyInnerDrinkEvent);
+              innerLog?.("Everybody else drinks 1.");
+              return { endTurn: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Mutual Damage choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
     }
 
     case "RISKY_ROLL_D20": {

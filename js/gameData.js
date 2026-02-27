@@ -25,6 +25,11 @@ export const gameData = {
         { name: "No hands", instruction: "Take a shot without using your hands." },
         { name: "Biggest Red Flag", instruction: "Share one big red flag in relationships in general. If you pass, take a Penalty card." },
         { name: "Biggest Green Flag", instruction: "Share one big green flag in relationships in general. If you pass, take a Penalty card." },
+        { name: "Flirting Style", instruction: "Describe your flirting style in 3 words. Group picks the cringiest; that player drinks 2." },
+        { name: "Red Flag Redemption", instruction: "Name one red flag you used to have but fixed. If you cannot name one, drink 2." },
+        { name: "Unpopular Dating Opinion", instruction: "Share one unpopular dating opinion. If nobody agrees, drink 1." },
+        { name: "Instant Ick", instruction: "Name one tiny instant ick. If you pass, take a Penalty card." },
+        { name: "Dealbreaker Draft", instruction: "Name your #1 dealbreaker. If you hesitate for 5 seconds, drink 2." },
         { name: "Five-Year Forecast", instruction: "Give your prediction for your life five years from now. If you pass, take a Penalty card." },
         { name: "Learned the Hard Way", instruction: "Share one thing you learned the hard way. If you pass, take a Penalty card." },
         { name: "Stupid Purchase", instruction: "Share the dumbest thing you've spent money on. If you pass, take a Penalty card." },
@@ -195,6 +200,66 @@ export const gameData = {
         name: "Chaos Button",
         instruction: "Choose one: everybody drinks 3 now, OR you drink 1 and draw one extra card.",
         action: "CHAOS_BUTTON"
+      },
+      {
+        name: "Selfish Switch",
+        instruction: "Choose one: drink 4, OR give 6 drinks total.",
+        action: "SELFISH_SWITCH"
+      },
+      {
+        name: "Mercy or Mayhem",
+        instruction: "Choose one: everybody drinks 1, OR pick one other player to drink 4.",
+        action: "MERCY_OR_MAYHEM"
+      },
+      {
+        name: "Last Call Insurance",
+        instruction: "Choose one: take a Shot, OR everybody drinks 2.",
+        action: "LAST_CALL_INSURANCE"
+      },
+      {
+        name: "Penalty Insurance",
+        instruction: "Choose one: draw a Penalty card now, OR drink 5 to avoid the penalty.",
+        action: "PENALTY_INSURANCE"
+      },
+      {
+        name: "Deal with Devil",
+        instruction: "Choose one: draw a Penalty card, then give 6 drinks total, OR drink 4.",
+        action: "DEAL_WITH_DEVIL"
+      },
+      {
+        name: "Immunity or Suffer",
+        instruction: "Choose one: gain an Immunity item and drink 5, OR skip the item and drink 2.",
+        action: "IMMUNITY_OR_SUFFER"
+      },
+      {
+        name: "Item Buyout",
+        instruction: "Choose one: discard 1 item and give 8 drinks total, OR keep your items and drink 3.",
+        action: "ITEM_BUYOUT"
+      },
+      {
+        name: "Final Offer",
+        instruction: "Choose one: take a Shot and end your turn, OR drink 5 and draw one extra card.",
+        action: "FINAL_OFFER"
+      },
+      {
+        name: "Cold Exit",
+        instruction: "Choose one: drink 4 and end your turn, OR give 2 and redraw cards.",
+        action: "COLD_EXIT"
+      },
+      {
+        name: "All-In Tax",
+        instruction: "Choose one: drink 3, OR give 3 and draw a Penalty card.",
+        action: "ALL_IN_TAX"
+      },
+      {
+        name: "Mutual Damage",
+        instruction: "Choose one: you and one other player both drink 3, OR everybody else drinks 1.",
+        action: "MUTUAL_DAMAGE"
+      },
+      {
+        name: "Mercy Clause",
+        instruction: "Choose one: everybody drinks 1, OR pick one other player to drink 4.",
+        action: "MERCY_CLAUSE"
       },
       {
         name: "King's Tax",

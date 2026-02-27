@@ -121,6 +121,23 @@ export function createCardHandlers({
 
         clearChoiceSelection();
 
+        if (result.choice) {
+          const chained = startChoiceSelection(
+            result.choice,
+            title,
+            message
+          );
+
+          if (chained) {
+            unlockUI();
+            renderEffectsPanel();
+            // Keep modal open because we immediately rendered the follow-up choice.
+            return false;
+          }
+
+          log("Follow-up choice setup failed.");
+        }
+
         if (result.refreshCards) {
           resetCards();
         }

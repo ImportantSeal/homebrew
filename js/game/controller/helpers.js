@@ -1,6 +1,11 @@
 import { getEffectTitle } from '../../logic/effectNames.js';
 
-const ITEM_RELATED_SPECIAL_ACTIONS = new Set(["COLLECTOR", "MINIMALIST"]);
+const ITEM_RELATED_SPECIAL_ACTIONS = new Set([
+  "COLLECTOR",
+  "MINIMALIST",
+  "IMMUNITY_OR_SUFFER",
+  "ITEM_BUYOUT"
+]);
 const ITEM_RELATED_TEXT = /\bitems?\b/i;
 
 export function isDrawPenaltyCardText(txt) {
