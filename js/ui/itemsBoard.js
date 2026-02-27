@@ -31,7 +31,7 @@ export function renderItemsBoard(state, onUseItem) {
 
         bindTap(badge, (e) => {
           e.stopPropagation();
-          onUseItem(pIndex, iIndex);
+          onUseItem(pIndex, iIndex, item);
         });
 
         row.appendChild(badge);

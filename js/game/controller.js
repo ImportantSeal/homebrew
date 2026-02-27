@@ -280,7 +280,20 @@ function updateItemsPanelVisibility() {
 function renderItems() {
   if (!state.includeItems) return;
 
-  renderItemsBoard(state, (pIndex, iIndex) => {
+  renderItemsBoard(state, (pIndex, iIndex, itemName) => {
+    if (state.effectSelection?.active) {
+      log("Pick a target player first (effect selection is active).");
+      return;
+    }
+
+    const isImmunity = String(itemName || "").trim() === "Immunity";
+    const isCurrentPlayersItem = pIndex === state.currentPlayerIndex;
+
+    if (!isCurrentPlayersItem && !isImmunity) {
+      log("Only the active player can use items. Immunity can be used anytime.");
+      return;
+    }
+
     useItem(
       state,
       pIndex,

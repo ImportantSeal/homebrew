@@ -35,7 +35,7 @@ export function useItem(
       return;
 
     case "Immunity":
-      log(`${player.name} used Immunity. And cancelled the next drink.`);
+      log(`${player.name} used Immunity. No automatic effect; resolve it manually.`);
       return;
 
     case "Reveal Free":
