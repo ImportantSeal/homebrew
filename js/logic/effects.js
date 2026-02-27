@@ -1,6 +1,7 @@
 // js/logic/effects.js
 import { enablePlayerNameSelection } from './mirror.js';
 import { recordDrinkTaken } from '../stats.js';
+import { getEffectTitle } from './effectNames.js';
 
 let activeCleanup = null;
 
@@ -54,20 +55,9 @@ export function tickEffects(state, log) {
   if (expired.length > 0) {
     state.effects = state.effects.filter(e => !(typeof e.remainingTurns === 'number' && e.remainingTurns <= 0));
     expired.forEach(e => {
-      log?.(`Effect ended: ${friendlyEffectName(e.type)}`);
+      log?.(`Effect ended: ${getEffectTitle(e.type, e.type)}`);
     });
   }
-}
-
-function friendlyEffectName(type) {
-  if (type === "DRINK_BUDDY") return "Drink Buddy";
-  if (type === "LEFT_HAND") return "Left Hand Rule";
-  if (type === "NO_NAMES") return "No Names";
-  if (type === "NO_SWEARING") return "No Swearing";
-  if (type === "NO_PHONE_TOUCH") return "Hands Off Your Phone";
-  if (type === "DITTO_MAGNET") return "Ditto Magnet";
-  if (type === "KINGS_TAX") return "King's Tax";
-  return type;
 }
 
 export function cancelTargetedEffectSelection(state) {
@@ -99,7 +89,7 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
   // Visual hint: highlight player names while picking
   document.body.dataset.pickmode = 'effect-target';
 
-  log?.(`Pick a player for: ${friendlyEffectName(def.type)}. Click a player name in turn order.`);
+  log?.(`Pick a player for: ${getEffectTitle(def.type, def.type)}. Click a player name in turn order.`);
 
   activeCleanup = enablePlayerNameSelection(state, (targetIndex, cleanup) => {
     // ✅ disallow self-target

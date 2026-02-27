@@ -1,6 +1,7 @@
 // js/ui/statusEffects.js
 // Renders active timed effects + player statuses in the side panel.
 import { applyPlayerColor, ensurePlayerColor, setPlayerColoredText } from '../utils/playerColors.js';
+import { getEffectTitle } from '../logic/effectNames.js';
 
 function el(tag, className, text) {
   const n = document.createElement(tag);
@@ -22,15 +23,7 @@ function effectIcon(type) {
 }
 
 function effectTitle(type) {
-  switch (type) {
-    case "LEFT_HAND": return "Left Hand Rule";
-    case "NO_NAMES": return "No Names";
-    case "NO_SWEARING": return "No Swearing";
-    case "NO_PHONE_TOUCH": return "Hands Off Your Phone";
-    case "DRINK_BUDDY": return "Drink Buddy";
-    case "KINGS_TAX": return "King's Tax";
-    default: return type || "Effect";
-  }
+  return getEffectTitle(type, type || "Effect");
 }
 
 function effectDescription(state, eff) {

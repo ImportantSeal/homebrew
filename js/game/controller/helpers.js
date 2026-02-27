@@ -1,3 +1,5 @@
+import { getEffectTitle } from '../../logic/effectNames.js';
+
 const ITEM_RELATED_SPECIAL_ACTIONS = new Set(["COLLECTOR", "MINIMALIST"]);
 const ITEM_RELATED_TEXT = /\bitems?\b/i;
 
@@ -99,14 +101,5 @@ export function isRedrawLockedPenaltyOpen(state) {
 
 export function effectLabelForLog(effect, fallback = "Effect") {
   if (!effect) return fallback;
-  switch (effect.type) {
-    case "DRINK_BUDDY": return "Drink Buddy";
-    case "LEFT_HAND": return "Left Hand Rule";
-    case "NO_NAMES": return "No Names";
-    case "NO_SWEARING": return "No Swearing";
-    case "NO_PHONE_TOUCH": return "Hands Off Your Phone";
-    case "DITTO_MAGNET": return "Ditto Magnet";
-    case "KINGS_TAX": return "King's Tax";
-    default: return effect.type || fallback;
-  }
+  return getEffectTitle(effect.type, fallback);
 }
