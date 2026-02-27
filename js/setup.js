@@ -3,6 +3,8 @@ import { startGame } from './game.js';
 import { applyPlayerColor, ensurePlayerColor, ensurePlayerColors } from './utils/playerColors.js';
 
 export function initSetup() {
+  const MIN_PLAYERS = 2;
+
   const setupContainer = document.getElementById('setup-container');
   const playerInput = document.getElementById('player-input');
   const addPlayerButton = document.getElementById('add-player-button');
@@ -63,7 +65,7 @@ export function initSetup() {
   });
 
   startGameButton.addEventListener('click', () => {
-    if (state.players.length > 0) {
+    if (state.players.length >= MIN_PLAYERS) {
       ensurePlayerColors(state.players);
       state.includeItems = Boolean(includeItemsCheckbox?.checked);
       if (itemsInfoMenu && !itemsInfoMenu.hidden) closeItemsMenu();
@@ -80,7 +82,7 @@ export function initSetup() {
       state.players.push(player);
       updatePlayerList();
       playerInput.value = "";
-      startGameButton.disabled = state.players.length === 0;
+      startGameButton.disabled = state.players.length < MIN_PLAYERS;
     }
   }
 

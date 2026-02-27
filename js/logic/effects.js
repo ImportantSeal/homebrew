@@ -77,6 +77,18 @@ export function cancelTargetedEffectSelection(state) {
  */
 export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDone) {
   cancelTargetedEffectSelection(state);
+
+  const players = Array.isArray(state.players) ? state.players : [];
+  const hasValidTarget = players.some((_, idx) => idx !== sourceIndex);
+  if (!hasValidTarget) {
+    const effectName = getEffectTitle(def?.type, def?.type || "Effect");
+    log?.(`${effectName} needs another player. Effect was skipped.`);
+    setEffectSelectionState(state);
+    clearPickMode();
+    onDone?.(null);
+    return null;
+  }
+
   setEffectSelectionState(state, {
     active: true,
     pending: {
@@ -87,7 +99,9 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
   });
 
   // Visual hint: highlight player names while picking
-  document.body.dataset.pickmode = 'effect-target';
+  if (typeof document !== "undefined" && document.body?.dataset) {
+    document.body.dataset.pickmode = 'effect-target';
+  }
 
   log?.(`Pick a player for: ${getEffectTitle(def.type, def.type)}. Click a player name in turn order.`);
 
