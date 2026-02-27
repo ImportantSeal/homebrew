@@ -1,4 +1,4 @@
-// js/ui/statusEffects.js
+﻿// js/ui/statusEffects.js
 // Renders active timed effects + player statuses in the side panel.
 import { applyPlayerColor, ensurePlayerColor, setPlayerColoredText } from '../utils/playerColors.js';
 import { getEffectTitle } from '../logic/effectNames.js';
@@ -12,13 +12,14 @@ function el(tag, className, text) {
 
 function effectIcon(type) {
   switch (type) {
-    case "LEFT_HAND": return "🫲";
-    case "NO_NAMES": return "🤐";
-    case "NO_SWEARING": return "🤬";
-    case "NO_PHONE_TOUCH": return "📵";
-    case "DRINK_BUDDY": return "🤝🍻";
-    case "KINGS_TAX": return "👑";
-    default: return "✨";
+    case "LEFT_HAND": return "ðŸ«²";
+    case "NO_NAMES": return "ðŸ¤";
+    case "NO_SWEARING": return "ðŸ¤¬";
+    case "NO_PHONE_TOUCH": return "ðŸ“µ";
+    case "DRINK_BUDDY": return "ðŸ¤ðŸ»";
+    case "DITTO_MAGNET": return "🧲";
+    case "KINGS_TAX": return "ðŸ‘‘";
+    default: return "âœ¨";
   }
 }
 
@@ -42,6 +43,10 @@ function effectDescription(state, eff) {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `${tgt} drinks whenever ${src} drinks.`;
+    }
+    case "DITTO_MAGNET": {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
+      return `If Ditto triggers for ${tgt}, they take a Shot.`;
     }
     case "KINGS_TAX": {
       const king = state.players?.[eff.targetIndex]?.name;
@@ -71,12 +76,16 @@ function effectAppliesTo(state, eff) {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `Link: ${src} -> ${tgt}`;
     }
+    case "DITTO_MAGNET": {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
+      return `Magnetized: ${tgt}`;
+    }
     case "KINGS_TAX": {
       const king = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `King: ${king}`;
     }
     default:
-      return "Applies to: —";
+      return "Applies to: â€”";
   }
 }
 
@@ -88,7 +97,7 @@ function addChip(row, label, onRemove) {
   chip.appendChild(el("span", "status-chip-label", label));
 
   if (onRemove) {
-    const close = el("span", "status-chip-close", "×");
+    const close = el("span", "status-chip-close", "Ã—");
     chip.appendChild(close);
     chip.title = "Click to remove";
     chip.addEventListener('click', (e) => {
@@ -173,13 +182,13 @@ export function renderStatusEffects(state, options = {}) {
       const pending = state.effectSelection?.pending;
       const pendingCard = el("div", "effect-card is-pending");
       const pendingLeft = el("div", "effect-left");
-      pendingLeft.appendChild(el("div", "effect-icon", "🎯"));
+      pendingLeft.appendChild(el("div", "effect-icon", "ðŸŽ¯"));
       pendingCard.appendChild(pendingLeft);
 
       const mid = el("div", "effect-mid");
       mid.appendChild(el("div", "effect-title", "Pick a target"));
       mid.appendChild(el("div", "effect-desc", "Click a player name in the turn order to finish this effect."));
-      mid.appendChild(el("div", "effect-applies", pending?.type ? `Effect: ${effectTitle(pending.type)}` : "Effect: —"));
+      mid.appendChild(el("div", "effect-applies", pending?.type ? `Effect: ${effectTitle(pending.type)}` : "Effect: â€”"));
       pendingCard.appendChild(mid);
 
       const right = el("div", "effect-right");
@@ -210,7 +219,7 @@ export function renderStatusEffects(state, options = {}) {
     if (p.shield) {
       addChip(
         row,
-        "🛡 Shield",
+        "ðŸ›¡ Shield",
         onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "shield", label: "Shield" }) : null
       );
       hasForPlayer = true;
@@ -218,7 +227,7 @@ export function renderStatusEffects(state, options = {}) {
     if (p.skipNextTurn) {
       addChip(
         row,
-        "⏭ Skip Next Turn",
+        "â­ Skip Next Turn",
         onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "skipNextTurn", label: "Skip Next Turn" }) : null
       );
       hasForPlayer = true;
@@ -226,7 +235,7 @@ export function renderStatusEffects(state, options = {}) {
     if (p.extraLife) {
       addChip(
         row,
-        "❤️ Extra Life",
+        "â¤ï¸ Extra Life",
         onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "extraLife", label: "Extra Life" }) : null
       );
       hasForPlayer = true;
