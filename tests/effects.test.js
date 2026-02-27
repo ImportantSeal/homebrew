@@ -115,17 +115,23 @@ test('applyDrinkEvent skipBuddy and suppressSelfLog options work', () => {
   assert.equal(lines.length, 0);
 });
 
-test('onDittoActivated applies shot only when magnet is active for player', () => {
+test('onDittoActivated applies shot and consumes magnet on trigger', () => {
   const state = createState();
   const { lines, log } = createLogCollector();
 
   onDittoActivated(state, 0, log);
   assert.equal(state.stats.players[0], undefined);
 
-  state.effects.push(createEffect('DITTO_MAGNET', 5, { sourceIndex: 2, targetIndex: 0 }));
+  state.effects.push(
+    createEffect('DITTO_MAGNET', 5, { sourceIndex: 2, targetIndex: 0 }),
+    createEffect('DITTO_MAGNET', 5, { sourceIndex: 1, targetIndex: 1 })
+  );
   onDittoActivated(state, 0, log);
 
   assert.equal(state.stats.players[0].drinksTaken, 1);
+  assert.equal(state.effects.some((e) => e?.type === 'DITTO_MAGNET' && e.targetIndex === 0), false);
+  assert.equal(state.effects.some((e) => e?.type === 'DITTO_MAGNET' && e.targetIndex === 1), true);
   assert.ok(lines.some((line) => line.includes('A got Ditto while magnetized')));
   assert.ok(lines.some((line) => line.includes('A: Shot (Ditto Magnet)')));
+  assert.ok(lines.some((line) => line.includes('Ditto Magnet ended for A.')));
 });

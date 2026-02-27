@@ -12,14 +12,14 @@ function el(tag, className, text) {
 
 function effectIcon(type) {
   switch (type) {
-    case "LEFT_HAND": return "ðŸ«²";
-    case "NO_NAMES": return "ðŸ¤";
-    case "NO_SWEARING": return "ðŸ¤¬";
-    case "NO_PHONE_TOUCH": return "ðŸ“µ";
-    case "DRINK_BUDDY": return "ðŸ¤ðŸ»";
-    case "DITTO_MAGNET": return "🧲";
-    case "KINGS_TAX": return "ðŸ‘‘";
-    default: return "âœ¨";
+    case "LEFT_HAND": return "\u{1FAF2}";
+    case "NO_NAMES": return "\u{1F910}";
+    case "NO_SWEARING": return "\u{1F92C}";
+    case "NO_PHONE_TOUCH": return "\u{1F4F5}";
+    case "DRINK_BUDDY": return "\u{1F91D}\u{1F37B}";
+    case "DITTO_MAGNET": return "\u{1F9F2}";
+    case "KINGS_TAX": return "\u{1F451}";
+    default: return "\u2728";
   }
 }
 
@@ -182,7 +182,8 @@ export function renderStatusEffects(state, options = {}) {
       const pending = state.effectSelection?.pending;
       const pendingCard = el("div", "effect-card is-pending");
       const pendingLeft = el("div", "effect-left");
-      pendingLeft.appendChild(el("div", "effect-icon", "ðŸŽ¯"));
+      const pendingIcon = pending?.type ? effectIcon(pending.type) : "\u{1F3AF}";
+      pendingLeft.appendChild(el("div", "effect-icon", pendingIcon));
       pendingCard.appendChild(pendingLeft);
 
       const mid = el("div", "effect-mid");

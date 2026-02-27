@@ -235,4 +235,10 @@ export function onDittoActivated(state, playerIndex, log) {
   // We'll do: trigger once even if multiple magnets exist.
   log?.(`${player.name} got Ditto while magnetized → Shot!`);
   applyDrinkEvent(state, playerIndex, "Shot", "Ditto Magnet", log);
+
+  // Consume Ditto Magnet(s) on trigger so the effect disappears immediately.
+  state.effects = effects.filter(
+    e => !(e && e.type === "DITTO_MAGNET" && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
+  );
+  log?.(`Ditto Magnet ended for ${player.name}.`);
 }
