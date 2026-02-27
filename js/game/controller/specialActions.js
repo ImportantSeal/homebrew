@@ -1,4 +1,5 @@
-import { recordGiveDrinks } from '../../stats.js';
+import { randomFromArray } from '../../utils/random.js';
+import { recordGiveDrinks, recordPenaltyTaken } from '../../stats.js';
 
 function rollDie(sides) {
   return Math.floor(Math.random() * sides) + 1;
@@ -81,6 +82,37 @@ function applyEveryoneElseDrink(state, selfIndex, amount, reason, log, applyDrin
     if (idx === selfIndex) return;
     applyDrinkEvent(state, idx, amount, reason, log, { suppressSelfLog: true });
   });
+}
+
+function applyPenaltyCardToPlayer(state, playerIndex, reason, log, applyDrinkEvent) {
+  const player = state.players?.[playerIndex];
+  if (!player) return;
+
+  if (player.shield) {
+    log?.(`${player.name}'s Shield protected against the penalty!`);
+    delete player.shield;
+    return;
+  }
+
+  const deck = Array.isArray(state?.penaltyDeck) && state.penaltyDeck.length > 0
+    ? state.penaltyDeck
+    : ["Drink 3"];
+  const penalty = randomFromArray(deck);
+
+  recordPenaltyTaken(state, playerIndex);
+  log?.(`${player.name} rolled penalty card: ${penalty}${reason ? ` (${reason})` : ''}`);
+
+  if (typeof applyDrinkEvent !== 'function') return;
+
+  const s = String(penalty || '').trim();
+  const m = s.match(/^Drink\s+(\d+)/i);
+  if (m) {
+    applyDrinkEvent(state, playerIndex, parseInt(m[1], 10) || 1, "Penalty", log);
+  } else if (/^Shotgun$/i.test(s)) {
+    applyDrinkEvent(state, playerIndex, "Shotgun", "Penalty: Shotgun", log);
+  } else if (/^Shot$/i.test(s)) {
+    applyDrinkEvent(state, playerIndex, "Shot", "Penalty: Shot", log);
+  }
 }
 
 function ensureInventory(player) {
@@ -377,6 +409,46 @@ export function runSpecialAction(action, context) {
 
       if (!choice) {
         log("Last Call Insurance choice setup failed.");
+        return;
+      }
+
+      return { endTurn: false, choice };
+    }
+
+    case "CHAOS_REFERENDUM_GROUP": {
+      const choice = createChoiceAction({
+        key: "CHAOS_REFERENDUM_GROUP",
+        title: "Chaos Referendum",
+        message: "Group vote: either everybody drinks 5 OR everybody takes a Penalty card.",
+        variant: "choice",
+        options: [
+          {
+            id: "everybody_drinks_5",
+            label: "Everybody drinks 5",
+            variant: "danger",
+            run: ({ state: innerState, log: innerLog, applyDrinkEvent: applyInnerDrinkEvent }) => {
+              applyEveryoneDrink(innerState, 5, "Chaos Referendum", innerLog, applyInnerDrinkEvent);
+              innerLog?.("Chaos Referendum result: everybody drinks 5.");
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "everybody_penalty_card",
+            label: "Everybody takes a Penalty card",
+            variant: "primary",
+            run: ({ state: innerState, log: innerLog, applyDrinkEvent: applyInnerDrinkEvent }) => {
+              innerLog?.("Chaos Referendum result: everybody takes a Penalty card.");
+              innerState.players.forEach((_, idx) => {
+                applyPenaltyCardToPlayer(innerState, idx, "Chaos Referendum", innerLog, applyInnerDrinkEvent);
+              });
+              return { endTurn: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Chaos Referendum choice setup failed.");
         return;
       }
 
