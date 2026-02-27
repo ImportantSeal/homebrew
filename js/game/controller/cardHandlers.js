@@ -151,15 +151,7 @@ export function createCardHandlers({
     // Otherwise reveal penalty deck normally.
     if (!state.penaltyShown) {
       lockUI();
-      rollPenaltyCard(state, log, "deck");
-
-      // If a real penalty appeared, hook Drink Buddy handling.
-      if (state.penaltyShown && state.penaltyCard) {
-        const drink = parseDrinkFromText(state.penaltyCard);
-        if (drink?.scope === "self") {
-          applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Penalty", log);
-        }
-      }
+      rollPenaltyCard(state, log, "deck", applyDrinkEvent);
 
       unlockAfter(timing.PENALTY_UNLOCK_MS);
       renderEffectsPanel();
@@ -305,7 +297,7 @@ export function createCardHandlers({
     if (isDrawPenaltyCardText(txt)) {
       flashElement(cardEl);
 
-      rollPenaltyCard(state, log, "card");
+      rollPenaltyCard(state, log, "card", applyDrinkEvent);
 
       // If blocked by Shield, penalty won't show -> turn ends normally.
       if (!state.penaltyShown) {
@@ -313,14 +305,6 @@ export function createCardHandlers({
         unlockUI();
         renderEffectsPanel();
         return;
-      }
-
-      // If a real penalty appeared, hook Drink Buddy handling.
-      if (state.penaltyCard) {
-        const drink = parseDrinkFromText(state.penaltyCard);
-        if (drink?.scope === "self") {
-          applyDrinkEvent(state, state.currentPlayerIndex, drink.amount, "Penalty", log);
-        }
       }
 
       unlockAfter(timing.PENALTY_UNLOCK_MS);

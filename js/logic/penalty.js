@@ -41,14 +41,16 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
   log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
 
   // ✅ NEW: route drink-like penalties through applyDrinkEvent (for Drink Buddy)
+  if (typeof applyDrinkEvent !== "function") return;
+
   const s = String(penalty || "").trim();
   const m = s.match(/^Drink\s+(\d+)/i);
-  if (m && applyDrinkEvent) {
-    applyDrinkEvent(state.currentPlayerIndex, parseInt(m[1], 10) || 1, "Penalty");
-  } else if (/^Shotgun$/i.test(s) && applyDrinkEvent) {
-    applyDrinkEvent(state.currentPlayerIndex, 2, "Penalty: Shotgun");
-  } else if (/^Shot$/i.test(s) && applyDrinkEvent) {
-    applyDrinkEvent(state.currentPlayerIndex, 1, "Penalty: Shot");
+  if (m) {
+    applyDrinkEvent(state, state.currentPlayerIndex, parseInt(m[1], 10) || 1, "Penalty", log);
+  } else if (/^Shotgun$/i.test(s)) {
+    applyDrinkEvent(state, state.currentPlayerIndex, "Shotgun", "Penalty: Shotgun", log);
+  } else if (/^Shot$/i.test(s)) {
+    applyDrinkEvent(state, state.currentPlayerIndex, "Shot", "Penalty: Shot", log);
   }
 }
 
