@@ -1,0 +1,7 @@
+{
+  "name": "homebrew",
+  "private": true,
+  "scripts": {
+    "test": "node --experimental-default-type=module --test"
+  }
+}
