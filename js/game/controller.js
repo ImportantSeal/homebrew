@@ -164,6 +164,7 @@ export function startGame() {
   // reset effects for a fresh game
   state.effects = [];
   state.effectSelection = { active: false, pending: null, cleanup: null };
+  state.choiceSelection = { active: false, pending: null };
   state.mirror = {
     active: false,
     sourceIndex: null,
@@ -199,6 +200,7 @@ function setupEventListeners() {
 }
 
 function onTurnOrderPlayerClick(playerBtn) {
+  if (state.choiceSelection?.active) return;
   if (state.effectSelection?.active) return;
 
   const rawIndex = Number(playerBtn?.dataset?.index);
@@ -281,6 +283,11 @@ function renderItems() {
   if (!state.includeItems) return;
 
   renderItemsBoard(state, (pIndex, iIndex, itemName) => {
+    if (state.choiceSelection?.active) {
+      log("Resolve the current card choice first.");
+      return;
+    }
+
     if (state.effectSelection?.active) {
       log("Pick a target player first (effect selection is active).");
       return;

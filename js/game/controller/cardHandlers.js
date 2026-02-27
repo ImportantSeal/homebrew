@@ -27,7 +27,7 @@ import {
   isRedrawLockedPenaltyOpen
 } from './helpers.js';
 
-import { runSpecialAction } from './specialActions.js';
+import { runSpecialAction, runSpecialChoiceAction } from './specialActions.js';
 import { recordCardSelection, recordGiveDrinks } from '../../stats.js';
 
 function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
@@ -68,6 +68,76 @@ export function createCardHandlers({
   resetCards,
   openActionScreen
 }) {
+  function isChoiceSelectionActive() {
+    return Boolean(state.choiceSelection?.active && state.choiceSelection?.pending);
+  }
+
+  function clearChoiceSelection() {
+    state.choiceSelection = { active: false, pending: null };
+  }
+
+  function startChoiceSelection(choice, fallbackTitle = "Choose One", fallbackMessage = "") {
+    if (!choice || choice.type !== "choice" || !Array.isArray(choice.options) || choice.options.length === 0) {
+      log("Card choice setup failed.");
+      return false;
+    }
+
+    state.choiceSelection = {
+      active: true,
+      pending: choice
+    };
+
+    const title = String(choice.title || fallbackTitle || "Choose One").trim() || "Choose One";
+    const message = String(choice.message || fallbackMessage || "Choose one option to continue.").trim()
+      || "Choose one option to continue.";
+    const variant = String(choice.variant || "choice").trim() || "choice";
+
+    openActionScreen(title, message, {
+      variant,
+      dismissible: false,
+      actions: choice.options.map((option) => ({
+        id: option.id,
+        label: option.label,
+        variant: option.variant || "primary"
+      })),
+      onAction: (selectedAction) => {
+        if (!isChoiceSelectionActive()) return false;
+
+        const pendingChoice = state.choiceSelection?.pending;
+        const result = runSpecialChoiceAction(pendingChoice, selectedAction?.id, {
+          state,
+          currentPlayer: currentPlayer(),
+          currentPlayerIndex: state.currentPlayerIndex,
+          playerName,
+          log,
+          applyDrinkEvent,
+          rollPenaltyCard
+        });
+
+        if (!result) {
+          log("Invalid choice. Pick one of the listed options.");
+          return false;
+        }
+
+        clearChoiceSelection();
+
+        if (result.refreshCards) {
+          resetCards();
+        }
+
+        if (result.endTurn ?? true) {
+          nextPlayer();
+        }
+
+        unlockUI();
+        renderEffectsPanel();
+        return true;
+      }
+    });
+
+    return true;
+  }
+
   function redrawGame() {
     rollPenaltyCard(state, log, "redraw_hold");
 
@@ -95,6 +165,11 @@ export function createCardHandlers({
   }
 
   function onRedrawClick() {
+    if (isChoiceSelectionActive()) {
+      log("Resolve the current card choice first.");
+      return;
+    }
+
     if (state.effectSelection?.active) {
       log("Pick a target player first (effect selection is active).");
       return;
@@ -116,6 +191,11 @@ export function createCardHandlers({
   }
 
   function onPenaltyDeckClick() {
+    if (isChoiceSelectionActive()) {
+      log("Resolve the current card choice first.");
+      return;
+    }
+
     if (state.effectSelection?.active) {
       log("Pick a target player first (effect selection is active).");
       return;
@@ -163,6 +243,11 @@ export function createCardHandlers({
   }
 
   function onPenaltyRefreshClick() {
+    if (isChoiceSelectionActive()) {
+      log("Resolve the current card choice first.");
+      return;
+    }
+
     if (state.effectSelection?.active) {
       log("Pick a target player first (effect selection is active).");
       return;
@@ -236,7 +321,6 @@ export function createCardHandlers({
     if (drawMessage) {
       log(drawMessage);
     }
-    openActionScreen(actionTitle, actionMessage || drawMessage, { variant: "normal" });
 
     const actionHandlesPenaltyRoll = action === "SHARE_PENALTY_LOCKED";
 
@@ -261,6 +345,7 @@ export function createCardHandlers({
           }
         );
 
+        openActionScreen(actionTitle, actionMessage || drawMessage, { variant: "normal" });
         renderEffectsPanel();
         return false;
       }
@@ -281,6 +366,23 @@ export function createCardHandlers({
       });
       renderEffectsPanel();
     }
+
+    if (actionResult?.choice) {
+      const started = startChoiceSelection(
+        actionResult.choice,
+        actionTitle,
+        actionMessage || drawMessage
+      );
+      if (started) {
+        renderEffectsPanel();
+        return false;
+      }
+
+      log("Card choice could not be started. Turn continues.");
+      return true;
+    }
+
+    openActionScreen(actionTitle, actionMessage || drawMessage, { variant: "normal" });
 
     if (actionResult?.refreshCards) {
       resetCards();
@@ -388,6 +490,11 @@ export function createCardHandlers({
 
   function onCardClick(index) {
     if (state.uiLocked) return;
+
+    if (isChoiceSelectionActive()) {
+      log("Resolve the current card choice first.");
+      return;
+    }
 
     // Block card clicks while an effect is waiting for target pick.
     if (state.effectSelection?.active) {

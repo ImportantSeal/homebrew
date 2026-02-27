@@ -19,6 +19,75 @@ function maxItemsAnyPlayer(state) {
   return Math.max(0, ...state.players.map(p => inventoryCount(p)));
 }
 
+function normalizeChoiceText(value, fallback) {
+  const text = String(value ?? '').trim();
+  return text || fallback;
+}
+
+function normalizeChoiceOptions(options) {
+  if (!Array.isArray(options)) return [];
+
+  return options
+    .map((option, index) => {
+      if (!option || typeof option !== 'object') return null;
+
+      const id = normalizeChoiceText(option.id, `choice_${index + 1}`);
+      const label = normalizeChoiceText(option.label, '');
+      if (!label) return null;
+      if (typeof option.run !== 'function') return null;
+
+      return {
+        id,
+        label,
+        variant: normalizeChoiceText(option.variant, 'primary').toLowerCase(),
+        run: option.run
+      };
+    })
+    .filter(Boolean);
+}
+
+function createChoiceAction({
+  key = '',
+  title = 'Choose One',
+  message = 'Choose one option to continue.',
+  variant = 'choice',
+  options = []
+} = {}) {
+  const normalizedOptions = normalizeChoiceOptions(options);
+  if (normalizedOptions.length === 0) return null;
+
+  return {
+    type: 'choice',
+    key: normalizeChoiceText(key, ''),
+    title: normalizeChoiceText(title, 'Choose One'),
+    message: normalizeChoiceText(message, 'Choose one option to continue.'),
+    variant: normalizeChoiceText(variant, 'choice').toLowerCase(),
+    options: normalizedOptions
+  };
+}
+
+function applyEveryoneDrink(state, amount, reason, log, applyDrinkEvent) {
+  if (!Array.isArray(state?.players) || typeof applyDrinkEvent !== 'function') return;
+
+  state.players.forEach((_, idx) => {
+    applyDrinkEvent(state, idx, amount, reason, log, { suppressSelfLog: true });
+  });
+}
+
+export function runSpecialChoiceAction(choiceAction, optionId, context) {
+  if (!choiceAction || choiceAction.type !== 'choice') return null;
+
+  const options = Array.isArray(choiceAction.options) ? choiceAction.options : [];
+  if (options.length === 0) return null;
+
+  const selectedId = String(optionId ?? '').trim();
+  const selected = options.find(option => String(option.id).trim() === selectedId);
+  if (!selected || typeof selected.run !== 'function') return null;
+
+  const result = selected.run(context);
+  return result && typeof result === 'object' ? result : {};
+}
+
 export function runSpecialAction(action, context) {
   const {
     state,
@@ -29,7 +98,7 @@ export function runSpecialAction(action, context) {
     rollPenaltyCard
   } = context;
 
-  const p = currentPlayer;
+  const p = currentPlayer || { name: 'Current player' };
   const selfIndex = currentPlayerIndex;
 
   switch (action) {
@@ -64,6 +133,55 @@ export function runSpecialAction(action, context) {
       applyDrinkEvent(state, selfIndex, 1, "Drink and Draw Again", log);
       log(`${p.name} keeps their turn and draws new cards.`);
       return { endTurn: false, refreshCards: true };
+    }
+
+    case "CHAOS_BUTTON": {
+      const choice = createChoiceAction({
+        key: "CHAOS_BUTTON",
+        title: "Chaos Button",
+        message: "Choose one option to continue.",
+        variant: "choice",
+        options: [
+          {
+            id: "everybody_drinks_3",
+            label: "Everybody drinks 3 now",
+            variant: "danger",
+            run: ({ state: innerState, log: innerLog, applyDrinkEvent: applyInnerDrinkEvent }) => {
+              innerLog?.("Chaos Button choice: everybody drinks 3 now.");
+              applyEveryoneDrink(innerState, 3, "Chaos Button", innerLog, applyInnerDrinkEvent);
+              innerLog?.("Everybody drinks 3.");
+              return { endTurn: true };
+            }
+          },
+          {
+            id: "drink_1_draw_again",
+            label: "Drink 1 and draw one extra card",
+            variant: "primary",
+            run: ({
+              state: innerState,
+              currentPlayer: innerPlayer,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              const actorName = innerPlayer?.name || p.name;
+              applyInnerDrinkEvent(innerState, innerIndex, 1, "Chaos Button", innerLog);
+              innerLog?.(`${actorName} keeps their turn and draws one extra card.`);
+              return { endTurn: false, refreshCards: true };
+            }
+          }
+        ]
+      });
+
+      if (!choice) {
+        log("Chaos Button choice setup failed. Skipping card action.");
+        return;
+      }
+
+      return {
+        endTurn: false,
+        choice
+      };
     }
 
     case "RISKY_ROLL_D20": {

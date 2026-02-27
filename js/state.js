@@ -8,6 +8,13 @@ function createEffectSelectionState() {
   };
 }
 
+function createChoiceSelectionState() {
+  return {
+    active: false,
+    pending: null
+  };
+}
+
 function createMirrorState() {
   return {
     active: false,
@@ -50,6 +57,9 @@ export function createInitialState() {
 
     // when an effect needs a target pick
     effectSelection: createEffectSelectionState(),
+
+    // when a card action needs a forced option pick
+    choiceSelection: createChoiceSelectionState(),
 
     // static game data
     ...gameData,

@@ -193,7 +193,8 @@ export const gameData = {
       },
       {
         name: "Chaos Button",
-        instruction: "Choose one: everybody drinks 3 now, OR you drink 1 and draw one extra card."
+        instruction: "Choose one: everybody drinks 3 now, OR you drink 1 and draw one extra card.",
+        action: "CHAOS_BUTTON"
       },
       {
         name: "King's Tax",
