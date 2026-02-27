@@ -118,8 +118,8 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
     case 'RANDOM_CHALLENGE': {
       log("Ditto started a challenge! Prepare for a random challenge.");
       const challenges = [
-        "Challenge: Truth or Drink",
-        "Challenge: Dare",
+        "Challenge: Card drawer asks any player: Truth or Penalty?",
+        "Challenge: Dare someone. If they refuse, they take a Penalty card.",
         "Challenge: Mini King",
         "Categories"
       ];

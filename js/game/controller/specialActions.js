@@ -24,9 +24,9 @@ export function runSpecialAction(action, context) {
     state,
     currentPlayer,
     currentPlayerIndex,
-    playerName,
     log,
-    applyDrinkEvent
+    applyDrinkEvent,
+    rollPenaltyCard
   } = context;
 
   const p = currentPlayer;
@@ -34,20 +34,12 @@ export function runSpecialAction(action, context) {
 
   switch (action) {
     case "WHO_KNOWS_YOU": {
-      const candidates = state.players
-        .map((_, idx) => idx)
-        .filter(idx => idx !== selfIndex);
-
-      if (candidates.length === 0) {
+      if ((state.players?.length || 0) < 2) {
         log("Who Knows You needs at least two players.");
         return;
       }
 
-      const targetIndex = candidates[Math.floor(Math.random() * candidates.length)];
-      const target = playerName(targetIndex);
-
-      log(`Who Knows You target: ${target}.`);
-      log(`${target} answers a question about ${p.name}. Wrong -> ${target} drinks 1. Correct -> ${p.name} drinks 1.`);
+      log(`${p.name} asks anyone a question about ${p.name}. Wrong answer -> responder takes a Penalty card. Correct answer -> ${p.name} takes a Penalty card.`);
       return;
     }
 
@@ -74,25 +66,48 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, refreshCards: true };
     }
 
-    case "RISKY_ADVICE_D20": {
+    case "RISKY_ROLL_D20": {
       const r = rollDie(20);
       log(`Risky roll (d20): ${r}`);
 
       if (r === 1) {
-        log("Critical fail: down your drink. (We treat this as Shotgun.)");
-        applyDrinkEvent(state, selfIndex, "Shotgun", "Risky Advice: 1", log);
+        log("Critical fail: you down your drink. (We treat this as Shotgun.)");
+        applyDrinkEvent(state, selfIndex, "Shotgun", "Risky Roll: 1", log);
         return;
       }
 
       if (r === 20) {
         log("Natural 20: everyone else downs. (We treat this as Shotgun.)");
         state.players.forEach((_, idx) => {
-          if (idx !== selfIndex) applyDrinkEvent(state, idx, "Shotgun", "Risky Advice: 20", log);
+          if (idx !== selfIndex) applyDrinkEvent(state, idx, "Shotgun", "Risky Roll: 20", log);
         });
         return;
       }
 
-      log("Give a genuinely useful tip. Table votes: if it's BAD -> you drink 2. If it's GOOD -> you may give 2.");
+      log("Risky Roll: nothing happens.");
+      return;
+    }
+
+    case "SHARE_PENALTY_LOCKED": {
+      if (typeof rollPenaltyCard !== "function") {
+        log("Share Penalty could not roll the penalty deck.");
+        return;
+      }
+
+      if (state.penaltyShown) {
+        log("Resolve the current penalty first.");
+        return { endTurn: false };
+      }
+
+      rollPenaltyCard(state, log, "card", applyDrinkEvent);
+
+      if (!state.penaltyShown) {
+        log("Share Penalty was blocked by Shield.");
+        return;
+      }
+
+      const rolled = String(state.penaltyCard || "Penalty");
+      log(`Share Penalty active: apply "${rolled}" to one other player, then click the Penalty Deck to continue.`);
       return;
     }
 

@@ -4,40 +4,41 @@ export const gameData = {
     {
       name: "Challenge",
       subcategories: [
-        { name: "Dare", instruction: "Dare someone." },
-        { name: "Truth or Drink", instruction: "Ask someone: 'Truth or Drink?'" },
+        { name: "Dare", instruction: "Dare someone. If they refuse, they take a Penalty card." },
+        { name: "Truth or Penalty", instruction: "Ask any player: 'Truth or Penalty?'" },
         { name: "Compliment", instruction: "Everyone compliments you; the worst one drinks 3." },
         { name: "Would You Rather", instruction: "Ask someone Would You Rather." },
         { name: "Two Truths and a Lie", instruction: "Share two truths and one lie; others guess the lie." },
         { name: "Rock, Paper, Scissors", instruction: "Play R,P,S against someone; loser drinks three." },
         { name: "Random Fact", instruction: "Share an interesting fact - a boring fact means 1 drink." },
         { name: "This or That", instruction: "Ask someone 'this or that'; hesitation means two drinks." },
-        { name: "Share a Secret", instruction: "Everyone shares a secret. If your secret is voted lame, drink 1. If you refuse, drink 3." },
+        { name: "Share a Secret", instruction: "Everyone shares a secret. If your secret is voted lame, drink 1. If you refuse, take a Penalty card." },
         { name: "On your feet!", instruction: "Everyone stands; last one standing drinks." },
         { name: "Hear me out", instruction: "Everyone reveals their 'hear me out' crush." },
         { name: "Song Association", instruction: "Say a word. First to sing a lyric with it gives 1; last to sing drinks 1." },
         { name: "5-Second Rule", instruction: "Name 3 things in a category within 5 seconds. Fail and drink 2." },
         { name: "Most Likely To", instruction: "Say 'Most likely to...'. Count to three and point; the most-voted player drinks 1." },
         { name: "Staring Contest", instruction: "Pick an opponent. First to blink drinks two." },
-        { name: "Hot Take", instruction: "Share a spicy (friendly) opinion. If groans > cheers, drink one; else give one." },
+        { name: "Hot Take", instruction: "Share one hot take. If you pass, take a Penalty card." },
         { name: "Riddle Me", instruction: "Ask a riddle. If solved, you drink one; if not, the group drinks one." },
         { name: "Guess the Number", instruction: "Hold 1-5 fingers behind your back. Closest gives 1; exact guess gives 2." },
         { name: "No hands", instruction: "Take a shot without using your hands." },
-        { name: "Biggest Red Flag", instruction: "Share the biggest red flag you've noticed in someone. Pass = drink 1." },
-        { name: "Biggest Green Flag", instruction: "Share the biggest green flag you've noticed in someone. Pass = drink 1." },
-        { name: "Five-Year Forecast", instruction: "Give your prediction for your life five years from now. Pass = drink 1." },
-        { name: "Learned the Hard Way", instruction: "Share one thing you learned the hard way. Pass = drink 1." },
-        { name: "Stupid Purchase", instruction: "Share the dumbest thing you've spent money on. Pass = drink 1." },
-        { name: "Biggest Fear", instruction: "Share one thing you're most afraid of. Pass = drink 1." },
-        { name: "Advice to Younger Self", instruction: "Give one piece of advice to your younger self. Pass = drink 1." },
-        { name: "Self Roast", instruction: "Roast yourself in one sentence. Pass = drink 1." },
-        { name: "Common Misconception", instruction: "Share one thing most people get wrong about you. Pass = drink 1." },
-        { name: "Annoying Trait", instruction: "Name one trait of yours that annoys other people. Pass = drink 2." },
-        { name: "Unreasonable Pet Peeve", instruction: "Name one everyday thing you irrationally hate. Pass = drink 2." },
+        { name: "Biggest Red Flag", instruction: "Share one big red flag in relationships in general. If you pass, take a Penalty card." },
+        { name: "Biggest Green Flag", instruction: "Share one big green flag in relationships in general. If you pass, take a Penalty card." },
+        { name: "Five-Year Forecast", instruction: "Give your prediction for your life five years from now. If you pass, take a Penalty card." },
+        { name: "Learned the Hard Way", instruction: "Share one thing you learned the hard way. If you pass, take a Penalty card." },
+        { name: "Stupid Purchase", instruction: "Share the dumbest thing you've spent money on. If you pass, take a Penalty card." },
+        { name: "Biggest Fear", instruction: "Share one thing you're most afraid of. If you pass, take a Penalty card." },
+        { name: "Advice to Younger Self", instruction: "Give one piece of advice to your younger self. If you pass, take a Penalty card." },
+        { name: "Self Roast", instruction: "Roast yourself in one sentence. If you pass, take a Penalty card." },
+        { name: "Common Misconception", instruction: "Share one thing most people get wrong about you. If you pass, take a Penalty card." },
+        { name: "Annoying Trait", instruction: "Name one trait of yours that annoys other people. If you pass, take a Penalty card." },
+        { name: "Unreasonable Pet Peeve", instruction: "Name one everyday thing you irrationally hate. If you pass, take a Penalty card." },
         { name: "Never Have I Ever", instruction: "Say 'Never have I ever...' and finish the sentence. Anyone who has done it drinks 1 (including you)." },
-        { name: "First Impression", instruction: "Choose a player. Everyone says one word describing their first impression of them. The chosen player gives 2 to the harshest word (or drinks 2)." },
+        { name: "First Impression", instruction: "Everyone says one word describing their first impression of the card drawer. If the card drawer refuses, they take a Penalty card." },
         { name: "The Bluff", instruction: "Make a bold claim about something you have done. Any player may challenge you. If the challenger is right, you drink 3. If the challenger is wrong, the challenger drinks 3. If nobody challenges, no drinks." },
         { name: "Give Count Guess", instruction: "Guess how many drinks you have given so far. If your guess is exact, give that many drinks (max 10). If your guess is wrong, drink your guessed amount (max 10)." },
+        { name: "Most Drinks Guess", instruction: "Everyone guesses who has taken the most drinks. Check the Stats page. Everyone who guessed correctly may each give 1 drink." },
 
       ]
     }
@@ -103,7 +104,7 @@ export const gameData = {
       { name: "Even Give", instruction: "Roll 1-10; if the result is even, you give out the number of drinks shown." },
       { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
       { name: "Mini King", instruction: "Everyone adds to the King's Cup. You drink the King's Cup." },
-      { name: "Social", instruction: "Everyone drinks one." },
+      { name: "Social", instruction: "Everyone clinks glasses and drinks one." },
       { name: "Double Social", instruction: "Everyone drinks two." },
       { name: "Youngest Drinks", instruction: "The youngest player drinks one." },
       { name: "Oldest Drinks", instruction: "The oldest player drinks one." },
@@ -121,7 +122,7 @@ export const gameData = {
       { name: "Host Tax", instruction: "Host drinks as many sips as there are players at the table." },
       { name: "Last Arrival ", instruction: "Last arrival drinks the same amount as the last Drink card value in Card History." },
       { name: "Battery Debt", instruction: "Everyone shows phone battery %. Lowest battery drinks the difference to the highest battery (rounded down, max 8)." },
-      { name: "Notification Curse", instruction: "For the next 60 seconds, the first person who gets any notification drinks the last Drink card value." },
+      { name: "Notification Curse", instruction: "For the next 10 rounds, 'notification' means taking a Penalty card. The first player who takes a Penalty card drinks the last Drink card value." },
       { name: "Most Recent Sip", instruction: "The person who last took a sip drinks 3." },
       { name: "Generation Gap Bill", instruction: "Find the oldest and youngest players. The oldest drinks the age difference." },
       { name: "Generation Gap Rebate", instruction: "Find the oldest and youngest players. The youngest drinks the age difference." },
@@ -129,13 +130,17 @@ export const gameData = {
       { name: "Below Half, Finish It", instruction: "Anyone whose drink is below the halfway mark must finish it." },
       { name: "Straight-Line Test", instruction: "Walk in a straight line. If you succeed, give 2 drinks. If you fail, drink water." },
       { name: "Echo", instruction: "Repeat the last Drink card value and drink it again. (If last was Everybody drinks, only you repeat it.)" },
-      { name: "Name Length Ladder", instruction: "Longest name drinks 3. Shortest name gives 1." },
+      { name: "Name Length Ladder", instruction: "Compare first names only. Longest first name drinks 3. Shortest first name gives 1." },
       { name: "Birthday Roulette", instruction: "Nearest upcoming birthday gives 2. Farthest birthday drinks 2." },
       { name: "Left-Handed Justice", instruction: "If you are left-handed: give 2. If not: drink 1. (Yes, it's unfair.)" },
       { name: "Glance & Sip", instruction: "Everyone looks at the same person (count to 3). Most looked-at drinks 3." },
       { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
       { name: "No U", instruction: "Redirect the most recent Drink/Give aimed at you to another player. If none applies, drink 1." },
-      { name: "Share Penalty", instruction: "Share a Penalty card with one other player." },
+      {
+        name: "Share Penalty",
+        instruction: "Reveal a Penalty card now and share that same penalty with one other player.",
+        action: "SHARE_PENALTY_LOCKED"
+      },
       { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to all players." },
       { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
       { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
@@ -146,7 +151,7 @@ export const gameData = {
       { name: "Tank Reward", instruction: "Player(s) with the most Drinks taken give 2." },
       { name: "Specialist Toll", instruction: "Player(s) with the highest Special count drink 1 and give 2." },
       { name: "Penalty Veteran Reward", instruction: "Player(s) with the most Penalties give 5." },
-      { name: "Untouched Tank", instruction: "If your Drinks taken is 0, drink 9." },
+      { name: "Untouched Tank", instruction: "Check the Stats page. If your Drinks taken is 0, drink 9." },
       { name: "No-Show Giver", instruction: "If your Drinks given is 0, drink 9." },
       { name: "Mix Master", instruction: "Player(s) with the highest Drink + Give count drink 3 and give 3." },
 
@@ -155,21 +160,21 @@ export const gameData = {
       {
         name: "Who Knows You",
         instruction:
-          "Choose a player. They answer a question about you (e.g. 'coffee or tea'). Wrong -> they drink 1. Correct -> you drink 1.",
+          "The card drawer asks anyone a question about themselves. Wrong answer -> responder takes a Penalty card. Correct answer -> card drawer takes a Penalty card.",
         action: "WHO_KNOWS_YOU"
       },
       {
         name: "Double or Nothing (d6)",
         instruction:
-          "You drink 4. You may roll a d6: 4-6 -> GIVE 8. 1-3 -> DRINK 8.",
+          "Drink 4 first. Then roll a d6: on 4-6, give 8 drinks total; on 1-3, drink 8 more.",
         action: "DOUBLE_OR_NOTHING_D6"
       },
 
       // ===== NEW ONE-SHOT LOGIC CARDS =====
       {
-        name: "Risky Advice (d20)",
-        instruction: "Roll a d20. On 1: you down a drink. On 20: everyone else downs. Otherwise: give a genuinely useful tip - if the table says it's bad, you drink 2.",
-        action: "RISKY_ADVICE_D20"
+        name: "Risky Roll (d20)",
+        instruction: "Roll a d20. On 1: you down your drink. On 20: everyone else downs. On 2-19: nothing happens.",
+        action: "RISKY_ROLL_D20"
       },
       {
         name: "The Collector",
@@ -214,7 +219,7 @@ export const gameData = {
       },
       {
         name: "Hands Off Your Phone",
-        instruction: "For the next 10 turns, everyone keeps their phone away. The first player who touches their own phone drinks 2. Keep this effect visible and click Remove after it triggers.",
+        instruction: "For the next 10 turns, everyone keeps their phone away. The first player who touches their own phone drinks 2.",
         effect: { type: "NO_PHONE_TOUCH", turns: 10 }
       },
       {

@@ -42,7 +42,7 @@ function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
     log(`Effect activated: No Swearing (${effectDef.turns} turns). Remove it after the first player swears.`);
   } else if (effectDef.type === "NO_PHONE_TOUCH") {
     addEffect(state, createEffect("NO_PHONE_TOUCH", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
-    log(`Effect activated: Hands Off Your Phone (${effectDef.turns} turns). Remove it after the first player touches their phone.`);
+    log(`Effect activated: Hands Off Your Phone (${effectDef.turns} turns).`);
   } else {
     addEffect(state, createEffect(effectDef.type, effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
     log(`Effect activated: ${effectDef.type} (${effectDef.turns} turns).`);
@@ -238,8 +238,10 @@ export function createCardHandlers({
     }
     openActionScreen(actionTitle, actionMessage || drawMessage, { variant: "normal" });
 
+    const actionHandlesPenaltyRoll = action === "SHARE_PENALTY_LOCKED";
+
     // If the subevent mentions penalty, also flip penalty deck (preview only).
-    if (shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
+    if (!actionHandlesPenaltyRoll && shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
       const label = `${parentName}${subName ? `: ${subName}` : ""}`;
       showPenaltyPreview(state, log, label);
     }
@@ -274,7 +276,8 @@ export function createCardHandlers({
         currentPlayerIndex: state.currentPlayerIndex,
         playerName,
         log,
-        applyDrinkEvent
+        applyDrinkEvent,
+        rollPenaltyCard
       });
       renderEffectsPanel();
     }

@@ -38,7 +38,7 @@ function effectDescription(state, eff) {
     case "NO_SWEARING":
       return "The next player who swears drinks. Click Remove after it triggers.";
     case "NO_PHONE_TOUCH":
-      return "Everyone keeps their phone away. Click Remove after the first touch.";
+      return "Everyone keeps their phone away. The first touch drinks 2.";
     case "DRINK_BUDDY": {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
