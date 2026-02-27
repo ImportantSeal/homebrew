@@ -34,6 +34,8 @@ export function createEffect(type, turns, { sourceIndex = null, targetIndex = nu
     type,
     totalTurns: turns,
     remainingTurns: turns,
+    // Prevent immediate duration loss on the same turn the effect was created.
+    justActivated: true,
     sourceIndex,
     targetIndex
   };
@@ -48,6 +50,11 @@ export function tickEffects(state, log) {
 
   const expired = [];
   state.effects.forEach(e => {
+    if (e?.justActivated) {
+      delete e.justActivated;
+      return;
+    }
+
     if (typeof e.remainingTurns === 'number') e.remainingTurns -= 1;
     if (typeof e.remainingTurns === 'number' && e.remainingTurns <= 0) expired.push(e);
   });

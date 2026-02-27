@@ -49,6 +49,24 @@ test('tickEffects decrements timers and removes expired effects', () => {
   assert.ok(lines.some((line) => line.includes('Effect ended: Left Hand Rule')));
 });
 
+test('newly activated effects do not lose duration on the same turn-end tick', () => {
+  const state = createState();
+  const { lines, log } = createLogCollector();
+
+  state.effects.push(createEffect('LEFT_HAND', 2));
+
+  tickEffects(state, log);
+  assert.equal(state.effects.length, 1);
+  assert.equal(state.effects[0].remainingTurns, 2);
+
+  tickEffects(state, log);
+  assert.equal(state.effects[0].remainingTurns, 1);
+
+  tickEffects(state, log);
+  assert.equal(state.effects.length, 0);
+  assert.ok(lines.some((line) => line.includes('Effect ended: Left Hand Rule')));
+});
+
 test('applyDrinkEvent records drinks and logs self action', () => {
   const state = createState();
   const { lines, log } = createLogCollector();
