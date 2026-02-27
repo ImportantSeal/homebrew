@@ -4,42 +4,41 @@ import { bindTap } from '../utils/tap.js';
 
 /**
  * Generic player name click selection helper.
- * - Adds touch/click listeners to .turn-player-name
- * - Uses stopImmediatePropagation so it won't also toggle dropdown
+ * - Uses delegated touch/click listener on #turn-order
+ * - Survives turn-order re-renders while selection is active
+ * - Uses stopImmediatePropagation so it won't also toggle dropdown / jump turn
  * - Returns cleanup()
  */
 export function enablePlayerNameSelection(state, onPick) {
-  const nameEls = document.querySelectorAll('.turn-player-name');
-  const unbinders = [];
+  const turnOrderEl = document.getElementById('turn-order');
+  if (!turnOrderEl) return () => {};
 
-  const cleanup = () => {
-    unbinders.forEach(unbind => unbind());
-  };
+  const cleanup = bindTap(turnOrderEl, (e) => {
+    const target = e.target;
+    if (!target || !target.closest) return;
 
-  const onClick = (e) => {
-    // IMPORTANT: prevent dropdown toggle + other click handlers
+    const playerBtn = target.closest('.turn-player-name');
+    if (!playerBtn || !turnOrderEl.contains(playerBtn)) return;
+
+    // IMPORTANT: prevent dropdown toggle + turn-order delegated click handlers
     e.preventDefault();
     e.stopPropagation();
     if (e.stopImmediatePropagation) e.stopImmediatePropagation();
 
     // Prefer explicit index to avoid text mismatches (e.g. trailing spaces / emojis)
-    const idxAttr = e.currentTarget.dataset.index;
+    const idxAttr = playerBtn.dataset.index;
     let targetIndex = Number.isFinite(Number(idxAttr)) ? Number(idxAttr) : -1;
 
     // Fallback to name match if dataset missing
     if (targetIndex < 0) {
-      const clickedName = e.currentTarget.textContent.trim();
+      const clickedName = playerBtn.textContent.trim();
       targetIndex = state.players.findIndex(p => (p.name || "").trim() === clickedName);
     }
 
     if (targetIndex === -1) return;
-
     onPick?.(targetIndex, cleanup);
-  };
+  }, { capture: true });
 
-  nameEls.forEach(el => {
-    unbinders.push(bindTap(el, onClick));
-  });
   return cleanup;
 }
 
