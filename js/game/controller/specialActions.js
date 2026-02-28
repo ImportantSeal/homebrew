@@ -196,6 +196,12 @@ export function runSpecialAction(action, context) {
       return;
     }
 
+    case "EVERYBODY_DRINK_CLINK": {
+      applyEveryoneDrink(state, 1, "Everybody Drink", log, applyDrinkEvent);
+      log("Everybody drinks 1 and clinks glasses.");
+      return;
+    }
+
     case "DOUBLE_OR_NOTHING_D6": {
       applyDrinkEvent(state, selfIndex, 4, "Double or Nothing", log);
       log(`${p.name} drinks 4 and rolls a d6 for Double or Nothing. Pick the rolled value.`);
