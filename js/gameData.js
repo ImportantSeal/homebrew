@@ -122,18 +122,224 @@ export const gameData = {
   special: {
     name: "Special Card",
     subcategories: [
-
+      { name: "Odds Drink", instruction: "Roll 1-10; if the result is odd, you drink the number shown." },
+      { name: "Even Drink", instruction: "Roll 1-10; if the result is even, you drink the number shown." },
+      { name: "Odds Give", instruction: "Roll 1-10; if the result is odd, you give out the number of drinks shown." },
+      { name: "Even Give", instruction: "Roll 1-10; if the result is even, you give out the number of drinks shown." },
+      { name: "Mini King", instruction: "Everyone adds to the King's Cup. You drink the King's Cup." },
+      { name: "Social", instruction: "Everyone clinks glasses and drinks one." },
+      { name: "Double Social", instruction: "Everyone drinks two." },
+      { name: "Youngest Drinks", instruction: "The youngest player drinks one." },
+      { name: "Oldest Drinks", instruction: "The oldest player drinks one." },
+      { name: "Least Drunk Drinks", instruction: "The player with the fewest drinks so far drinks one." },
+      { name: "Party Sponsor", instruction: "The drunkest player gives out 3 drinks." },
+      { name: "Singles Drink", instruction: "All single players drink one." },
+      { name: "Couples Tax", instruction: "All players in a relationship drink 2." },
+      { name: "Last Bathroom", instruction: "The player who last used the bathroom drinks one." },
+      { name: "Speed Round", instruction: "Name five items in a category within 10 seconds. Failure means a drink." },
+      { name: "Lilo and Stitch", instruction: "If you have siblings, drink as many sips as the total number of your siblings." },
+      { name: "Sloth", instruction: "Lie on your back and drink." },
+      { name: "To The Western Sky", instruction: "The player to your left must drink." },
+      { name: "Social Distancing", instruction: "Everyone drinks if they are sitting less than 1 meter apart." },
+      { name: "For All Ages", instruction: "Roll 1-10; players whose age ends with that digit give 1; others drink 1." },
+      { name: "Host Tax", instruction: "Host drinks as many sips as there are players at the table." },
+      { name: "Last Arrival ", instruction: "Last arrival drinks the same amount as the last Drink card value in Card History." },
+      { name: "Battery Debt", instruction: "Everyone shows phone battery %. Lowest battery drinks the difference to the highest battery (rounded down, max 8)." },
+      { name: "Notification Curse", instruction: "For the next 10 rounds, 'notification' means taking a Penalty card. The first player who takes a Penalty card drinks the last Drink card value." },
+      { name: "Most Recent Sip", instruction: "The person who last took a sip drinks 3." },
+      { name: "Generation Gap Bill", instruction: "Find the oldest and youngest players. The oldest drinks the age difference." },
+      { name: "Generation Gap Rebate", instruction: "Find the oldest and youngest players. The youngest drinks the age difference." },
+      { name: "Below Half, Finish It", instruction: "Anyone whose drink is below the halfway mark must finish it." },
+      { name: "Straight-Line Test", instruction: "Walk in a straight line. If you succeed, give 2 drinks. If you fail, drink water." },
+      { name: "Echo", instruction: "Repeat the last Drink card value and drink it again. (If last was Everybody drinks, only you repeat it.)" },
+      { name: "Left-Handed Justice", instruction: "If you are left-handed: give 2. If not: drink 1. (Yes, it's unfair.)" },
+      { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
+      { name: "No U", instruction: "Redirect the most recent Drink/Give aimed at you to another player. If none applies, drink 1." },
+      { name: "Lie Mode (4 Turns)", instruction: "Choose one player. For the next 4 turns, they may speak only lies. If they tell the truth, they drink 2." },
+      { name: "Domino Curse (6 Rounds)", instruction: "Choose one player. For the next 6 rounds, whenever they drink, all other players drink 1." },
+      { name: "Nemesis Mark", instruction: "Pick a nemesis for 3 rounds; whenever they drink, you may give 1." },
+      { name: "Forbidden Word (8 Rounds)", instruction: "Set one forbidden word for 8 rounds. Anyone saying it drinks 1." },
+      { name: "Question Master (6 Rounds)", instruction: "Drawer is Question Master for 6 rounds. If you answer their question directly, you drink 2." },
+      {
+        name: "Share Penalty",
+        instruction: "Reveal a Penalty card now and share that same penalty with one other player.",
+        action: "SHARE_PENALTY_LOCKED"
+      },
+      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to all players." },
+      { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
       { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
       { name: "Clean Sheet Punishment", instruction: "If your Penalties are 0, draw a Penalty Card." },
       { name: "Generous Leader", instruction: "Player(s) with the most Drinks given give 3." },
       { name: "Quiet Hands", instruction: "Player(s) with the least Drinks given drink 2." },
-      { name: "Dry Streak Breaker", instruction: "Player(s) with the least Drinks taken drink 5." },
       { name: "Tank Reward", instruction: "Player(s) with the most Drinks taken give 2." },
       { name: "Penalty Veteran Reward", instruction: "Player(s) with the most Penalties give 5." },
       { name: "Untouched Tank", instruction: "Check the Stats page. If your Drinks taken is 0, drink 9." },
       { name: "No-Show Giver", instruction: "If your Drinks given is 0, drink 9." },
       { name: "Mix Master", instruction: "Player(s) with the highest Drink + Give count drink 3 and give 3." },
 
+
+
+      {
+        name: "Who Knows You",
+        instruction:
+          "The card drawer asks anyone a question about themselves. Wrong answer -> responder drinks 3. Correct answer -> card drawer drinks 3.",
+        action: "WHO_KNOWS_YOU"
+      },
+      {
+        name: "Double or Nothing (d6)",
+        instruction:
+          "Drink 4 first. Then roll a d6: on 4-6, give 8 drinks total; on 1-3, drink 8 more.",
+        action: "DOUBLE_OR_NOTHING_D6"
+      },
+
+      // ===== NEW ONE-SHOT LOGIC CARDS =====
+      {
+        name: "Risky Roll (d20)",
+        instruction: "Roll a d20. On 1: you down your drink. On 20: everyone else downs. On 2-19: nothing happens.",
+        action: "RISKY_ROLL_D20"
+      },
+      {
+        name: "The Collector",
+        instruction: "If you currently have the MOST items, you drink as many as you have items.",
+        action: "COLLECTOR"
+      },
+      {
+        name: "The Minimalist",
+        instruction: "If you have 0 items, you GIVE as many drinks as the total number of items held by other players.",
+        action: "MINIMALIST"
+      },
+      {
+        name: "Drink and Draw Again",
+        instruction: "Drink 1. Your turn does not pass; draw new cards.",
+        action: "DRINK_AND_DRAW_AGAIN"
+      },
+      {
+        name: "Chaos Button",
+        instruction: "Choose one: everybody drinks 3 now, OR you drink 1 and draw one extra card.",
+        action: "CHAOS_BUTTON"
+      },
+      {
+        name: "Selfish Switch",
+        instruction: "Choose one: drink 4, OR give 6 drinks total.",
+        action: "SELFISH_SWITCH"
+      },
+      {
+        name: "Mercy or Mayhem",
+        instruction: "Choose one: everybody drinks 1, OR pick one other player to drink 4.",
+        action: "MERCY_OR_MAYHEM"
+      },
+      {
+        name: "Last Call Insurance",
+        instruction: "Choose one: take a Shot, OR everybody drinks 2.",
+        action: "LAST_CALL_INSURANCE"
+      },
+      {
+        name: "Penalty Insurance",
+        instruction: "Choose one: draw a Penalty card now, OR drink 5 to avoid the penalty.",
+        action: "PENALTY_INSURANCE"
+      },
+      {
+        name: "Deal with Devil",
+        instruction: "Choose one: draw a Penalty card, then give 6 drinks total, OR drink 4.",
+        action: "DEAL_WITH_DEVIL"
+      },
+      {
+        name: "Immunity or Suffer",
+        instruction: "Choose one: gain an Immunity item and drink 5, OR skip the item and drink 2.",
+        action: "IMMUNITY_OR_SUFFER"
+      },
+      {
+        name: "Item Buyout",
+        instruction: "Choose one: discard 1 item and give 8 drinks total, OR keep your items and drink 3.",
+        action: "ITEM_BUYOUT"
+      },
+      {
+        name: "Final Offer",
+        instruction: "Choose one: take a Shot and end your turn, OR drink 5 and draw one extra card.",
+        action: "FINAL_OFFER"
+      },
+      {
+        name: "Cold Exit",
+        instruction: "Choose one: drink 4 and end your turn, OR give 2 and redraw cards.",
+        action: "COLD_EXIT"
+      },
+      {
+        name: "All-In Tax",
+        instruction: "Choose one: drink 3, OR give 3 and draw a Penalty card.",
+        action: "ALL_IN_TAX"
+      },
+      {
+        name: "Effect Surge",
+        instruction: "If any timed effect is active, everybody drinks 3.",
+        action: "IF_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3"
+      },
+      {
+        name: "Calm Table Tax",
+        instruction: "If no timed effects are active, everybody drinks 3.",
+        action: "IF_NO_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3"
+      },
+      {
+        name: "Mutual Damage",
+        instruction: "Choose one: you and one other player both drink 3, OR everybody else drinks 1.",
+        action: "MUTUAL_DAMAGE"
+      },
+      {
+        name: "Mercy Clause",
+        instruction: "Choose one: everybody drinks 1, OR pick one other player to drink 4.",
+        action: "MERCY_CLAUSE"
+      },
+      {
+        name: "King's Tax",
+        instruction: "Choose a temporary king for six rounds. Anyone who interrupts the king drinks 2.",
+        effect: { type: "KINGS_TAX", turns: 6, needsTarget: true }
+      },
+      {
+        name: "Delayed Reaction (3 Turns)",
+        instruction: "No instant reactions for 3 turns. If you react in under 2 seconds, drink 1.",
+        effect: { type: "DELAYED_REACTION", turns: 3 }
+      },
+      {
+        name: "Name Swap (4 Turns)",
+        instruction: "Choose two players. For 4 turns, they use each other's names. Wrong name -> drink 1.",
+        effect: { type: "NAME_SWAP", turns: 4 }
+      },
+      {
+        name: "Glass Down Rule (4 Turns)",
+        instruction: "For 4 turns, your drink must be on the table before speaking. Break it -> drink 1.",
+        effect: { type: "GLASS_DOWN", turns: 4 }
+      },
+
+      // ===== EFFECT CARDS =====
+      {
+        name: "Left Hand Rule",
+        instruction: "For the next 6 turns, everyone drinks with their LEFT hand.",
+        effect: { type: "LEFT_HAND", turns: 6 }
+      },
+      {
+        name: "No Names",
+        instruction: "For the next 10 turns, you are not allowed to say ANY names.",
+        effect: { type: "NO_NAMES", turns: 10 }
+      },
+      {
+        name: "No Swearing",
+        instruction: "For the next 10 turns, the next person who swears drinks 4.",
+        effect: { type: "NO_SWEARING", turns: 10 }
+      },
+      {
+        name: "Hands Off Your Phone",
+        instruction: "For the next 10 turns, everyone keeps their phone away. The first player who touches their own phone drinks 2.",
+        effect: { type: "NO_PHONE_TOUCH", turns: 10 }
+      },
+      {
+        name: "Drink Buddy (Pick a target)",
+        instruction: "Pick a player. For the next 6 turns, that player drinks whenever YOU drink.",
+        effect: { type: "DRINK_BUDDY", turns: 6, needsTarget: true }
+      },
+      {
+        name: "Ditto Magnet (Pick a target)",
+        instruction: "Pick a player. For the next 5 turns, if Ditto triggers for them, they take a Shot immediately.",
+        effect: { type: "DITTO_MAGNET", turns: 5, needsTarget: true }
+      }
     ]
   },
 

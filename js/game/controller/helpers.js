@@ -13,10 +13,14 @@ export function isDrawPenaltyCardText(txt) {
 }
 
 export function shouldTriggerPenaltyPreview(subName, subInstruction, challengeText) {
-  const a = String(subName || "");
-  const b = String(subInstruction || "");
-  const c = String(challengeText || "");
-  return /penalty/i.test(a) || /penalty/i.test(b) || /penalty deck/i.test(c) || /penalty card/i.test(c);
+  const text = `${String(subName || "")} ${String(subInstruction || "")} ${String(challengeText || "")}`.trim();
+  if (!text) return false;
+
+  // Auto-preview only when the instruction explicitly tells to reveal/roll immediately.
+  if (/roll\s+the\s+penalty\s+deck/i.test(text)) return true;
+  if (/reveal\s+(a\s+)?penalty\s+card(\s+now)?/i.test(text)) return true;
+  if (/draw\s+(a\s+)?penalty\s+card\s+now/i.test(text)) return true;
+  return false;
 }
 
 export function getBagKeyForObjectCard(state, cardData) {

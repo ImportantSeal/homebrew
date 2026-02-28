@@ -167,6 +167,10 @@ export function recordCardSelection(stateObj, playerIndex, options = {}) {
   const kind = normalizeKind(options?.kind);
   if (kind) {
     playerStats.kindCounts[kind] += 1;
+    if (kind === 'mix') {
+      playerStats.kindCounts.drink += 1;
+      playerStats.kindCounts.give += 1;
+    }
   }
 
   markUpdated(stateObj);

@@ -133,7 +133,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
         },
         {
           title: "Mini King",
-          instruction: "You are Mini King until your next turn. Anyone interrupting you drinks 2."
+          instruction: "Everyone adds to the King's Cup. You drink the King's Cup."
         },
         {
           title: "Categories",
@@ -149,11 +149,12 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
     case 'PENALTY_ALL': {
       const penalty = randomFromArray(state.penaltyDeck);
       logDitto(log, `Ditto rolled a penalty for everyone: ${penalty}`);
+      const shieldsEnabled = Boolean(state.includeItems);
       let blockedCount = 0;
       let affectedCount = 0;
 
       state.players.forEach((p, idx) => {
-        if (p.shield) {
+        if (shieldsEnabled && p.shield) {
           delete p.shield;
           logDitto(log, `${p.name}'s Shield blocked the penalty.`);
           blockedCount += 1;
@@ -171,9 +172,16 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
       updateTurnOrder();
       renderItemsBoard();
+      const summaryParts = [
+        `Penalty for everyone: ${penalty}.`,
+        `Affected: ${affectedCount}.`
+      ];
+      if (shieldsEnabled && blockedCount > 0) {
+        summaryParts.push(`Blocked by Shield: ${blockedCount}.`);
+      }
       return {
         title: infoTitle,
-        message: `Penalty for everyone: ${penalty}. Affected: ${affectedCount}, blocked by Shield: ${blockedCount}.`
+        message: summaryParts.join(' ')
       };
     }
 

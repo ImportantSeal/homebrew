@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {
   parseDrinkFromText,
   parseGiveFromText,
+  shouldTriggerPenaltyPreview,
   shouldShowActionScreenForPlainCard,
   isDrawPenaltyCardText
 } from '../js/game/controller/helpers.js';
@@ -44,4 +45,39 @@ test('isDrawPenaltyCardText matches only expected card text', () => {
   assert.equal(isDrawPenaltyCardText('Draw a Penalty Card'), true);
   assert.equal(isDrawPenaltyCardText('draw a penalty card'), true);
   assert.equal(isDrawPenaltyCardText('Draw penalty'), false);
+});
+
+test('shouldTriggerPenaltyPreview only for immediate penalty reveal instructions', () => {
+  assert.equal(
+    shouldTriggerPenaltyPreview(
+      'Fun for whole family',
+      'Roll the Penalty deck. The penalty applies to all players.',
+      ''
+    ),
+    true
+  );
+  assert.equal(
+    shouldTriggerPenaltyPreview(
+      'Share Penalty',
+      'Reveal a Penalty card now and share that same penalty with one other player.',
+      ''
+    ),
+    true
+  );
+  assert.equal(
+    shouldTriggerPenaltyPreview(
+      'Clean Sheet Punishment',
+      'If your Penalties are 0, draw a Penalty Card.',
+      ''
+    ),
+    false
+  );
+  assert.equal(
+    shouldTriggerPenaltyPreview(
+      'Notification Curse',
+      "For the next 10 rounds, 'notification' means taking a Penalty card.",
+      ''
+    ),
+    false
+  );
 });

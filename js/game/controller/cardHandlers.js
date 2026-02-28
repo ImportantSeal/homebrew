@@ -354,10 +354,10 @@ export function createCardHandlers({
       }
     }
 
-    const actionHandlesPenaltyRoll = action === "SHARE_PENALTY_LOCKED";
+    const actionResolvesFlow = Boolean(action);
 
     // If the subevent mentions penalty, also flip penalty deck (preview only).
-    if (!actionHandlesPenaltyRoll && shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
+    if (!actionResolvesFlow && shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
       const label = `${parentName}${subName ? `: ${subName}` : ""}`;
       showPenaltyPreview(state, log, label);
     }
