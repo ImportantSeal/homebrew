@@ -59,6 +59,23 @@ function normalizeKind(kind) {
   return CARD_KIND_SET.has(normalized) ? normalized : null;
 }
 
+function applyKindCountDelta(kindCounts, kind, delta) {
+  const normalizedKind = normalizeKind(kind);
+  if (!normalizedKind || !kindCounts || typeof kindCounts !== 'object') return false;
+
+  const nextValue = Number(kindCounts[normalizedKind] || 0) + Number(delta || 0);
+  kindCounts[normalizedKind] = Math.max(0, nextValue);
+
+  if (normalizedKind === 'mix') {
+    const drinkValue = Number(kindCounts.drink || 0) + Number(delta || 0);
+    const giveValue = Number(kindCounts.give || 0) + Number(delta || 0);
+    kindCounts.drink = Math.max(0, drinkValue);
+    kindCounts.give = Math.max(0, giveValue);
+  }
+
+  return true;
+}
+
 function toPositiveNumber(value) {
   const parsed = Number(value);
   if (!Number.isFinite(parsed) || parsed <= 0) return 0;
@@ -166,12 +183,26 @@ export function recordCardSelection(stateObj, playerIndex, options = {}) {
 
   const kind = normalizeKind(options?.kind);
   if (kind) {
-    playerStats.kindCounts[kind] += 1;
-    if (kind === 'mix') {
-      playerStats.kindCounts.drink += 1;
-      playerStats.kindCounts.give += 1;
-    }
+    applyKindCountDelta(playerStats.kindCounts, kind, 1);
   }
+
+  markUpdated(stateObj);
+}
+
+export function replaceCardSelectionKind(stateObj, playerIndex, fromKind, toKind) {
+  const playerStats = ensurePlayerStats(stateObj, playerIndex);
+  if (!playerStats) return;
+
+  const normalizedTo = normalizeKind(toKind);
+  if (!normalizedTo) return;
+
+  const normalizedFrom = normalizeKind(fromKind);
+  if (normalizedFrom === normalizedTo) return;
+
+  if (normalizedFrom) {
+    applyKindCountDelta(playerStats.kindCounts, normalizedFrom, -1);
+  }
+  applyKindCountDelta(playerStats.kindCounts, normalizedTo, 1);
 
   markUpdated(stateObj);
 }

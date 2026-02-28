@@ -99,8 +99,10 @@ test('applyDrinkEvent triggers Drink Buddy for active effects', () => {
   applyDrinkEvent(state, 0, 2, 'Drink card', log);
 
   assert.equal(state.stats.players[0].drinksTaken, 2);
+  assert.equal(state.stats.players[1].drinksTaken, 2);
   assert.ok(lines.some((line) => line.includes('B: Drink 2 (Drink Buddy with A)')));
   assert.ok(!lines.some((line) => line.includes('C: Drink 2 (Drink Buddy with A)')));
+  assert.equal(state.stats.players[2].drinksTaken, 0);
 });
 
 test('applyDrinkEvent skipBuddy and suppressSelfLog options work', () => {

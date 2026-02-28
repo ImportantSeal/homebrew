@@ -28,7 +28,7 @@ import {
 } from './helpers.js';
 
 import { runSpecialAction, runSpecialChoiceAction } from './specialActions.js';
-import { recordCardSelection, recordGiveDrinks } from '../../stats.js';
+import { recordCardSelection, recordGiveDrinks, replaceCardSelectionKind } from '../../stats.js';
 import { resolveStatsLeaderboardTopic } from '../../statsLeaderboard.js';
 
 function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
@@ -424,7 +424,7 @@ export function createCardHandlers({
     return actionResult?.endTurn ?? true;
   }
 
-  function handlePlainCard(cardEl, cardData) {
+  function handlePlainCard(cardEl, cardData, selectedKind) {
     const p = currentPlayer();
     const value = getCardDisplayValue(cardData);
     const txt = String(value).trim();
@@ -470,6 +470,7 @@ export function createCardHandlers({
       activateDitto(state, cardEl, idx, log);
 
       onDittoActivated(state, state.currentPlayerIndex, log);
+      replaceCardSelectionKind(state, state.currentPlayerIndex, selectedKind, 'ditto');
 
       unlockUI();
       renderEffectsPanel();
@@ -636,7 +637,7 @@ export function createCardHandlers({
       }
 
       // 4) Plain cards / items / drink/give.
-      handlePlainCard(cardEl, cardData);
+      handlePlainCard(cardEl, cardData, selectedKind);
     } finally {
       state.historyLogKind = previousHistoryLogKind;
     }

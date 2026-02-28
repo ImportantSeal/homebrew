@@ -213,6 +213,7 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
       if (!tgt) return;
 
       log?.(`${tgt.name}: ${label} (Drink Buddy with ${player.name})`);
+      recordDrinkTaken(state, e.targetIndex, amount);
     });
 }
 

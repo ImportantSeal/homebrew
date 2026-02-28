@@ -150,7 +150,17 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
       const penalty = randomFromArray(state.penaltyDeck);
       logDitto(log, `Ditto rolled a penalty for everyone: ${penalty}`);
 
+      let affectedCount = 0;
+      let blockedByShieldCount = 0;
       state.players.forEach((p, idx) => {
+        if (p?.shield) {
+          blockedByShieldCount += 1;
+          delete p.shield;
+          logDitto(log, `${p.name}'s Shield blocked Ditto penalty: ${penalty}`);
+          return;
+        }
+
+        affectedCount += 1;
         logDitto(log, `${p.name} takes penalty: ${penalty}`);
         recordPenaltyTaken(state, idx);
         // if it's Drink X / Shot etc, trigger drink event
@@ -162,10 +172,10 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
       updateTurnOrder();
       renderItemsBoard();
-      const drinkMatch = String(penalty).match(/^Drink\s+(\d+)/i);
-      const summaryMessage = drinkMatch
-        ? `Everyone drinks ${parseInt(drinkMatch[1], 10)}.`
-        : `Penalty for everyone: ${penalty}.`;
+      let summaryMessage = `Penalty for everyone: ${penalty}. Affected: ${affectedCount}.`;
+      if (blockedByShieldCount > 0) {
+        summaryMessage += ` Blocked by Shield: ${blockedByShieldCount}.`;
+      }
       return {
         title: infoTitle,
         message: summaryMessage
