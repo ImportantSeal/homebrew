@@ -115,6 +115,18 @@ function applyPenaltyCardToPlayer(state, playerIndex, reason, log, applyDrinkEve
   }
 }
 
+function queueManualPenaltyDraw(state, log, prompt = "Click the Penalty Deck to roll and continue.") {
+  if (state.penaltyShown) {
+    log?.("Resolve the current penalty first.");
+    return false;
+  }
+
+  state.penaltySource = "card_pending";
+  state.penaltyHintShown = false;
+  log?.(prompt);
+  return true;
+}
+
 function ensureInventory(player) {
   if (!player || typeof player !== 'object') return [];
   if (!Array.isArray(player.inventory)) player.inventory = [];
@@ -204,50 +216,19 @@ export function runSpecialAction(action, context) {
 
     case "DOUBLE_OR_NOTHING_D6": {
       applyDrinkEvent(state, selfIndex, 4, "Double or Nothing", log);
-      log(`${p.name} drinks 4 and rolls a d6 for Double or Nothing. Pick the rolled value.`);
 
-      const choice = createChoiceAction({
-        key: "DOUBLE_OR_NOTHING_D6_RESULT",
-        title: "Double or Nothing (d6)",
-        message: "Roll a d6 yourself, then pick the result.",
-        variant: "choice",
-        options: Array.from({ length: 6 }, (_, idx) => {
-          const roll = idx + 1;
-          const win = roll >= 4;
+      const roll = rollDie(6);
+      log(`${p.name} drinks 4 and rolls a d6: ${roll}.`);
 
-          return {
-            id: `roll_${roll}`,
-            label: String(roll),
-            variant: win ? "primary" : "danger",
-            run: ({
-              state: innerState,
-              currentPlayer: innerPlayer,
-              currentPlayerIndex: innerIndex,
-              log: innerLog,
-              applyDrinkEvent: applyInnerDrinkEvent
-            }) => {
-              const actorName = innerPlayer?.name || innerState.players?.[innerIndex]?.name || p.name;
-              innerLog?.(`Double or Nothing roll (d6): ${roll}`);
-
-              if (win) {
-                innerLog?.(`${actorName} wins: give 8 drinks.`);
-                recordGiveDrinks(innerState, innerIndex, 8);
-              } else {
-                applyInnerDrinkEvent(innerState, innerIndex, 8, "Double or Nothing fail", innerLog);
-              }
-
-              return { endTurn: true };
-            }
-          };
-        })
-      });
-
-      if (!choice) {
-        log("Double or Nothing choice setup failed.");
+      if (roll >= 4) {
+        recordGiveDrinks(state, selfIndex, 8);
+        log(`${p.name} wins Double or Nothing and gives 8 drinks total.`);
         return;
       }
 
-      return { endTurn: false, choice };
+      applyDrinkEvent(state, selfIndex, 8, "Double or Nothing fail", log);
+      log(`${p.name} loses Double or Nothing and drinks 8 more.`);
+      return;
     }
 
     case "DRINK_AND_DRAW_AGAIN": {
@@ -502,30 +483,12 @@ export function runSpecialAction(action, context) {
             id: "draw_penalty",
             label: "Draw a Penalty card",
             variant: "danger",
-            run: ({
-              state: innerState,
-              log: innerLog,
-              applyDrinkEvent: applyInnerDrinkEvent,
-              rollPenaltyCard: rollInnerPenaltyCard
-            }) => {
-              if (innerState.penaltyShown) {
-                innerLog?.("Resolve the current penalty first.");
-                return { endTurn: false };
-              }
-
-              if (typeof rollInnerPenaltyCard !== "function") {
-                innerLog?.("Penalty Insurance could not roll the penalty deck.");
-                return { endTurn: true };
-              }
-
-              rollInnerPenaltyCard(innerState, innerLog, "card", applyInnerDrinkEvent);
-
-              if (!innerState.penaltyShown) {
-                innerLog?.("Penalty Insurance: penalty was blocked by Shield.");
-                return { endTurn: true };
-              }
-
-              innerLog?.("Penalty Insurance: click the Penalty Deck to confirm and continue.");
+            run: ({ state: innerState, log: innerLog }) => {
+              queueManualPenaltyDraw(
+                innerState,
+                innerLog,
+                "Penalty Insurance: click the Penalty Deck to roll and continue."
+              );
               return { endTurn: false };
             }
           },
@@ -569,31 +532,16 @@ export function runSpecialAction(action, context) {
             run: ({
               state: innerState,
               currentPlayerIndex: innerIndex,
-              log: innerLog,
-              applyDrinkEvent: applyInnerDrinkEvent,
-              rollPenaltyCard: rollInnerPenaltyCard
+              log: innerLog
             }) => {
               recordGiveDrinks(innerState, innerIndex, 6);
               innerLog?.(`${innerState.players?.[innerIndex]?.name || p.name} gives 6 drinks total.`);
 
-              if (innerState.penaltyShown) {
-                innerLog?.("Resolve the current penalty first.");
-                return { endTurn: false };
-              }
-
-              if (typeof rollInnerPenaltyCard !== "function") {
-                innerLog?.("Deal with Devil could not roll the penalty deck.");
-                return { endTurn: true };
-              }
-
-              rollInnerPenaltyCard(innerState, innerLog, "card", applyInnerDrinkEvent);
-
-              if (!innerState.penaltyShown) {
-                innerLog?.("Deal with Devil: penalty was blocked by Shield.");
-                return { endTurn: true };
-              }
-
-              innerLog?.("Deal with Devil: click the Penalty Deck to confirm and continue.");
+              queueManualPenaltyDraw(
+                innerState,
+                innerLog,
+                "Deal with Devil: click the Penalty Deck to roll and continue."
+              );
               return { endTurn: false };
             }
           },
@@ -860,31 +808,16 @@ export function runSpecialAction(action, context) {
             run: ({
               state: innerState,
               currentPlayerIndex: innerIndex,
-              log: innerLog,
-              applyDrinkEvent: applyInnerDrinkEvent,
-              rollPenaltyCard: rollInnerPenaltyCard
+              log: innerLog
             }) => {
               recordGiveDrinks(innerState, innerIndex, 3);
               innerLog?.(`${innerState.players?.[innerIndex]?.name || p.name} gives 3 and draws a penalty.`);
 
-              if (innerState.penaltyShown) {
-                innerLog?.("Resolve the current penalty first.");
-                return { endTurn: false };
-              }
-
-              if (typeof rollInnerPenaltyCard !== "function") {
-                innerLog?.("All-In Tax could not roll the penalty deck.");
-                return { endTurn: true };
-              }
-
-              rollInnerPenaltyCard(innerState, innerLog, "card", applyInnerDrinkEvent);
-
-              if (!innerState.penaltyShown) {
-                innerLog?.("All-In Tax: penalty was blocked by Shield.");
-                return { endTurn: true };
-              }
-
-              innerLog?.("All-In Tax: click the Penalty Deck to confirm and continue.");
+              queueManualPenaltyDraw(
+                innerState,
+                innerLog,
+                "All-In Tax: click the Penalty Deck to roll and continue."
+              );
               return { endTurn: false };
             }
           }
@@ -1017,26 +950,12 @@ export function runSpecialAction(action, context) {
     }
 
     case "SHARE_PENALTY_LOCKED": {
-      if (typeof rollPenaltyCard !== "function") {
-        log("Share Penalty could not roll the penalty deck.");
-        return;
-      }
-
-      if (state.penaltyShown) {
-        log("Resolve the current penalty first.");
-        return { endTurn: false };
-      }
-
-      rollPenaltyCard(state, log, "card", applyDrinkEvent);
-
-      if (!state.penaltyShown) {
-        log("Share Penalty was blocked by Shield.");
-        return;
-      }
-
-      const rolled = String(state.penaltyCard || "Penalty");
-      log(`Share Penalty active: apply "${rolled}" to one other player, then click the Penalty Deck to continue.`);
-      return;
+      queueManualPenaltyDraw(
+        state,
+        log,
+        "Share Penalty active: roll the Penalty Deck, then apply the same penalty to one other player."
+      );
+      return { endTurn: false };
     }
 
     case "COLLECTOR": {

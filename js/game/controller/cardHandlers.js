@@ -21,6 +21,7 @@ import {
   getObjectCardPool,
   isDrawPenaltyCardText,
   shouldTriggerPenaltyPreview,
+  shouldWaitForPenaltyDeckRoll,
   parseDrinkFromText,
   parseGiveFromText,
   shouldShowActionScreenForPlainCard,
@@ -211,6 +212,14 @@ export function createCardHandlers({
       return;
     }
 
+    if (state.penaltySource === "card_pending") {
+      if (!state.penaltyHintShown) {
+        log("Roll the Penalty Deck to continue.");
+        state.penaltyHintShown = true;
+      }
+      return;
+    }
+
     redrawGame();
     const p = currentPlayer();
     log(`${p.name} used Redraw to reveal penalty card and refresh cards.`);
@@ -235,6 +244,24 @@ export function createCardHandlers({
         log("Close the Redraw penalty window first.");
         state.penaltyHintShown = true;
       }
+      return;
+    }
+
+    // Pending object-card flow that requires a manual penalty deck flip.
+    if (!state.penaltyShown && state.penaltySource === "card_pending") {
+      lockUI();
+      rollPenaltyCard(state, log, "card", applyDrinkEvent);
+
+      // Shield blocked -> no penalty shown, continue turn flow.
+      if (!state.penaltyShown) {
+        nextPlayer();
+        unlockUI();
+        renderEffectsPanel();
+        return;
+      }
+
+      unlockAfter(timing.PENALTY_UNLOCK_MS);
+      renderEffectsPanel();
       return;
     }
 
@@ -355,9 +382,13 @@ export function createCardHandlers({
     }
 
     const actionResolvesFlow = Boolean(action);
+    const waitsForPenaltyDeckRoll = !actionResolvesFlow
+      && shouldWaitForPenaltyDeckRoll(subName, subInstruction, shownText);
 
     // If the subevent mentions penalty, also flip penalty deck (preview only).
-    if (!actionResolvesFlow && shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
+    if (!actionResolvesFlow
+      && !waitsForPenaltyDeckRoll
+      && shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
       const label = `${parentName}${subName ? `: ${subName}` : ""}`;
       showPenaltyPreview(state, log, label);
     }
@@ -421,6 +452,13 @@ export function createCardHandlers({
       renderEffectsPanel();
     }
 
+    if (waitsForPenaltyDeckRoll) {
+      state.penaltySource = "card_pending";
+      state.penaltyHintShown = false;
+      log("Roll the Penalty Deck to continue.");
+      return false;
+    }
+
     return actionResult?.endTurn ?? true;
   }
 
@@ -433,18 +471,10 @@ export function createCardHandlers({
     // Penalty card (must confirm via penalty deck click).
     if (isDrawPenaltyCardText(txt)) {
       flashElement(cardEl);
-
-      rollPenaltyCard(state, log, "card", applyDrinkEvent);
-
-      // If blocked by Shield, penalty won't show -> turn ends normally.
-      if (!state.penaltyShown) {
-        nextPlayer();
-        unlockUI();
-        renderEffectsPanel();
-        return;
-      }
-
-      unlockAfter(timing.PENALTY_UNLOCK_MS);
+      state.penaltySource = "card_pending";
+      state.penaltyHintShown = false;
+      log(`${p.name} selected Draw a Penalty Card. Click the Penalty Deck to roll.`);
+      unlockUI();
       renderEffectsPanel();
       return;
     }
@@ -532,6 +562,14 @@ export function createCardHandlers({
     // Block card clicks while an effect is waiting for target pick.
     if (state.effectSelection?.active) {
       log("Pick the target player in the turn order first.");
+      return;
+    }
+
+    if (state.penaltySource === "card_pending") {
+      if (!state.penaltyHintShown) {
+        log("Roll the Penalty Deck to continue.");
+        state.penaltyHintShown = true;
+      }
       return;
     }
 

@@ -16,7 +16,16 @@ export function shouldTriggerPenaltyPreview(subName, subInstruction, challengeTe
   const text = `${String(subName || "")} ${String(subInstruction || "")} ${String(challengeText || "")}`.trim();
   if (!text) return false;
 
-  // Auto-preview only when the instruction explicitly tells to reveal/roll immediately.
+  // Auto-preview when instruction explicitly says to reveal/roll now.
+  if (/reveal\s+(a\s+)?penalty\s+card(\s+now)?/i.test(text)) return true;
+  if (/draw\s+(a\s+)?penalty\s+card\s+now/i.test(text)) return true;
+  if (/roll\s+the\s+penalty\s+deck/i.test(text)) return true;
+  return false;
+}
+
+export function shouldWaitForPenaltyDeckRoll(subName, subInstruction, challengeText) {
+  const text = `${String(subName || "")} ${String(subInstruction || "")} ${String(challengeText || "")}`.trim();
+  if (!text) return false;
   if (/roll\s+the\s+penalty\s+deck/i.test(text)) return true;
   if (/reveal\s+(a\s+)?penalty\s+card(\s+now)?/i.test(text)) return true;
   if (/draw\s+(a\s+)?penalty\s+card\s+now/i.test(text)) return true;

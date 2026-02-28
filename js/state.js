@@ -42,7 +42,7 @@ export function createInitialState() {
     penaltyConfirmArmed: false,
 
     // why penalty is currently shown (affects behavior)
-    // 'deck' | 'card' | 'redraw' | 'redraw_hold' | null
+    // 'deck' | 'card' | 'card_pending' | 'redraw' | 'redraw_hold' | null
     penaltySource: null,
 
     // prevent log spam when player clicks cards while penalty must be confirmed
