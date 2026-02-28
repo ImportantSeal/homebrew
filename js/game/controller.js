@@ -55,10 +55,14 @@ function resolveHistoryLogKind(options = {}) {
 }
 
 function log(message, options = {}) {
-  const kind = resolveHistoryLogKind(options);
-  return kind
-    ? addHistoryEntry(message, { kind })
-    : addHistoryEntry(message);
+  const safeOptions = options && typeof options === 'object' ? { ...options } : {};
+  const kind = resolveHistoryLogKind(safeOptions);
+  if (kind) {
+    safeOptions.kind = kind;
+  } else {
+    delete safeOptions.kind;
+  }
+  return addHistoryEntry(message, safeOptions);
 }
 
 function currentPlayer() {

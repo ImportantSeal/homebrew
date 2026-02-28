@@ -1,5 +1,10 @@
 import { state } from './state.js';
 import { ensurePlayerColors, setPlayerColoredText } from './utils/playerColors.js';
+import {
+  buildStatsLeaderboardMessage,
+  getStatsLeaderboardButtonLabel,
+  normalizeStatsLeaderboardTopic
+} from './statsLeaderboard.js';
 
 const MAX_HISTORY_ENTRIES = 300;
 const HISTORY_CARD_KINDS = new Set([
@@ -25,11 +30,13 @@ function normalizeKind(kind) {
   return HISTORY_CARD_KINDS.has(normalized) ? normalized : null;
 }
 
-function createHistoryEntryElement(text, index, kind) {
+function createHistoryEntryElement(text, index, kind, options = {}) {
   const entry = document.createElement('article');
   entry.className = 'history-entry is-latest';
   entry.dataset.rawText = text;
   if (kind) entry.dataset.kind = kind;
+  const leaderboardTopic = normalizeStatsLeaderboardTopic(options?.leaderboardTopic);
+  if (leaderboardTopic) entry.dataset.leaderboardTopic = leaderboardTopic;
 
   const meta = document.createElement('div');
   meta.className = 'history-entry__meta';
@@ -40,6 +47,26 @@ function createHistoryEntryElement(text, index, kind) {
   setPlayerColoredText(content, text, state.players);
 
   entry.append(meta, content);
+
+  if (leaderboardTopic) {
+    const actions = document.createElement('div');
+    actions.className = 'history-entry__actions';
+
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'history-entry__leaderboard-btn';
+    btn.textContent = getStatsLeaderboardButtonLabel(leaderboardTopic);
+
+    btn.addEventListener('click', () => {
+      const leaderboardText = buildStatsLeaderboardMessage(state, leaderboardTopic);
+      if (!leaderboardText) return;
+      addHistoryEntry(leaderboardText, { kind: 'special' });
+    });
+
+    actions.appendChild(btn);
+    entry.appendChild(actions);
+  }
+
   return entry;
 }
 
@@ -47,6 +74,9 @@ export function addHistoryEntry(message, options = {}) {
   const historyContainer = document.getElementById('card-history');
   const text = normalizeMessage(message);
   const kind = normalizeKind(options && typeof options === 'object' ? options.kind : null);
+  const leaderboardTopic = normalizeStatsLeaderboardTopic(
+    options && typeof options === 'object' ? options.leaderboardTopic : null
+  );
   if (!historyContainer || !text) return null;
   ensurePlayerColors(state.players);
 
@@ -61,7 +91,7 @@ export function addHistoryEntry(message, options = {}) {
   const latest = historyContainer.querySelector('.history-entry.is-latest');
   if (latest) latest.classList.remove('is-latest');
 
-  const entry = createHistoryEntryElement(text, state.cardHistory.length, kind);
+  const entry = createHistoryEntryElement(text, state.cardHistory.length, kind, { leaderboardTopic });
   historyContainer.appendChild(entry);
 
   while (historyContainer.childElementCount > MAX_HISTORY_ENTRIES) {

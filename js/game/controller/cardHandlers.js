@@ -29,6 +29,7 @@ import {
 
 import { runSpecialAction, runSpecialChoiceAction } from './specialActions.js';
 import { recordCardSelection, recordGiveDrinks } from '../../stats.js';
+import { resolveStatsLeaderboardTopic } from '../../statsLeaderboard.js';
 
 function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
   if (effectDef.type === "LEFT_HAND") {
@@ -343,9 +344,14 @@ export function createCardHandlers({
       ? `${subName} - ${subInstruction}`
       : (subInstruction || subName);
     const actionMessage = subInstruction || shownText || subName || "";
+    const leaderboardTopic = resolveStatsLeaderboardTopic(subName, subInstruction);
 
     if (drawMessage) {
-      log(drawMessage);
+      if (leaderboardTopic) {
+        log(drawMessage, { leaderboardTopic });
+      } else {
+        log(drawMessage);
+      }
     }
 
     const actionHandlesPenaltyRoll = action === "SHARE_PENALTY_LOCKED";

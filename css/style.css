@@ -1262,6 +1262,43 @@ body[data-pickmode="effect-target"] .turn-player-name {
   font-weight: 900;
 }
 
+.history-entry__actions {
+  margin-top: 0.45rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+}
+
+.history-entry__leaderboard-btn {
+  border: 1px solid rgba(53,224,199,0.34);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(53,224,199,0.22), rgba(168,85,247,0.18)),
+    rgba(255,255,255,0.04);
+  color: rgba(238,245,255,0.96);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  padding: 0.3rem 0.62rem;
+  cursor: pointer;
+  transition: border-color 140ms ease, filter 140ms ease, transform 140ms ease;
+}
+
+.history-entry__leaderboard-btn:hover {
+  border-color: rgba(255,79,216,0.40);
+  filter: brightness(1.08);
+}
+
+.history-entry__leaderboard-btn:active {
+  transform: translateY(1px);
+}
+
+.history-entry__leaderboard-btn:focus-visible {
+  outline: 2px solid rgba(53,224,199,0.78);
+  outline-offset: 2px;
+}
+
 .history-entry.is-latest {
   border-color: var(--history-active-border);
   box-shadow: 0 0 0 1px var(--history-active-ring);
