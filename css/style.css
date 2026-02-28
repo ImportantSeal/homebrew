@@ -1,5 +1,6 @@
 :root {
-  --container-max-width: 1300px;
+  --ui-scale: 1;
+  --container-max-width: calc(1300px * var(--ui-scale));
   --container-padding: clamp(1rem, 2vw, 2.25rem);
   --base-font-size: clamp(1rem, 0.95vw, 1.25rem);
 
@@ -46,7 +47,11 @@
 
 /* Reset */
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; }
+html {
+  height: 100%;
+  font-size: calc(100% * var(--ui-scale));
+}
+body { height: 100%; }
 
 body {
   color-scheme: dark;
@@ -2076,6 +2081,12 @@ body[data-pickmode="effect-target"] .turn-player-name {
   font-weight: 900;
   letter-spacing: 0.01em;
   color: rgba(255,255,255,0.92);
+}
+
+@media (min-width: 2200px) and (min-height: 1200px) {
+  :root {
+    --ui-scale: 2;
+  }
 }
 
 /* Responsive */

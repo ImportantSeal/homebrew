@@ -407,7 +407,6 @@ export function runSpecialAction(action, context) {
             variant: "primary",
             run: ({ log: innerLog }) => {
               innerLog?.("Chaos Referendum result: everybody takes a Penalty card.");
-              innerLog?.("Resolve penalty draws manually. No automatic penalty cards were rolled.");
               return { endTurn: true };
             }
           }

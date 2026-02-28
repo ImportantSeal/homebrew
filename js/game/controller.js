@@ -104,9 +104,20 @@ function syncPenaltyDeckSizeToCards() {
   const cardEl = document.getElementById("card0");
   if (!penaltyDeckEl || !cardEl) return;
 
-  const rect = cardEl.getBoundingClientRect();
-  if (rect.width > 0) {
-    penaltyDeckEl.style.width = `${Math.round(rect.width)}px`;
+  const cardRect = cardEl.getBoundingClientRect();
+  const panel = penaltyDeckEl.closest(".left-panel");
+  const panelRect = panel?.getBoundingClientRect();
+  const panelStyles = panel ? window.getComputedStyle(panel) : null;
+  const panelPaddingX = panelStyles
+    ? (parseFloat(panelStyles.paddingLeft || "0") + parseFloat(panelStyles.paddingRight || "0"))
+    : 0;
+  const panelInnerWidth = panelRect ? Math.max(0, panelRect.width - panelPaddingX) : 0;
+
+  if (cardRect.width > 0) {
+    const targetWidth = panelInnerWidth > 0
+      ? Math.min(cardRect.width, panelInnerWidth)
+      : cardRect.width;
+    penaltyDeckEl.style.width = `${Math.round(targetWidth)}px`;
   }
 }
 
