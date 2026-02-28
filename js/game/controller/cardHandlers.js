@@ -576,7 +576,9 @@ export function createCardHandlers({
     }
 
     const cardData = state.currentCards[index];
-    const selectedKind = computeKind(state, cardData);
+    const selectedKind = state.dittoActive[index]
+      ? "ditto"
+      : computeKind(state, cardData);
     const previousHistoryLogKind = state.historyLogKind ?? null;
     state.historyLogKind = selectedKind;
 
