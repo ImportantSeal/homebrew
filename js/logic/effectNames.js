@@ -5,7 +5,10 @@ const EFFECT_TITLES = Object.freeze({
   NO_SWEARING: "No Swearing",
   NO_PHONE_TOUCH: "Hands Off Your Phone",
   DITTO_MAGNET: "Ditto Magnet",
-  KINGS_TAX: "King's Tax"
+  KINGS_TAX: "King's Tax",
+  DELAYED_REACTION: "Delayed Reaction",
+  NAME_SWAP: "Name Swap",
+  GLASS_DOWN: "Glass Down Rule"
 });
 
 export function getEffectTitle(type, fallback = "Effect") {
@@ -13,4 +16,3 @@ export function getEffectTitle(type, fallback = "Effect") {
   if (!key) return fallback;
   return EFFECT_TITLES[key] || key;
 }
-

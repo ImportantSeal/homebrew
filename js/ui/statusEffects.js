@@ -19,6 +19,9 @@ function effectIcon(type) {
     case "DRINK_BUDDY": return "\u{1F91D}\u{1F37B}";
     case "DITTO_MAGNET": return "\u{1F9F2}";
     case "KINGS_TAX": return "\u{1F451}";
+    case "DELAYED_REACTION": return "\u23F1\uFE0F";
+    case "NAME_SWAP": return "\u{1F501}";
+    case "GLASS_DOWN": return "\u{1F964}";
     default: return "\u2728";
   }
 }
@@ -54,6 +57,12 @@ function effectDescription(state, eff) {
         ? `${king} is king. Anyone who interrupts them drinks 2.`
         : "A temporary king is active. Anyone interrupting them drinks 2.";
     }
+    case "DELAYED_REACTION":
+      return "No instant reactions. Reacting in under 2 seconds means Drink 1.";
+    case "NAME_SWAP":
+      return "Two chosen players swap names. Using a real name means Drink 1.";
+    case "GLASS_DOWN":
+      return "Drink must be on the table before speaking. Break it and Drink 1.";
     default:
       return "An effect is active.";
   }
@@ -84,6 +93,12 @@ function effectAppliesTo(state, eff) {
       const king = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `King: ${king}`;
     }
+    case "DELAYED_REACTION":
+      return "Applies to: Everyone";
+    case "NAME_SWAP":
+      return "Applies to: Two chosen players";
+    case "GLASS_DOWN":
+      return "Applies to: Everyone";
     default:
       return "Applies to: â€”";
   }

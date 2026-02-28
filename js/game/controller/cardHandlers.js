@@ -43,6 +43,15 @@ function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
   } else if (effectDef.type === "NO_PHONE_TOUCH") {
     addEffect(state, createEffect("NO_PHONE_TOUCH", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
     log(`Effect activated: Hands Off Your Phone (${effectDef.turns} turns).`);
+  } else if (effectDef.type === "DELAYED_REACTION") {
+    addEffect(state, createEffect("DELAYED_REACTION", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
+    log(`Effect activated: Delayed Reaction (${effectDef.turns} turns).`);
+  } else if (effectDef.type === "NAME_SWAP") {
+    addEffect(state, createEffect("NAME_SWAP", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
+    log(`Effect activated: Name Swap (${effectDef.turns} turns). Choose two players and enforce the rule.`);
+  } else if (effectDef.type === "GLASS_DOWN") {
+    addEffect(state, createEffect("GLASS_DOWN", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
+    log(`Effect activated: Glass Down Rule (${effectDef.turns} turns).`);
   } else {
     addEffect(state, createEffect(effectDef.type, effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
     log(`Effect activated: ${effectDef.type} (${effectDef.turns} turns).`);

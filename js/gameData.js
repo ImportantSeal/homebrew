@@ -183,7 +183,7 @@ export const gameData = {
       {
         name: "Who Knows You",
         instruction:
-          "The card drawer asks anyone a question about themselves. Wrong answer -> responder takes a Penalty card. Correct answer -> card drawer takes a Penalty card.",
+          "The card drawer asks anyone a question about themselves. Wrong answer -> responder drinks 3. Correct answer -> card drawer drinks 3.",
         action: "WHO_KNOWS_YOU"
       },
       {
@@ -270,6 +270,16 @@ export const gameData = {
         action: "ALL_IN_TAX"
       },
       {
+        name: "Effect Surge",
+        instruction: "If any timed effect is active, everybody drinks 3.",
+        action: "IF_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3"
+      },
+      {
+        name: "Calm Table Tax",
+        instruction: "If no timed effects are active, everybody drinks 3.",
+        action: "IF_NO_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3"
+      },
+      {
         name: "Mutual Damage",
         instruction: "Choose one: you and one other player both drink 3, OR everybody else drinks 1.",
         action: "MUTUAL_DAMAGE"
@@ -283,6 +293,21 @@ export const gameData = {
         name: "King's Tax",
         instruction: "Choose a temporary king for six rounds. Anyone who interrupts the king drinks 2.",
         effect: { type: "KINGS_TAX", turns: 6, needsTarget: true }
+      },
+      {
+        name: "Delayed Reaction (3 Turns)",
+        instruction: "No instant reactions for 3 turns. If you react in under 2 seconds, drink 1.",
+        effect: { type: "DELAYED_REACTION", turns: 3 }
+      },
+      {
+        name: "Name Swap (4 Turns)",
+        instruction: "Choose two players. For 4 turns, they use each other's names. Wrong name -> drink 1.",
+        effect: { type: "NAME_SWAP", turns: 4 }
+      },
+      {
+        name: "Glass Down Rule (4 Turns)",
+        instruction: "For 4 turns, your drink must be on the table before speaking. Break it -> drink 1.",
+        effect: { type: "GLASS_DOWN", turns: 4 }
       },
 
       // ===== EFFECT CARDS =====

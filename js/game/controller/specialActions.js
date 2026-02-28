@@ -863,6 +863,34 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
+    case "IF_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3": {
+      const hasActiveEffects = Array.isArray(state.effects)
+        && state.effects.some((effect) => (effect?.remainingTurns ?? 0) > 0);
+
+      if (!hasActiveEffects) {
+        log("Effect Surge: no active timed effects, so nothing happens.");
+        return;
+      }
+
+      applyEveryoneDrink(state, 3, "Effect Surge", log, applyDrinkEvent);
+      log("Effect Surge: active effect found. Everybody drinks 3.");
+      return;
+    }
+
+    case "IF_NO_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3": {
+      const hasActiveEffects = Array.isArray(state.effects)
+        && state.effects.some((effect) => (effect?.remainingTurns ?? 0) > 0);
+
+      if (hasActiveEffects) {
+        log("Calm Table Tax: active timed effects found, so nothing happens.");
+        return;
+      }
+
+      applyEveryoneDrink(state, 3, "Calm Table Tax", log, applyDrinkEvent);
+      log("Calm Table Tax: no active effects. Everybody drinks 3.");
+      return;
+    }
+
     case "MUTUAL_DAMAGE": {
       const choice = createChoiceAction({
         key: "MUTUAL_DAMAGE",
