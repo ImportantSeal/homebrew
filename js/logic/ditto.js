@@ -1,7 +1,6 @@
 // js/ditto/effects.js
 
 import { randomFromArray } from '../utils/random.js';
-import { recordPenaltyTaken } from '../stats.js';
 
 const ITEM_DITTO_TYPES = new Set(['LOSE_ONE_ITEM_ALL', 'STEAL_RANDOM_ITEM']);
 
@@ -147,36 +146,11 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
     }
 
     case 'PENALTY_ALL': {
-      const penalty = randomFromArray(state.penaltyDeck);
-      logDitto(log, `Ditto rolled a penalty for everyone: ${penalty}`);
-
-      let blockedByShieldCount = 0;
-      state.players.forEach((p, idx) => {
-        if (p?.shield) {
-          blockedByShieldCount += 1;
-          delete p.shield;
-          logDitto(log, `${p.name}'s Shield blocked Ditto penalty: ${penalty}`);
-          return;
-        }
-
-        logDitto(log, `${p.name} takes penalty: ${penalty}`);
-        recordPenaltyTaken(state, idx);
-        // if it's Drink X / Shot etc, trigger drink event
-        const m = String(penalty).match(/Drink\s+(\d+)/i);
-        if (m) applyDrinkEvent?.(state, idx, parseInt(m[1], 10), "Ditto penalty all", log);
-        else if (/^Shotgun$/i.test(String(penalty))) applyDrinkEvent?.(state, idx, "Shotgun", "Ditto penalty all", log);
-        else if (/^Shot$/i.test(String(penalty))) applyDrinkEvent?.(state, idx, "Shot", "Ditto penalty all", log);
-      });
-
-      updateTurnOrder();
-      renderItemsBoard();
-      let summaryMessage = `Penalty for everyone: ${penalty}.`;
-      if (blockedByShieldCount > 0) {
-        summaryMessage += ` Blocked by Shield: ${blockedByShieldCount}.`;
-      }
+      logDitto(log, "Ditto says: everyone takes a Penalty card.");
+      logDitto(log, "Resolve penalty cards manually. No automatic penalty roll was made.");
       return {
         title: infoTitle,
-        message: summaryMessage
+        message: "Everyone takes a Penalty card. Resolve all penalties manually."
       };
     }
 

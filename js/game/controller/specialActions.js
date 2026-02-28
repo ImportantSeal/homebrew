@@ -1,9 +1,4 @@
-import { randomFromArray } from '../../utils/random.js';
-import { recordGiveDrinks, recordPenaltyTaken } from '../../stats.js';
-
-function rollDie(sides) {
-  return Math.floor(Math.random() * sides) + 1;
-}
+import { recordGiveDrinks } from '../../stats.js';
 
 function inventoryCount(player) {
   return Array.isArray(player?.inventory) ? player.inventory.length : 0;
@@ -84,37 +79,6 @@ function applyEveryoneElseDrink(state, selfIndex, amount, reason, log, applyDrin
   });
 }
 
-function applyPenaltyCardToPlayer(state, playerIndex, reason, log, applyDrinkEvent) {
-  const player = state.players?.[playerIndex];
-  if (!player) return;
-
-  if (player.shield) {
-    log?.(`${player.name}'s Shield protected against the penalty!`);
-    delete player.shield;
-    return;
-  }
-
-  const deck = Array.isArray(state?.penaltyDeck) && state.penaltyDeck.length > 0
-    ? state.penaltyDeck
-    : ["Drink 3"];
-  const penalty = randomFromArray(deck);
-
-  recordPenaltyTaken(state, playerIndex);
-  log?.(`${player.name} rolled penalty card: ${penalty}${reason ? ` (${reason})` : ''}`);
-
-  if (typeof applyDrinkEvent !== 'function') return;
-
-  const s = String(penalty || '').trim();
-  const m = s.match(/^Drink\s+(\d+)/i);
-  if (m) {
-    applyDrinkEvent(state, playerIndex, parseInt(m[1], 10) || 1, "Penalty", log);
-  } else if (/^Shotgun$/i.test(s)) {
-    applyDrinkEvent(state, playerIndex, "Shotgun", "Penalty: Shotgun", log);
-  } else if (/^Shot$/i.test(s)) {
-    applyDrinkEvent(state, playerIndex, "Shot", "Penalty: Shot", log);
-  }
-}
-
 function queueManualPenaltyDraw(state, log, prompt = "Click the Penalty Deck to roll and continue.") {
   if (state.penaltyShown) {
     log?.("Resolve the current penalty first.");
@@ -190,8 +154,7 @@ export function runSpecialAction(action, context) {
     currentPlayer,
     currentPlayerIndex,
     log,
-    applyDrinkEvent,
-    rollPenaltyCard
+    applyDrinkEvent
   } = context;
 
   const p = currentPlayer || { name: 'Current player' };
@@ -216,18 +179,7 @@ export function runSpecialAction(action, context) {
 
     case "DOUBLE_OR_NOTHING_D6": {
       applyDrinkEvent(state, selfIndex, 4, "Double or Nothing", log);
-
-      const roll = rollDie(6);
-      log(`${p.name} drinks 4 and rolls a d6: ${roll}.`);
-
-      if (roll >= 4) {
-        recordGiveDrinks(state, selfIndex, 8);
-        log(`${p.name} wins Double or Nothing and gives 8 drinks total.`);
-        return;
-      }
-
-      applyDrinkEvent(state, selfIndex, 8, "Double or Nothing fail", log);
-      log(`${p.name} loses Double or Nothing and drinks 8 more.`);
+      log(`${p.name} drinks 4 first. Roll a d6 manually: on 4-6 give 8 drinks total, on 1-3 drink 8 more.`);
       return;
     }
 
@@ -453,11 +405,9 @@ export function runSpecialAction(action, context) {
             id: "everybody_penalty_card",
             label: "Everybody takes a Penalty card",
             variant: "primary",
-            run: ({ state: innerState, log: innerLog, applyDrinkEvent: applyInnerDrinkEvent }) => {
+            run: ({ log: innerLog }) => {
               innerLog?.("Chaos Referendum result: everybody takes a Penalty card.");
-              innerState.players.forEach((_, idx) => {
-                applyPenaltyCardToPlayer(innerState, idx, "Chaos Referendum", innerLog, applyInnerDrinkEvent);
-              });
+              innerLog?.("Resolve penalty draws manually. No automatic penalty cards were rolled.");
               return { endTurn: true };
             }
           }
@@ -928,24 +878,7 @@ export function runSpecialAction(action, context) {
     }
 
     case "RISKY_ROLL_D20": {
-      const r = rollDie(20);
-      log(`Risky roll (d20): ${r}`);
-
-      if (r === 1) {
-        log("Critical fail: you down your drink. (We treat this as Shotgun.)");
-        applyDrinkEvent(state, selfIndex, "Shotgun", "Risky Roll: 1", log);
-        return;
-      }
-
-      if (r === 20) {
-        log("Natural 20: everyone else downs. (We treat this as Shotgun.)");
-        state.players.forEach((_, idx) => {
-          if (idx !== selfIndex) applyDrinkEvent(state, idx, "Shotgun", "Risky Roll: 20", log);
-        });
-        return;
-      }
-
-      log("Risky Roll: nothing happens.");
+      log("Risky Roll (d20): roll manually now. On 1 you down your drink, on 20 everyone else downs, on 2-19 nothing happens.");
       return;
     }
 
