@@ -136,7 +136,6 @@ function createTargetPlayerChoiceAction({
       idx,
       name: normalizeChoiceText(player?.name, `Player ${idx + 1}`)
     }))
-    .filter(player => player.idx !== selfIndex)
     .map(({ idx, name }) => ({
       id: `target_${idx}`,
       label: name,
@@ -199,19 +198,50 @@ export function runSpecialAction(action, context) {
 
     case "DOUBLE_OR_NOTHING_D6": {
       applyDrinkEvent(state, selfIndex, 4, "Double or Nothing", log);
-      log(`${p.name} drinks 4 and rolls a d6 for Double or Nothing.`);
+      log(`${p.name} drinks 4 and rolls a d6 for Double or Nothing. Pick the rolled value.`);
 
-      const r = rollDie(6);
-      log(`Double or Nothing roll (d6): ${r}`);
+      const choice = createChoiceAction({
+        key: "DOUBLE_OR_NOTHING_D6_RESULT",
+        title: "Double or Nothing (d6)",
+        message: "Roll a d6 yourself, then pick the result.",
+        variant: "choice",
+        options: Array.from({ length: 6 }, (_, idx) => {
+          const roll = idx + 1;
+          const win = roll >= 4;
 
-      if (r >= 4) {
-        log(`${p.name} wins: give 8 drinks.`);
-        recordGiveDrinks(state, selfIndex, 8);
-      } else {
-        applyDrinkEvent(state, selfIndex, 8, "Double or Nothing fail", log);
+          return {
+            id: `roll_${roll}`,
+            label: String(roll),
+            variant: win ? "primary" : "danger",
+            run: ({
+              state: innerState,
+              currentPlayer: innerPlayer,
+              currentPlayerIndex: innerIndex,
+              log: innerLog,
+              applyDrinkEvent: applyInnerDrinkEvent
+            }) => {
+              const actorName = innerPlayer?.name || innerState.players?.[innerIndex]?.name || p.name;
+              innerLog?.(`Double or Nothing roll (d6): ${roll}`);
+
+              if (win) {
+                innerLog?.(`${actorName} wins: give 8 drinks.`);
+                recordGiveDrinks(innerState, innerIndex, 8);
+              } else {
+                applyInnerDrinkEvent(innerState, innerIndex, 8, "Double or Nothing fail", innerLog);
+              }
+
+              return { endTurn: true };
+            }
+          };
+        })
+      });
+
+      if (!choice) {
+        log("Double or Nothing choice setup failed.");
+        return;
       }
 
-      return;
+      return { endTurn: false, choice };
     }
 
     case "DRINK_AND_DRAW_AGAIN": {

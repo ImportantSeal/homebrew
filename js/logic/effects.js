@@ -86,10 +86,10 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
   cancelTargetedEffectSelection(state);
 
   const players = Array.isArray(state.players) ? state.players : [];
-  const hasValidTarget = players.some((_, idx) => idx !== sourceIndex);
+  const hasValidTarget = players.length > 0;
   if (!hasValidTarget) {
     const effectName = getEffectTitle(def?.type, def?.type || "Effect");
-    log?.(`${effectName} needs another player. Effect was skipped.`);
+    log?.(`${effectName} needs at least one player. Effect was skipped.`);
     setEffectSelectionState(state);
     clearPickMode();
     onDone?.(null);

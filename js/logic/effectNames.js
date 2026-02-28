@@ -6,6 +6,7 @@ const EFFECT_TITLES = Object.freeze({
   NO_PHONE_TOUCH: "Hands Off Your Phone",
   DITTO_MAGNET: "Ditto Magnet",
   KINGS_TAX: "King's Tax",
+  LIE_MODE: "Lie Mode",
   DELAYED_REACTION: "Delayed Reaction",
   NAME_SWAP: "Name Swap",
   GLASS_DOWN: "Glass Down Rule"

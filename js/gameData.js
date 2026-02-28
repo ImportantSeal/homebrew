@@ -155,7 +155,11 @@ export const gameData = {
       { name: "Left-Handed Justice", instruction: "If you are left-handed: give 2. If not: drink 1. (Yes, it's unfair.)" },
       { name: "Give Echo", instruction: "Give the last 'Give X' value shown in Card History. If none, give 2." },
       { name: "No U", instruction: "Redirect the most recent Drink/Give aimed at you to another player. If none applies, drink 1." },
-      { name: "Lie Mode (4 Turns)", instruction: "Choose one player. For the next 4 turns, they may speak only lies. If they tell the truth, they drink 2." },
+      {
+        name: "Lie Mode (4 Turns)",
+        instruction: "Choose one player. For the next 4 turns, they may speak only lies. If they tell the truth, they drink 2.",
+        effect: { type: "LIE_MODE", turns: 4, needsTarget: true }
+      },
       { name: "Domino Curse (6 Rounds)", instruction: "Choose one player. For the next 6 rounds, whenever they drink, all other players drink 1." },
       { name: "Nemesis Mark", instruction: "Pick a nemesis for 3 rounds; whenever they drink, you may give 1." },
       { name: "Forbidden Word (8 Rounds)", instruction: "Set one forbidden word for 8 rounds. Anyone saying it drinks 1." },

@@ -149,39 +149,26 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
     case 'PENALTY_ALL': {
       const penalty = randomFromArray(state.penaltyDeck);
       logDitto(log, `Ditto rolled a penalty for everyone: ${penalty}`);
-      const shieldsEnabled = Boolean(state.includeItems);
-      let blockedCount = 0;
-      let affectedCount = 0;
 
       state.players.forEach((p, idx) => {
-        if (shieldsEnabled && p.shield) {
-          delete p.shield;
-          logDitto(log, `${p.name}'s Shield blocked the penalty.`);
-          blockedCount += 1;
-        } else {
-          logDitto(log, `${p.name} takes penalty: ${penalty}`);
-          affectedCount += 1;
-          recordPenaltyTaken(state, idx);
-          // if it's Drink X / Shot etc, trigger drink event
-          const m = String(penalty).match(/Drink\s+(\d+)/i);
-          if (m) applyDrinkEvent?.(state, idx, parseInt(m[1], 10), "Ditto penalty all", log);
-          else if (/^Shotgun$/i.test(String(penalty))) applyDrinkEvent?.(state, idx, "Shotgun", "Ditto penalty all", log);
-          else if (/^Shot$/i.test(String(penalty))) applyDrinkEvent?.(state, idx, "Shot", "Ditto penalty all", log);
-        }
+        logDitto(log, `${p.name} takes penalty: ${penalty}`);
+        recordPenaltyTaken(state, idx);
+        // if it's Drink X / Shot etc, trigger drink event
+        const m = String(penalty).match(/Drink\s+(\d+)/i);
+        if (m) applyDrinkEvent?.(state, idx, parseInt(m[1], 10), "Ditto penalty all", log);
+        else if (/^Shotgun$/i.test(String(penalty))) applyDrinkEvent?.(state, idx, "Shotgun", "Ditto penalty all", log);
+        else if (/^Shot$/i.test(String(penalty))) applyDrinkEvent?.(state, idx, "Shot", "Ditto penalty all", log);
       });
 
       updateTurnOrder();
       renderItemsBoard();
-      const summaryParts = [
-        `Penalty for everyone: ${penalty}.`,
-        `Affected: ${affectedCount}.`
-      ];
-      if (shieldsEnabled && blockedCount > 0) {
-        summaryParts.push(`Blocked by Shield: ${blockedCount}.`);
-      }
+      const drinkMatch = String(penalty).match(/^Drink\s+(\d+)/i);
+      const summaryMessage = drinkMatch
+        ? `Everyone drinks ${parseInt(drinkMatch[1], 10)}.`
+        : `Penalty for everyone: ${penalty}.`;
       return {
         title: infoTitle,
-        message: summaryParts.join(' ')
+        message: summaryMessage
       };
     }
 

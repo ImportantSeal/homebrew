@@ -19,6 +19,7 @@ function effectIcon(type) {
     case "DRINK_BUDDY": return "\u{1F91D}\u{1F37B}";
     case "DITTO_MAGNET": return "\u{1F9F2}";
     case "KINGS_TAX": return "\u{1F451}";
+    case "LIE_MODE": return "\u{1F925}";
     case "DELAYED_REACTION": return "\u23F1\uFE0F";
     case "NAME_SWAP": return "\u{1F501}";
     case "GLASS_DOWN": return "\u{1F964}";
@@ -57,6 +58,12 @@ function effectDescription(state, eff) {
         ? `${king} is king. Anyone who interrupts them drinks 2.`
         : "A temporary king is active. Anyone interrupting them drinks 2.";
     }
+    case "LIE_MODE": {
+      const tgt = state.players?.[eff.targetIndex]?.name;
+      return tgt
+        ? `${tgt} may speak only lies. If they tell the truth, they drink 2.`
+        : "Chosen player may speak only lies. Truth means Drink 2.";
+    }
     case "DELAYED_REACTION":
       return "No instant reactions. Reacting in under 2 seconds means Drink 1.";
     case "NAME_SWAP":
@@ -92,6 +99,10 @@ function effectAppliesTo(state, eff) {
     case "KINGS_TAX": {
       const king = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `King: ${king}`;
+    }
+    case "LIE_MODE": {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
+      return `Target: ${tgt}`;
     }
     case "DELAYED_REACTION":
       return "Applies to: Everyone";
