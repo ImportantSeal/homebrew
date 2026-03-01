@@ -525,7 +525,7 @@ body::before {
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--muted);
-  transition: filter 0.2s, border-color 0.2s;
+  transition: filter 0.2s, border-color 0.2s, box-shadow 0.2s, background 0.2s;
   user-select: none;
   line-height: 1;
   font: inherit;
@@ -533,6 +533,15 @@ body::before {
   -webkit-appearance: none;
   cursor: pointer;
   touch-action: manipulation;
+}
+.turn-player-name.turn-player-name--current {
+  border-color: var(--player-color, rgba(53,224,199,0.72));
+  box-shadow:
+    0 0 0 1px var(--player-color, rgba(53,224,199,0.82)),
+    0 0 0 4px rgba(255,255,255,0.08);
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.03)),
+    rgba(10, 14, 28, 0.72);
 }
 .turn-player-name .player-name-token {
   color: var(--player-color, rgba(234,240,255,0.86));
@@ -548,6 +557,13 @@ body[data-pickmode="effect-target"] .turn-player-name {
   cursor: pointer;
   border-color: rgba(53,224,199,0.28);
   box-shadow: 0 0 0 3px rgba(53,224,199,0.14);
+}
+
+body[data-pickmode="effect-target"] .turn-player-name.turn-player-name--current {
+  border-color: var(--player-color, rgba(53,224,199,0.72));
+  box-shadow:
+    0 0 0 1px var(--player-color, rgba(53,224,199,0.82)),
+    0 0 0 4px rgba(53,224,199,0.14);
 }
 
 @media (hover:hover) {
