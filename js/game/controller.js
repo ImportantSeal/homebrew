@@ -318,6 +318,8 @@ export function startGame() {
   state.penaltyConfirmArmed = false;
   state.penaltySource = null;
   state.penaltyHintShown = false;
+  state.penaltyRollPlayerIndex = null;
+  state.penaltyGroup = null;
 
   state.dittoPending = [null, null, null];
   state.dittoActive = [false, false, false];

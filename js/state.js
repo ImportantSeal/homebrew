@@ -42,11 +42,17 @@ export function createInitialState() {
     penaltyConfirmArmed: false,
 
     // why penalty is currently shown (affects behavior)
-    // 'deck' | 'card' | 'card_pending' | 'redraw' | 'redraw_hold' | null
+    // 'deck' | 'card' | 'card_pending' | 'group' | 'group_pending' | 'redraw' | 'redraw_hold' | null
     penaltySource: null,
 
     // prevent log spam when player clicks cards while penalty must be confirmed
     penaltyHintShown: false,
+
+    // which player the currently shown penalty belongs to
+    penaltyRollPlayerIndex: null,
+
+    // manual group-penalty queue (everyone/selected players roll one by one)
+    penaltyGroup: null,
 
     // Ditto: pending effect per card index
     dittoPending: [null, null, null],

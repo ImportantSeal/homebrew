@@ -165,12 +165,12 @@ export const gameData = {
       { name: "No U", instruction: "Redirect the most recent Drink/Give aimed at you to another player. If none applies, drink 1." },
       {
         name: "Lie Mode (4 Turns)",
-        instruction: "Choose one player. For the next 4 turns, they may speak only lies. If they tell the truth, they drink 2.",
+        instruction: "Choose one player (you may choose yourself). For the next 4 turns, they may speak only lies. If they tell the truth, they drink 2.",
         effect: { type: "LIE_MODE", turns: 4, needsTarget: true }
       },
       {
         name: "Domino Curse (6 Rounds)",
-        instruction: "Pick one player. For the next 6 rounds, whenever they drink, all other players drink 1.",
+        instruction: "Pick one player (you may choose yourself). For the next 6 rounds, whenever they drink, all other players drink 1.",
         effect: { type: "DOMINO_CURSE", turns: 6, needsTarget: true }
       },
       {
@@ -193,7 +193,7 @@ export const gameData = {
         instruction: "Reveal a Penalty card now and share that same penalty with one other player.",
         action: "SHARE_PENALTY_LOCKED"
       },
-      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to all players." },
+      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to all players.", action: "PENALTY_ALL_MANUAL" },
       { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
       { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
       { name: "Clean Sheet Punishment", instruction: "If your Penalties are 0, draw a Penalty Card." },
@@ -253,7 +253,7 @@ export const gameData = {
       },
       {
         name: "Mercy or Mayhem",
-        instruction: "Choose one: everybody drinks 1, OR pick one other player to drink 4.",
+        instruction: "Choose one: everybody drinks 1, OR pick one player (including yourself) to drink 4.",
         action: "MERCY_OR_MAYHEM"
       },
       {
@@ -308,17 +308,17 @@ export const gameData = {
       },
       {
         name: "Mutual Damage",
-        instruction: "Choose one: you and one other player both drink 3, OR everybody else drinks 1.",
+        instruction: "Choose one: you and one player (including yourself) drink 3, OR everybody else drinks 1.",
         action: "MUTUAL_DAMAGE"
       },
       {
         name: "Mercy Clause",
-        instruction: "Choose one: everybody drinks 1, OR pick one other player to drink 4.",
+        instruction: "Choose one: everybody drinks 1, OR pick one player (including yourself) to drink 4.",
         action: "MERCY_CLAUSE"
       },
       {
         name: "King's Tax",
-        instruction: "Choose a temporary king for six rounds. Anyone who interrupts the king drinks 2.",
+        instruction: "Choose a temporary king for six rounds (you may choose yourself). Anyone who interrupts the king drinks 2.",
         effect: { type: "KINGS_TAX", turns: 6, needsTarget: true }
       },
       {
@@ -360,12 +360,12 @@ export const gameData = {
       },
       {
         name: "Drink Buddy (Pick a target)",
-        instruction: "Pick a player. For the next 6 turns, that player drinks whenever YOU drink.",
+        instruction: "Pick a player (you may choose yourself). For the next 6 turns, that player drinks whenever YOU drink.",
         effect: { type: "DRINK_BUDDY", turns: 6, needsTarget: true }
       },
       {
         name: "Ditto Magnet (Pick a target)",
-        instruction: "Pick a player. For the next 5 turns, if Ditto triggers for them, they take a Shot immediately.",
+        instruction: "Pick a player (you may choose yourself). For the next 5 turns, if Ditto triggers for them, they take a Shot immediately.",
         effect: { type: "DITTO_MAGNET", turns: 5, needsTarget: true }
       }
     ]

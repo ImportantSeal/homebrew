@@ -7,13 +7,19 @@ import { recordPenaltyTaken } from '../stats.js';
  * source:
  *  - "deck"   = user clicked penalty deck
  *  - "card"   = player selected "Draw a Penalty Card"
+ *  - "group"  = penalty is part of a manual group queue
  *  - "redraw" = info/preview penalty (should NOT end turn on confirm)
  *  - "redraw_hold" = redraw penalty that stays open until card-action modal closes
  */
-export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
+export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, options = {}) {
   if (state.penaltyShown) return;
 
-  const currentPlayer = state.players[state.currentPlayerIndex];
+  const defaultIndex = state.currentPlayerIndex;
+  const requestedIndex = Number.isInteger(options?.targetPlayerIndex)
+    ? options.targetPlayerIndex
+    : defaultIndex;
+  const currentPlayer = state.players[requestedIndex];
+  if (!currentPlayer) return;
 
   // Reset hint spam guard on new penalty attempt
   state.penaltyHintShown = false;
@@ -24,6 +30,7 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
 
     state.penaltyConfirmArmed = false;
     state.penaltySource = null;
+    state.penaltyRollPlayerIndex = null;
     return;
   }
 
@@ -33,10 +40,11 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
   state.penaltyShown = true;
   state.penaltyConfirmArmed = true;
   state.penaltySource = source;
+  state.penaltyRollPlayerIndex = requestedIndex;
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
-  recordPenaltyTaken(state, state.currentPlayerIndex);
+  recordPenaltyTaken(state, requestedIndex);
 
   log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
 
@@ -46,11 +54,11 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent) {
   const s = String(penalty || "").trim();
   const m = s.match(/^Drink\s+(\d+)/i);
   if (m) {
-    applyDrinkEvent(state, state.currentPlayerIndex, parseInt(m[1], 10) || 1, "Penalty", log);
+    applyDrinkEvent(state, requestedIndex, parseInt(m[1], 10) || 1, "Penalty", log);
   } else if (/^Shotgun$/i.test(s)) {
-    applyDrinkEvent(state, state.currentPlayerIndex, "Shotgun", "Penalty: Shotgun", log);
+    applyDrinkEvent(state, requestedIndex, "Shotgun", "Penalty: Shotgun", log);
   } else if (/^Shot$/i.test(s)) {
-    applyDrinkEvent(state, state.currentPlayerIndex, "Shot", "Penalty: Shot", log);
+    applyDrinkEvent(state, requestedIndex, "Shot", "Penalty: Shot", log);
   }
 }
 
@@ -76,6 +84,7 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
   // IMPORTANT: mark as "redraw" so penalty-deck click won't advance turn
   state.penaltySource = "redraw";
   state.penaltyHintShown = false;
+  state.penaltyRollPlayerIndex = null;
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
@@ -90,6 +99,7 @@ export function hidePenaltyCard(state) {
   state.penaltyConfirmArmed = false;
   state.penaltySource = null;
   state.penaltyHintShown = false;
+  state.penaltyRollPlayerIndex = null;
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, "Penalty Deck");

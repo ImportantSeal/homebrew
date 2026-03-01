@@ -113,13 +113,6 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
   log?.(`Pick a player for: ${getEffectTitle(def.type, def.type)}. Click a player name in turn order.`);
 
   activeCleanup = enablePlayerNameSelection(state, (targetIndex, cleanup) => {
-    // disallow self-target
-    if (targetIndex === sourceIndex) {
-      const srcName = state.players?.[sourceIndex]?.name ?? "You";
-      log?.(`Nope. ${srcName} can't target themselves - pick someone else.`);
-      return; // keep selection active; do NOT cleanup
-    }
-
     cleanup?.();
     activeCleanup = null;
 

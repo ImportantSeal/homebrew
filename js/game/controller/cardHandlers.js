@@ -25,7 +25,8 @@ import {
   parseDrinkFromText,
   parseGiveFromText,
   shouldShowActionScreenForPlainCard,
-  isRedrawLockedPenaltyOpen
+  isRedrawLockedPenaltyOpen,
+  effectLabelForLog
 } from './helpers.js';
 
 import { runSpecialAction, runSpecialChoiceAction } from './specialActions.js';
@@ -85,6 +86,57 @@ export function createCardHandlers({
 
   function clearChoiceSelection() {
     state.choiceSelection = { active: false, pending: null };
+  }
+
+  function isGroupPenaltyPending() {
+    return state.penaltySource === "group_pending" && !!state.penaltyGroup?.active;
+  }
+
+  function currentGroupPenaltyTargetIndex() {
+    const group = state.penaltyGroup;
+    if (!group?.active || !Array.isArray(group.queue)) return null;
+
+    if (!Number.isInteger(group.cursor) || group.cursor < 0) group.cursor = 0;
+    while (group.cursor < group.queue.length) {
+      const idx = group.queue[group.cursor];
+      if (Number.isInteger(idx) && idx >= 0 && idx < (state.players?.length || 0)) {
+        return idx;
+      }
+      group.cursor += 1;
+    }
+
+    return null;
+  }
+
+  function advanceGroupPenaltyQueue() {
+    const group = state.penaltyGroup;
+    if (!group?.active || !Array.isArray(group.queue)) {
+      state.penaltyGroup = null;
+      state.penaltySource = null;
+      state.penaltyHintShown = false;
+      return true;
+    }
+
+    group.cursor = (Number.isInteger(group.cursor) ? group.cursor : 0) + 1;
+    const nextTargetIndex = currentGroupPenaltyTargetIndex();
+    if (Number.isInteger(nextTargetIndex)) {
+      state.penaltySource = "group_pending";
+      state.penaltyHintShown = false;
+      const nextName = playerName(nextTargetIndex);
+      log(`Group penalty: ${nextName} rolls next. Click the Penalty Deck to continue.`);
+      return false;
+    }
+
+    state.penaltyGroup = null;
+    state.penaltySource = null;
+    state.penaltyHintShown = false;
+    if (Number.isInteger(group.originPlayerIndex)
+      && group.originPlayerIndex >= 0
+      && group.originPlayerIndex < (state.players?.length || 0)) {
+      state.currentPlayerIndex = group.originPlayerIndex;
+    }
+    log("Group penalties resolved.");
+    return true;
   }
 
   function startChoiceSelection(choice, fallbackTitle = "Choose One", fallbackMessage = "") {
@@ -212,9 +264,11 @@ export function createCardHandlers({
       return;
     }
 
-    if (state.penaltySource === "card_pending") {
+    if (state.penaltySource === "card_pending" || isGroupPenaltyPending()) {
       if (!state.penaltyHintShown) {
-        log("Roll the Penalty Deck to continue.");
+        log(state.penaltySource === "card_pending"
+          ? "Roll the Penalty Deck to continue."
+          : "Group penalty is active. Roll the Penalty Deck to continue.");
         state.penaltyHintShown = true;
       }
       return;
@@ -265,12 +319,51 @@ export function createCardHandlers({
       return;
     }
 
+    // Pending group penalty flow (each player rolls manually in queue order).
+    if (!state.penaltyShown && isGroupPenaltyPending()) {
+      const targetIndex = currentGroupPenaltyTargetIndex();
+      if (!Number.isInteger(targetIndex)) {
+        const done = advanceGroupPenaltyQueue();
+        if (done) nextPlayer();
+        renderEffectsPanel();
+        return;
+      }
+
+      lockUI();
+      rollPenaltyCard(state, log, "group", applyDrinkEvent, { targetPlayerIndex: targetIndex });
+
+      // Shield blocked -> immediately move to next queued player (or finish queue).
+      if (!state.penaltyShown) {
+        const done = advanceGroupPenaltyQueue();
+        if (done) {
+          nextPlayer();
+        }
+        unlockUI();
+        renderEffectsPanel();
+        return;
+      }
+
+      unlockAfter(timing.PENALTY_UNLOCK_MS);
+      renderEffectsPanel();
+      return;
+    }
+
     // If penalty is showing, clicking confirms/hides depending on source.
     if (state.penaltyShown && state.penaltyConfirmArmed) {
       lockUI();
 
       const source = state.penaltySource;
       hidePenaltyCard(state);
+
+      if (source === "group") {
+        const done = advanceGroupPenaltyQueue();
+        if (done) {
+          nextPlayer();
+        }
+        unlockUI();
+        renderEffectsPanel();
+        return;
+      }
 
       // "redraw" = preview/info penalty, does not end turn.
       if (source !== "redraw") {
@@ -317,8 +410,8 @@ export function createCardHandlers({
       return;
     }
 
-    // Preserve mandatory confirm flow for "Draw a Penalty Card".
-    if (state.penaltySource === "card") {
+    // Preserve mandatory confirm flow for "Draw a Penalty Card" and group queue penalties.
+    if (state.penaltySource === "card" || state.penaltySource === "group") {
       if (!state.penaltyHintShown) {
         log("Penalty is waiting: click the Penalty Deck to confirm.");
         state.penaltyHintShown = true;
@@ -565,9 +658,11 @@ export function createCardHandlers({
       return;
     }
 
-    if (state.penaltySource === "card_pending") {
+    if (state.penaltySource === "card_pending" || isGroupPenaltyPending()) {
       if (!state.penaltyHintShown) {
-        log("Roll the Penalty Deck to continue.");
+        log(state.penaltySource === "card_pending"
+          ? "Roll the Penalty Deck to continue."
+          : "Group penalty is active. Roll the Penalty Deck to continue.");
         state.penaltyHintShown = true;
       }
       return;
@@ -578,7 +673,7 @@ export function createCardHandlers({
     // If penalty is open, handle it first.
     if (state.penaltyShown) {
       // If penalty came from selecting the penalty card, confirm via penalty deck click.
-      if (state.penaltySource === "card") {
+      if (state.penaltySource === "card" || state.penaltySource === "group") {
         if (!state.penaltyHintShown) {
           log("Penalty is waiting: click the Penalty Deck to confirm.");
           state.penaltyHintShown = true;

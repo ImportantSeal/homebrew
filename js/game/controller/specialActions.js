@@ -91,6 +91,44 @@ function queueManualPenaltyDraw(state, log, prompt = "Click the Penalty Deck to 
   return true;
 }
 
+function queueManualPenaltyDrawForPlayers(
+  state,
+  log,
+  playerIndexes,
+  originPlayerIndex,
+  prompt = "Group penalty active: click the Penalty Deck to roll and continue."
+) {
+  if (state.penaltyShown) {
+    log?.("Resolve the current penalty first.");
+    return false;
+  }
+
+  const players = Array.isArray(state?.players) ? state.players : [];
+  const queue = Array.isArray(playerIndexes)
+    ? playerIndexes.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < players.length)
+    : [];
+
+  if (queue.length === 0) {
+    log?.("No valid players available for group penalty.");
+    return false;
+  }
+
+  state.penaltyGroup = {
+    active: true,
+    queue,
+    cursor: 0,
+    originPlayerIndex: Number.isInteger(originPlayerIndex) ? originPlayerIndex : state.currentPlayerIndex
+  };
+  state.penaltyRollPlayerIndex = null;
+  state.penaltySource = "group_pending";
+  state.penaltyHintShown = false;
+
+  const firstPlayerIndex = queue[0];
+  const firstPlayerName = normalizeChoiceText(players[firstPlayerIndex]?.name, `Player ${firstPlayerIndex + 1}`);
+  log?.(`${prompt} ${firstPlayerName} rolls first.`);
+  return true;
+}
+
 function ensureInventory(player) {
   if (!player || typeof player !== 'object') return [];
   if (!Array.isArray(player.inventory)) player.inventory = [];
@@ -308,7 +346,7 @@ export function runSpecialAction(action, context) {
               const targetChoice = createTargetPlayerChoiceAction({
                 key: `${action}_TARGET`,
                 title: cardTitle,
-                message: "Pick one player to drink 4.",
+                message: "Pick one player (you can pick yourself) to drink 4.",
                 state: innerState,
                 selfIndex: innerIndex,
                 optionVariant: "danger",
@@ -405,9 +443,18 @@ export function runSpecialAction(action, context) {
             id: "everybody_penalty_card",
             label: "Everybody takes a Penalty card",
             variant: "primary",
-            run: ({ log: innerLog }) => {
-              innerLog?.("Chaos Referendum result: everybody takes a Penalty card.");
-              return { endTurn: true };
+            run: ({ state: innerState, currentPlayerIndex: innerIndex, log: innerLog }) => {
+              const allPlayers = Array.isArray(innerState?.players)
+                ? innerState.players.map((_, idx) => idx)
+                : [];
+              queueManualPenaltyDrawForPlayers(
+                innerState,
+                innerLog,
+                allPlayers,
+                innerIndex,
+                "Chaos Referendum: everybody takes a Penalty card."
+              );
+              return { endTurn: false };
             }
           }
         ]
@@ -835,6 +882,12 @@ export function runSpecialAction(action, context) {
                   applyDrinkEvent: applyTargetDrinkEvent
                 }, targetIndex, targetName) => {
                   const actorName = targetState.players?.[actorIndex]?.name || p.name;
+                  if (targetIndex === actorIndex) {
+                    applyTargetDrinkEvent(targetState, actorIndex, 3, "Mutual Damage", targetLog);
+                    targetLog?.(`${actorName} picked themselves and drinks 3.`);
+                    return { endTurn: true };
+                  }
+
                   applyTargetDrinkEvent(targetState, actorIndex, 3, "Mutual Damage", targetLog);
                   applyTargetDrinkEvent(targetState, targetIndex, 3, "Mutual Damage", targetLog);
                   targetLog?.(`${actorName} and ${targetName} both drink 3.`);
@@ -879,6 +932,18 @@ export function runSpecialAction(action, context) {
     case "RISKY_ROLL_D20": {
       log("Risky Roll (d20): roll manually now. On 1 you down your drink, on 20 everyone else downs, on 2-19 nothing happens.");
       return;
+    }
+
+    case "PENALTY_ALL_MANUAL": {
+      const allPlayers = Array.isArray(state?.players) ? state.players.map((_, idx) => idx) : [];
+      queueManualPenaltyDrawForPlayers(
+        state,
+        log,
+        allPlayers,
+        selfIndex,
+        "Fun for whole family: everybody takes a Penalty card."
+      );
+      return { endTurn: false };
     }
 
     case "SHARE_PENALTY_LOCKED": {
