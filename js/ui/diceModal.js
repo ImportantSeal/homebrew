@@ -8,6 +8,7 @@ const DICEBOX_VERSION = "1.1.4";
 const DICEBOX_ORIGIN = `https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@${DICEBOX_VERSION}/dist/`;
 const DICEBOX_ASSET_PATH = "assets/";
 const MIN_TRAY_PX = 80;
+const TRAY_LAYOUT_WAIT_FRAMES = 45;
 const RECENT_LAYOUT_CHANGE_MS = 700; 
 const DICE_SCALE_MIN = 6.2;
 const DICE_SCALE_MAX = 9.8;
@@ -15,6 +16,7 @@ const DICE_SCALE_FALLBACK = 7.2;
 const DICEBOX_IMPORT_TIMEOUT_MS = 6000;
 const DICEBOX_INIT_TIMEOUT_MS = 6000;
 const DICEBOX_ROLL_TIMEOUT_MS = 7000;
+const DICEBOX_INIT_RETRY_LIMIT = 2;
 
 let diceBox = null;
 let diceBoxInitPromise = null;
@@ -27,6 +29,7 @@ let pendingSoftReset = false;
 let lastLayoutChangeAt = 0;
 let dice3dDisabled = false;
 let dice3dWarningLogged = false;
+let diceInitFailureCount = 0;
 
 function clampInt(n, min, max, fallback) {
   const x = Number.parseInt(String(n), 10);
@@ -146,7 +149,7 @@ function shouldRecreateForScale() {
   return Math.abs(nextScale - currentDiceScale) >= 0.25;
 }
 
-async function waitForTrayLayout(maxFrames = 10) {
+async function waitForTrayLayout(maxFrames = TRAY_LAYOUT_WAIT_FRAMES) {
   const tray = document.getElementById('dice-box');
   if (!tray) return false;
 
@@ -161,6 +164,8 @@ async function waitForTrayLayout(maxFrames = 10) {
 
 async function getDiceBox() {
   if (dice3dDisabled) return null;
+
+  await waitForTrayLayout();
 
   if (shouldRecreateForScale()) {
     resetDiceBoxInstance();
@@ -190,12 +195,16 @@ async function getDiceBox() {
       currentDiceScale = scale;
 
       await withTimeout(diceBox.init(), DICEBOX_INIT_TIMEOUT_MS, "initializing 3D dice");
+      diceInitFailureCount = 0;
       return diceBox;
     })().catch((err) => {
       diceBox = null;
       diceBoxInitPromise = null;
       currentDiceScale = null;
-      dice3dDisabled = true;
+      diceInitFailureCount += 1;
+      if (diceInitFailureCount > DICEBOX_INIT_RETRY_LIMIT) {
+        dice3dDisabled = true;
+      }
       throw err;
     });
   }
@@ -292,8 +301,12 @@ export function initDiceModal() {
       }
     } catch (err) {
       console.error(err);
-      if (resultEl) resultEl.textContent = "3D dice unavailable. Rolling uses fallback.";
-      if (!dice3dWarningLogged) {
+      if (resultEl) {
+        resultEl.textContent = dice3dDisabled
+          ? "3D dice unavailable. Rolling uses fallback."
+          : "3D dice warming up. If fallback appears, roll once more.";
+      }
+      if (dice3dDisabled && !dice3dWarningLogged) {
         addHistoryEntry("Dice warning: 3D dice unavailable, using fallback rolls.");
         dice3dWarningLogged = true;
       }
@@ -344,6 +357,9 @@ export function initDiceModal() {
   });
 
   const handleViewportChange = () => {
+    // Fullscreen and 4K viewport transitions can produce transient init failures.
+    // Allow retries after a viewport change instead of staying permanently disabled.
+    dice3dDisabled = false;
     markLayoutChange(true);
     scheduleResize();
   };
@@ -390,6 +406,27 @@ export function initDiceModal() {
           values = parseDieResults(dieResults, sides);
         } catch (err) {
           console.warn(`Dice roll failed (${baseNotation}); using fallback.`, err);
+        }
+
+        if (values.length !== qty) {
+          resetDiceBoxInstance();
+          const retryBox = await getDiceBox();
+          if (!isModalOpen || localToken !== rollToken) return;
+
+          const retryReady = retryBox ? await stabilizeDiceBox(retryBox, true) : false;
+          if (retryReady && retryBox && isModalOpen && localToken === rollToken) {
+            try {
+              const retryResults = await withTimeout(
+                retryBox.roll(baseNotation),
+                DICEBOX_ROLL_TIMEOUT_MS,
+                `rolling ${baseNotation} (retry)`
+              );
+              if (!isModalOpen || localToken !== rollToken) return;
+              values = parseDieResults(retryResults, sides);
+            } catch (err) {
+              console.warn(`Dice roll retry failed (${baseNotation}); using fallback.`, err);
+            }
+          }
         }
       }
 
