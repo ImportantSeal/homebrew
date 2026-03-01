@@ -2,7 +2,7 @@
 
 import { state } from '../state.js';
 import { addHistoryEntry, clearHistoryEntries } from '../cardHistory.js';
-import { resetStats } from '../stats.js';
+import { resetStats, removePlayerStats } from '../stats.js';
 
 import { createBag } from '../utils/random.js';
 import { ensurePlayerColors } from '../utils/playerColors.js';
@@ -25,6 +25,7 @@ import {
   bindPenaltyRefreshClick,
   bindPenaltyDeckClick,
   bindTurnOrderPlayerClick,
+  bindTurnOrderRemoveClick,
   bindCloseDropdownsOnOutsideClick
 } from '../ui/uiFacade.js';
 
@@ -36,6 +37,10 @@ const TIMING = {
   MYSTERY_REVEAL_UNLOCK_MS: 700,
   DITTO_DOUBLECLICK_GUARD_MS: 1000,
   REDRAW_REFRESH_MS: 1000
+};
+
+const PLAYER_REMOVAL = {
+  MIN_PLAYERS: 2
 };
 
 let penaltyDeckSizeSyncBound = false;
@@ -74,6 +79,147 @@ function playerName(index) {
   if (p && p.name) return p.name;
   const safeIndex = Number.isFinite(index) ? index : 0;
   return `Player ${safeIndex + 1}`;
+}
+
+function renderTurnHeader() {
+  const p = currentPlayer();
+  setTurnIndicatorText(p ? `${p.name}'s Turn` : "Player's Turn");
+  renderTurnOrder(state);
+}
+
+function remapPlayerIndexAfterRemoval(index, removedIndex) {
+  if (!Number.isInteger(index)) return index;
+  if (index === removedIndex) return null;
+  return index > removedIndex ? index - 1 : index;
+}
+
+function normalizeStateAfterPlayerRemoval(removedIndex) {
+  let removedEffects = 0;
+
+  if (Array.isArray(state.effects)) {
+    state.effects = state.effects
+      .map((effect) => {
+        if (!effect || typeof effect !== 'object') return null;
+
+        const hasSource = Number.isInteger(effect.sourceIndex);
+        const hasTarget = Number.isInteger(effect.targetIndex);
+        const nextSource = remapPlayerIndexAfterRemoval(effect.sourceIndex, removedIndex);
+        const nextTarget = remapPlayerIndexAfterRemoval(effect.targetIndex, removedIndex);
+
+        if ((hasSource && nextSource === null) || (hasTarget && nextTarget === null)) {
+          removedEffects += 1;
+          return null;
+        }
+
+        if (hasSource) effect.sourceIndex = nextSource;
+        if (hasTarget) effect.targetIndex = nextTarget;
+        return effect;
+      })
+      .filter(Boolean);
+  }
+
+  if (state.effectSelection?.active) {
+    cancelTargetedEffectSelection(state);
+  } else if (state.effectSelection?.pending) {
+    const nextSource = remapPlayerIndexAfterRemoval(state.effectSelection.pending.sourceIndex, removedIndex);
+    if (nextSource === null) {
+      state.effectSelection = { active: false, pending: null, cleanup: null };
+    } else {
+      state.effectSelection.pending.sourceIndex = nextSource;
+    }
+  }
+
+  if (state.mirror && typeof state.mirror === 'object') {
+    const nextSource = remapPlayerIndexAfterRemoval(state.mirror.sourceIndex, removedIndex);
+    if (nextSource === null) {
+      state.mirror = {
+        active: false,
+        sourceIndex: null,
+        selectedCardIndex: null,
+        parentName: '',
+        subName: '',
+        subInstruction: '',
+        displayText: ''
+      };
+    } else {
+      state.mirror.sourceIndex = nextSource;
+    }
+  }
+
+  return removedEffects;
+}
+
+function removePlayerFromGame(targetIndex) {
+  const playerCount = state.players.length;
+  if (playerCount <= PLAYER_REMOVAL.MIN_PLAYERS) {
+    log(`At least ${PLAYER_REMOVAL.MIN_PLAYERS} players must remain.`);
+    return false;
+  }
+
+  const targetPlayer = state.players[targetIndex];
+  if (!targetPlayer) return false;
+
+  const wasCurrentPlayer = targetIndex === state.currentPlayerIndex;
+  const removedName = targetPlayer.name || playerName(targetIndex);
+  state.players.splice(targetIndex, 1);
+  removePlayerStats(state, targetIndex);
+
+  if (wasCurrentPlayer) {
+    if (state.currentPlayerIndex >= state.players.length) {
+      state.currentPlayerIndex = 0;
+    }
+  } else if (targetIndex < state.currentPlayerIndex) {
+    state.currentPlayerIndex = Math.max(0, state.currentPlayerIndex - 1);
+  }
+
+  const removedEffects = normalizeStateAfterPlayerRemoval(targetIndex);
+  ensurePlayerColors(state.players);
+
+  log(`${removedName} was removed from the game.`);
+  if (removedEffects > 0) {
+    log(`${removedEffects} effect${removedEffects === 1 ? '' : 's'} ended because of player removal.`);
+  }
+
+  if (wasCurrentPlayer) {
+    updateTurn();
+  } else {
+    renderTurnHeader();
+    renderItems();
+    renderEffectsPanel();
+    requestAnimationFrame(syncPenaltyDeckSizeToCards);
+  }
+
+  return true;
+}
+
+function onTurnOrderPlayerRemoveClick(removeBtn, event) {
+  if (event?.preventDefault) event.preventDefault();
+  if (event?.stopPropagation) event.stopPropagation();
+  if (event?.stopImmediatePropagation) event.stopImmediatePropagation();
+
+  if (state.choiceSelection?.active) {
+    log("Resolve the current card choice before removing a player.");
+    return;
+  }
+
+  if (state.effectSelection?.active) {
+    log("Pick a target player first (effect selection is active).");
+    return;
+  }
+
+  if (state.players.length <= PLAYER_REMOVAL.MIN_PLAYERS) {
+    log(`At least ${PLAYER_REMOVAL.MIN_PLAYERS} players are required to continue.`);
+    return;
+  }
+
+  const targetIndex = Number(removeBtn?.dataset?.index);
+  if (!Number.isInteger(targetIndex)) return;
+  const target = state.players?.[targetIndex];
+  if (!target) return;
+
+  const confirmed = window.confirm(`Remove ${target.name} from the game?`);
+  if (!confirmed) return;
+  removePlayerFromGame(targetIndex);
 }
 
 function lockUI() {
@@ -211,15 +357,16 @@ function setupEventListeners() {
   bindPenaltyRefreshClick(onPenaltyRefreshClick);
   bindPenaltyDeckClick(onPenaltyDeckClick);
   bindTurnOrderPlayerClick(onTurnOrderPlayerClick);
+  bindTurnOrderRemoveClick(onTurnOrderPlayerRemoveClick);
   bindCloseDropdownsOnOutsideClick();
 }
 
 function onTurnOrderPlayerClick(playerBtn) {
-  if (state.choiceSelection?.active) return;
-  if (state.effectSelection?.active) return;
-
   const rawIndex = Number(playerBtn?.dataset?.index);
   if (!Number.isInteger(rawIndex)) return;
+
+  if (state.choiceSelection?.active) return;
+  if (state.effectSelection?.active) return;
 
   jumpToPlayerTurn(rawIndex);
 }
@@ -271,10 +418,7 @@ function nextPlayer() {
 }
 
 function updateTurn() {
-  const p = currentPlayer();
-  setTurnIndicatorText(`${p.name}'s Turn`);
-
-  renderTurnOrder(state);
+  renderTurnHeader();
   updateItemsPanelVisibility();
   renderItems();
   renderEffectsPanel();
@@ -321,7 +465,7 @@ function renderItems() {
       pIndex,
       iIndex,
       log,
-      () => renderTurnOrder(state),
+      renderTurnHeader,
       renderItems,
       updateTurn
     );

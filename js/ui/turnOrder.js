@@ -5,8 +5,9 @@ export function renderTurnOrder(state) {
   const turnOrderElem = document.getElementById('turn-order');
   if (!turnOrderElem) return;
 
-  turnOrderElem.innerHTML = "";
+  turnOrderElem.innerHTML = '';
   ensurePlayerColors(state.players);
+  const canRemovePlayers = (state?.players?.length || 0) > 2;
 
   state.players.forEach((player, index) => {
     const color = ensurePlayerColor(player, index);
@@ -31,13 +32,25 @@ export function renderTurnOrder(state) {
       nameText.classList.add('is-current');
     }
     nameSpan.appendChild(nameText);
-
     playerDiv.appendChild(nameSpan);
+
+    const removeBtn = document.createElement('button');
+    removeBtn.type = 'button';
+    removeBtn.className = 'turn-player-remove';
+    removeBtn.dataset.index = String(index);
+    removeBtn.setAttribute('aria-label', `Remove ${player.name} from game`);
+    removeBtn.title = canRemovePlayers ? `Remove ${player.name}` : 'Need at least 2 players';
+    removeBtn.textContent = 'x';
+    if (!canRemovePlayers) {
+      removeBtn.disabled = true;
+    }
+    playerDiv.appendChild(removeBtn);
+
     turnOrderElem.appendChild(playerDiv);
 
     if (index < state.players.length - 1) {
       const arrowSpan = document.createElement('span');
-      arrowSpan.textContent = " → ";
+      arrowSpan.textContent = ' \u2192 ';
       turnOrderElem.appendChild(arrowSpan);
     }
   });

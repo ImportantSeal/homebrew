@@ -10,6 +10,7 @@ const listeners = {
   penaltyRefreshUnbind: null,
   penaltyDeckUnbind: null,
   turnOrderUnbind: null,
+  turnOrderRemoveUnbind: null,
   closeDropdownsBound: false
 };
 
@@ -80,6 +81,22 @@ export function bindTurnOrderPlayerClick(handler) {
     if (!playerBtn || !el.contains(playerBtn)) return;
 
     handler?.(playerBtn, event);
+  });
+}
+
+export function bindTurnOrderRemoveClick(handler) {
+  const el = getEl('turn-order');
+  if (!el) return;
+
+  if (typeof listeners.turnOrderRemoveUnbind === 'function') listeners.turnOrderRemoveUnbind();
+  listeners.turnOrderRemoveUnbind = bindTap(el, (event) => {
+    const target = event.target;
+    if (!target || !target.closest) return;
+
+    const removeBtn = target.closest('.turn-player-remove');
+    if (!removeBtn || !el.contains(removeBtn)) return;
+
+    handler?.(removeBtn, event);
   });
 }
 

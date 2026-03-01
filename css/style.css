@@ -543,6 +543,53 @@ body::before {
     linear-gradient(135deg, rgba(255,255,255,0.16), rgba(255,255,255,0.03)),
     rgba(10, 14, 28, 0.72);
 }
+.turn-player-remove {
+  position: absolute;
+  top: -0.32rem;
+  right: -0.25rem;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255,109,109,0.58);
+  background: rgba(28, 10, 16, 0.92);
+  color: rgba(255,210,210,0.96);
+  font: inherit;
+  font-size: 0.68rem;
+  font-weight: 800;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.84);
+  pointer-events: none;
+  transition: opacity 0.14s ease, transform 0.14s ease, filter 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 0 0 2px rgba(11,16,32,0.56);
+}
+.turn-player-remove:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.turn-player-wrapper:hover .turn-player-remove,
+.turn-player-wrapper:focus-within .turn-player-remove {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+}
+.turn-player-remove:hover {
+  filter: brightness(1.08);
+  border-color: rgba(255,137,137,0.78);
+}
+.turn-player-remove:focus-visible {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  outline: none;
+  box-shadow:
+    0 0 0 2px rgba(11,16,32,0.62),
+    0 0 0 4px rgba(255,109,109,0.34);
+}
 .turn-player-name .player-name-token {
   color: var(--player-color, rgba(234,240,255,0.86));
 }

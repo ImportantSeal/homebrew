@@ -172,6 +172,17 @@ export function resetStats(stateObj) {
   markUpdated(stateObj);
 }
 
+export function removePlayerStats(stateObj, playerIndex) {
+  if (!Number.isInteger(playerIndex) || playerIndex < 0) return;
+
+  const statsRoot = ensureStatsRoot(stateObj);
+  if (!statsRoot || !Array.isArray(statsRoot.players)) return;
+  if (playerIndex >= statsRoot.players.length) return;
+
+  statsRoot.players.splice(playerIndex, 1);
+  markUpdated(stateObj);
+}
+
 export function recordCardSelection(stateObj, playerIndex, options = {}) {
   const playerStats = ensurePlayerStats(stateObj, playerIndex);
   if (!playerStats) return;
