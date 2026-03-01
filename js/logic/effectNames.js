@@ -9,7 +9,12 @@ const EFFECT_TITLES = Object.freeze({
   LIE_MODE: "Lie Mode",
   DELAYED_REACTION: "Delayed Reaction",
   NAME_SWAP: "Name Swap",
-  GLASS_DOWN: "Glass Down Rule"
+  GLASS_DOWN: "Glass Down Rule",
+  DOMINO_CURSE: "Domino Curse",
+  NEMESIS_MARK: "Nemesis Mark",
+  FORBIDDEN_WORD: "Forbidden Word",
+  QUESTION_MASTER: "Question Master",
+  NOTIFICATION_CURSE: "Notification Curse"
 });
 
 export function getEffectTitle(type, fallback = "Effect") {

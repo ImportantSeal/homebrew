@@ -167,7 +167,7 @@ export function runSpecialAction(action, context) {
         return;
       }
 
-      log(`${p.name} asks anyone a question about ${p.name}. Wrong answer -> responder takes a Penalty card. Correct answer -> ${p.name} takes a Penalty card.`);
+      log(`${p.name} asks anyone a question about ${p.name}. Wrong answer -> responder drinks 3. Correct answer -> ${p.name} drinks 3.`);
       return;
     }
 

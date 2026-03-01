@@ -56,7 +56,7 @@ function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
     log(`Effect activated: Glass Down Rule (${effectDef.turns} turns).`);
   } else {
     addEffect(state, createEffect(effectDef.type, effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
-    log(`Effect activated: ${effectDef.type} (${effectDef.turns} turns).`);
+    log(`Effect activated: ${effectLabelForLog({ type: effectDef.type }, effectDef.type)} (${effectDef.turns} turns).`);
   }
 
   renderEffectsPanel();

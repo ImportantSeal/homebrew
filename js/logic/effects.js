@@ -113,10 +113,10 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
   log?.(`Pick a player for: ${getEffectTitle(def.type, def.type)}. Click a player name in turn order.`);
 
   activeCleanup = enablePlayerNameSelection(state, (targetIndex, cleanup) => {
-    // ✅ disallow self-target
+    // disallow self-target
     if (targetIndex === sourceIndex) {
       const srcName = state.players?.[sourceIndex]?.name ?? "You";
-      log?.(`Nope. ${srcName} can't target themselves — pick someone else.`);
+      log?.(`Nope. ${srcName} can't target themselves - pick someone else.`);
       return; // keep selection active; do NOT cleanup
     }
 
@@ -140,8 +140,12 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
       log?.(`Ditto Magnet: if Ditto triggers for ${tgtName}, they take a Shot (${def.turns} turns).`);
     } else if (def.type === "KINGS_TAX") {
       log?.(`King's Tax: ${tgtName} is king for ${def.turns} turns. Anyone who interrupts them drinks 2.`);
+    } else if (def.type === "DOMINO_CURSE") {
+      log?.(`Domino Curse: whenever ${tgtName} drinks, everyone else drinks 1 (${def.turns} turns).`);
+    } else if (def.type === "NEMESIS_MARK") {
+      log?.(`Nemesis Mark: when ${tgtName} drinks, ${srcName} may give 1 (${def.turns} turns).`);
     } else {
-      log?.(`Effect set: ${def.type} → ${tgtName} (${def.turns} turns).`);
+      log?.(`Effect set: ${def.type} -> ${tgtName} (${def.turns} turns).`);
     }
 
     onDone?.(targetIndex);
@@ -172,13 +176,18 @@ function parseDrinkAmount(text) {
 }
 
 /**
- * Central “drink happened” hook:
+ * Central "drink happened" hook:
  * - triggers DRINK_BUDDY if drinker is a source
- *
- * NOTE: this is a social game; we mainly LOG the extra drink instruction.
+ * - triggers DOMINO_CURSE if drinker is the cursed target
+ * - logs NEMESIS_MARK reminder if drinker is marked target
  */
 export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, opts = {}) {
-  const { skipBuddy = false, suppressSelfLog = false } = opts;
+  const {
+    skipBuddy = false,
+    suppressSelfLog = false,
+    skipDomino = false,
+    skipNemesis = false
+  } = opts;
 
   const player = state.players?.[playerIndex];
   if (!player) return;
@@ -202,19 +211,39 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
 
   recordDrinkTaken(state, playerIndex, amount);
 
-  if (skipBuddy) return;
-
-  // Trigger Drink Buddy(s)
   const effects = Array.isArray(state.effects) ? state.effects : [];
-  effects
-    .filter(e => e && e.type === "DRINK_BUDDY" && e.sourceIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
-    .forEach(e => {
-      const tgt = state.players?.[e.targetIndex];
-      if (!tgt) return;
 
-      log?.(`${tgt.name}: ${label} (Drink Buddy with ${player.name})`);
-      recordDrinkTaken(state, e.targetIndex, amount);
-    });
+  if (!skipBuddy) {
+    effects
+      .filter(e => e && e.type === "DRINK_BUDDY" && e.sourceIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
+      .forEach(e => {
+        const tgt = state.players?.[e.targetIndex];
+        if (!tgt) return;
+
+        log?.(`${tgt.name}: ${label} (Drink Buddy with ${player.name})`);
+        recordDrinkTaken(state, e.targetIndex, amount);
+      });
+  }
+
+  if (!skipDomino) {
+    effects
+      .filter(e => e && e.type === "DOMINO_CURSE" && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
+      .forEach(() => {
+        state.players?.forEach((_, idx) => {
+          if (idx === playerIndex) return;
+          applyDrinkEvent(state, idx, 1, "Domino Curse", log, { skipDomino: true });
+        });
+      });
+  }
+
+  if (!skipNemesis) {
+    effects
+      .filter(e => e && e.type === "NEMESIS_MARK" && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
+      .forEach(e => {
+        const srcName = state.players?.[e.sourceIndex]?.name ?? "Someone";
+        log?.(`${srcName}: may give 1 (Nemesis Mark on ${player.name}).`);
+      });
+  }
 }
 
 /**
@@ -234,7 +263,7 @@ export function onDittoActivated(state, playerIndex, log) {
 
   // One magnet = one shot. If you WANT stacking, remove the "only once" behavior.
   // We'll do: trigger once even if multiple magnets exist.
-  log?.(`${player.name} got Ditto while magnetized → Shot!`);
+  log?.(`${player.name} got Ditto while magnetized -> Shot!`);
   applyDrinkEvent(state, playerIndex, "Shot", "Ditto Magnet", log);
 
   // Consume Ditto Magnet(s) on trigger so the effect disappears immediately.

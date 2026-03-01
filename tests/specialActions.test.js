@@ -80,3 +80,14 @@ test('CHAOS_BUTTON option drink and draw again keeps turn and refreshes cards', 
   assert.equal(state.stats.players[2].drinksTaken, 0);
   assert.ok(lines.some((line) => line.includes('A keeps their turn and draws one extra card.')));
 });
+
+test('WHO_KNOWS_YOU uses Drink 3 wording in history log', () => {
+  const state = createState();
+  const { lines, log } = createLogCollector();
+
+  runSpecialAction('WHO_KNOWS_YOU', createContext(state, log));
+
+  assert.ok(lines.some((line) => line.includes('Wrong answer -> responder drinks 3.')));
+  assert.ok(lines.some((line) => line.includes('Correct answer -> A drinks 3.')));
+  assert.ok(!lines.some((line) => /Penalty card/i.test(line)));
+});

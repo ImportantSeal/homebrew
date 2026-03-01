@@ -10,8 +10,7 @@ export const gameData = {
         { name: "Would You Rather", instruction: "Ask someone Would You Rather." },
         { name: "Rock, Paper, Scissors", instruction: "Play R,P,S against someone; loser drinks three." },
         { name: "Random Fact", instruction: "Share an interesting fact - a boring fact means 1 drink." },
-        { name: "This or That", instruction: "Ask someone 'this or that'; hesitation means two drinks." },
-        { name: "Song Association", instruction: "Say a word. First to sing a lyric with it gives 1; last to sing drinks 1." },
+        { name: "This or That", instruction: "You pick two options and ask one player to choose immediately. If they hesitate, they drink 2." },
         { name: "5-Second Rule", instruction: "Name 3 things in a category within 5 seconds. Fail and drink 2." },
         { name: "Most Likely To", instruction: "Say 'Most likely to...'. Count to three and point; the most-voted player drinks 1." },
         { name: "Staring Contest", instruction: "Pick an opponent. First to blink drinks two." },
@@ -21,7 +20,6 @@ export const gameData = {
         { name: "No hands", instruction: "Take a shot without using your hands." },
         { name: "Biggest Red Flag", instruction: "Share one big red flag in relationships in general." },
         { name: "Biggest Green Flag", instruction: "Share one big green flag in relationships in general." },
-        { name: "Flirting Style", instruction: "Describe your flirting style in 3 words. Group picks the cringiest; that player drinks 2." },
         { name: "Red Flag Redemption", instruction: "Name one red flag you used to have but fixed. If you cannot name one, drink 2." },
         { name: "Instant Ick", instruction: "Name one tiny instant ick." },
         { name: "Dealbreaker Draft", instruction: "Name your #1 dealbreaker. If you hesitate for 5 seconds, drink 2." },
@@ -39,7 +37,6 @@ export const gameData = {
         { name: "No Filter", instruction: "Say out loud the first thing that comes to mind. If you hesitate, drink 2." },
         { name: "Dating Resume", instruction: "Give a 15-second dating pitch for yourself." },
         { name: "Real or Fake Opinion", instruction: "State one opinion. Everyone guesses whether you truly mean it. Anyone who guesses wrong drinks 1. You drink 1 for each player who guessed correctly." },
-        { name: "Cancel Confession", instruction: "Everyone shares one reason they could get cancelled. The group votes for the most believable confession; that player gives out 2 drinks." },
         { name: "Unnecessary Skill", instruction: "Share one useless skill you have. If anyone claims it is actually useful, you drink 1." },
         { name: "Deal or Steal", instruction: "Pick one player. You and that player secretly choose either 'Deal' or 'Steal' and reveal at the same time. If both choose Deal, both give 1 drink. If one chooses Steal and the other chooses Deal, the Steal player gives 3 drinks total. If both choose Steal, both drink 2." },
 
@@ -76,9 +73,9 @@ export const gameData = {
     name: "Crowd Challenge",
     subcategories: [
       { name: "Waterfall", instruction: "Starting with you, everyone begins drinking; each person can stop only when the person to their right stops." },
-      { name: "Trivia Master", instruction: "Ask a trivia question to the group; wrong answers drink, first correct answer gives one." },
+      { name: "Trivia Master", instruction: "You ask a trivia question. Anyone who answers wrong drinks 1. The first player to answer correctly gives 1." },
       { name: "Categories", instruction: "Pick a category and go clockwise naming items; first repeat, pause, or miss drinks." },
-      { name: "This or That?", instruction: "Everyone chooses between two options; the minority drinks." },
+      { name: "This or That?", instruction: "You choose two options. Everyone picks one side at the same time; the minority side drinks 1 each." },
       { name: "Minority Wins", instruction: "Set a binary topic. Minority side gives 1 each, majority side drinks 1 each." },
       { name: "Overrated / Underrated", instruction: "Pick a thing (not a person). Everyone votes: overrated or underrated. Minority drinks 2." },
       { name: "Heads or Tails", instruction: "Everyone chooses heads/tails with hands; losing side drinks." },
@@ -115,6 +112,9 @@ export const gameData = {
       { name: "One's Gotta Go", instruction: "Name 4 things in one category. Everyone points to one to remove. Minority choice drinks 1." },
       { name: "Bet the Number", instruction: "Ask a numeric question. Everyone guesses once. Closest without going over gives 3. Over drinks 1. If all go over, everyone drinks 1." },
       { name: "Chaos Referendum", instruction: "Group vote together: either everybody drinks 5 OR everybody takes a Penalty card.", action: "CHAOS_REFERENDUM_GROUP" },
+      { name: "Song Association", instruction: "You say one word. First to sing a lyric containing that word gives 1, last to sing drinks 1." },
+      { name: "Flirting Style", instruction: "Everyone describes their flirting style in 3 words. Group picks the cringiest answer; that player drinks 2." },
+      { name: "Cancel Confession", instruction: "Everyone shares one reason they could get cancelled. Group votes for the most believable confession; that player gives 2 drinks." },
 
 
       
@@ -126,10 +126,10 @@ export const gameData = {
   special: {
     name: "Special Card",
     subcategories: [
-      { name: "Odds Drink", instruction: "Roll 1-10; if the result is odd, you drink the number shown." },
-      { name: "Even Drink", instruction: "Roll 1-10; if the result is even, you drink the number shown." },
-      { name: "Odds Give", instruction: "Roll 1-10; if the result is odd, you give out the number of drinks shown." },
-      { name: "Even Give", instruction: "Roll 1-10; if the result is even, you give out the number of drinks shown." },
+      { name: "Odds Drink", instruction: "Roll 1-10. Odd result: you drink that many. Even result: you give that many." },
+      { name: "Even Drink", instruction: "Roll 1-10. Even result: you drink that many. Odd result: you give that many." },
+      { name: "Odds Give", instruction: "Roll 1-10. Odd result: you give that many. Even result: you drink that many." },
+      { name: "Even Give", instruction: "Roll 1-10. Even result: you give that many. Odd result: you drink that many." },
       { name: "Mini King", instruction: "Everyone adds to the King's Cup. You drink the King's Cup." },
       { name: "Everybody Drink", instruction: "Everybody drinks 1 and clinks glasses.", action: "EVERYBODY_DRINK_CLINK" },
       { name: "Double Social", instruction: "Everyone drinks two." },
@@ -149,7 +149,11 @@ export const gameData = {
       { name: "Host Tax", instruction: "Host drinks as many sips as there are players at the table." },
       { name: "Last Arrival", instruction: "The last player to arrive drinks the same amount as the most recent Drink card value in Card History." },
       { name: "Battery Debt", instruction: "Everyone shows phone battery %. Lowest battery drinks the difference to the highest battery (rounded down, max 8)." },
-      { name: "Notification Curse", instruction: "For the next 10 rounds, if your phone gets a notification, you take a drink." },
+      {
+        name: "Notification Curse",
+        instruction: "For the next 10 rounds, if your phone gets a notification, you drink 1.",
+        effect: { type: "NOTIFICATION_CURSE", turns: 10 }
+      },
       { name: "Most Recent Sip", instruction: "The person who last took a sip drinks 3." },
       { name: "Generation Gap Bill", instruction: "Find the oldest and youngest players. The oldest drinks the age difference." },
       { name: "Generation Gap Rebate", instruction: "Find the oldest and youngest players. The youngest drinks the age difference." },
@@ -164,10 +168,26 @@ export const gameData = {
         instruction: "Choose one player. For the next 4 turns, they may speak only lies. If they tell the truth, they drink 2.",
         effect: { type: "LIE_MODE", turns: 4, needsTarget: true }
       },
-      { name: "Domino Curse (6 Rounds)", instruction: "Choose one player. For the next 6 rounds, whenever they drink, all other players drink 1." },
-      { name: "Nemesis Mark", instruction: "Pick a nemesis for 3 rounds; whenever they drink, you may give 1." },
-      { name: "Forbidden Word (8 Rounds)", instruction: "Set one forbidden word for 8 rounds. Anyone saying it drinks 1." },
-      { name: "Question Master (6 Rounds)", instruction: "Drawer is Question Master for 6 rounds. If you answer their question directly, you drink 2." },
+      {
+        name: "Domino Curse (6 Rounds)",
+        instruction: "Pick one player. For the next 6 rounds, whenever they drink, all other players drink 1.",
+        effect: { type: "DOMINO_CURSE", turns: 6, needsTarget: true }
+      },
+      {
+        name: "Nemesis Mark (3 Rounds)",
+        instruction: "Pick one nemesis for 3 rounds. Whenever they drink, you may give 1.",
+        effect: { type: "NEMESIS_MARK", turns: 3, needsTarget: true }
+      },
+      {
+        name: "Forbidden Word (8 Rounds)",
+        instruction: "Set one forbidden word for 8 rounds. Anyone saying it drinks 1.",
+        effect: { type: "FORBIDDEN_WORD", turns: 8 }
+      },
+      {
+        name: "Question Master (6 Rounds)",
+        instruction: "You are Question Master for 6 rounds. If someone answers your question directly, they drink 2.",
+        effect: { type: "QUESTION_MASTER", turns: 6 }
+      },
       {
         name: "Share Penalty",
         instruction: "Reveal a Penalty card now and share that same penalty with one other player.",

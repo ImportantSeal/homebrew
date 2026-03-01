@@ -117,6 +117,33 @@ test('applyDrinkEvent skipBuddy and suppressSelfLog options work', () => {
   assert.equal(lines.length, 0);
 });
 
+test('applyDrinkEvent triggers Domino Curse for all other players', () => {
+  const state = createState();
+  const { lines, log } = createLogCollector();
+
+  state.effects.push(createEffect('DOMINO_CURSE', 6, { sourceIndex: 0, targetIndex: 1 }));
+
+  applyDrinkEvent(state, 1, 2, 'Test', log);
+
+  assert.equal(state.stats.players[1].drinksTaken, 2);
+  assert.equal(state.stats.players[0].drinksTaken, 1);
+  assert.equal(state.stats.players[2].drinksTaken, 1);
+  assert.ok(lines.some((line) => line.includes('A: Drink 1 (Domino Curse)')));
+  assert.ok(lines.some((line) => line.includes('C: Drink 1 (Domino Curse)')));
+});
+
+test('applyDrinkEvent logs Nemesis Mark reminder when marked player drinks', () => {
+  const state = createState();
+  const { lines, log } = createLogCollector();
+
+  state.effects.push(createEffect('NEMESIS_MARK', 3, { sourceIndex: 2, targetIndex: 1 }));
+
+  applyDrinkEvent(state, 1, 1, 'Test', log);
+
+  assert.equal(state.stats.players[1].drinksTaken, 1);
+  assert.ok(lines.some((line) => line.includes('C: may give 1 (Nemesis Mark on B).')));
+});
+
 test('onDittoActivated applies shot and consumes magnet on trigger', () => {
   const state = createState();
   const { lines, log } = createLogCollector();

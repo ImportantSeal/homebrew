@@ -23,6 +23,11 @@ function effectIcon(type) {
     case "DELAYED_REACTION": return "\u23F1\uFE0F";
     case "NAME_SWAP": return "\u{1F501}";
     case "GLASS_DOWN": return "\u{1F964}";
+    case "DOMINO_CURSE": return "\u{1F9F1}";
+    case "NEMESIS_MARK": return "\u2694\uFE0F";
+    case "FORBIDDEN_WORD": return "\u{1F6AB}";
+    case "QUESTION_MASTER": return "\u2753";
+    case "NOTIFICATION_CURSE": return "\u{1F514}";
     default: return "\u2728";
   }
 }
@@ -70,6 +75,29 @@ function effectDescription(state, eff) {
       return "Two chosen players swap names. Using a real name means Drink 1.";
     case "GLASS_DOWN":
       return "Drink must be on the table before speaking. Break it and Drink 1.";
+    case "DOMINO_CURSE": {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
+      return `${tgt} is cursed. Whenever they drink, everyone else drinks 1.`;
+    }
+    case "NEMESIS_MARK": {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
+      return `${src} marked ${tgt}. When ${tgt} drinks, ${src} may give 1.`;
+    }
+    case "FORBIDDEN_WORD":
+      return "One forbidden word is active. Saying it means Drink 1.";
+    case "QUESTION_MASTER": {
+      const src = state.players?.[eff.sourceIndex]?.name;
+      return src
+        ? `${src} is Question Master. Direct answers to their questions mean Drink 2.`
+        : "Question Master is active. Direct answers mean Drink 2.";
+    }
+    case "NOTIFICATION_CURSE": {
+      const src = state.players?.[eff.sourceIndex]?.name;
+      return src
+        ? `${src} drinks 1 whenever their phone gets a notification.`
+        : "If your phone gets a notification, drink 1.";
+    }
     default:
       return "An effect is active.";
   }
@@ -110,6 +138,25 @@ function effectAppliesTo(state, eff) {
       return "Applies to: Two chosen players";
     case "GLASS_DOWN":
       return "Applies to: Everyone";
+    case "DOMINO_CURSE": {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
+      return `Cursed player: ${tgt}`;
+    }
+    case "NEMESIS_MARK": {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
+      return `Link: ${src} -> ${tgt}`;
+    }
+    case "FORBIDDEN_WORD":
+      return "Applies to: Everyone";
+    case "QUESTION_MASTER": {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
+      return `Question Master: ${src}`;
+    }
+    case "NOTIFICATION_CURSE": {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
+      return `Applies to: ${src}`;
+    }
     default:
       return "Applies to: â€”";
   }
