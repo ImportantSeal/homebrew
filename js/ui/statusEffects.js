@@ -158,7 +158,7 @@ function effectAppliesTo(state, eff) {
       return `Applies to: ${src}`;
     }
     default:
-      return "Applies to: â€”";
+      return "Applies to: \u2014";
   }
 }
 
@@ -170,7 +170,7 @@ function addChip(row, label, onRemove) {
   chip.appendChild(el("span", "status-chip-label", label));
 
   if (onRemove) {
-    const close = el("span", "status-chip-close", "Ã—");
+    const close = el("span", "status-chip-close", "\u00D7");
     chip.appendChild(close);
     chip.title = "Click to remove";
     chip.addEventListener('click', (e) => {
@@ -293,7 +293,7 @@ export function renderStatusEffects(state, options = {}) {
     if (p.shield) {
       addChip(
         row,
-        "ðŸ›¡ Shield",
+        "\u{1F6E1} Shield",
         onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "shield", label: "Shield" }) : null
       );
       hasForPlayer = true;
@@ -301,7 +301,7 @@ export function renderStatusEffects(state, options = {}) {
     if (p.skipNextTurn) {
       addChip(
         row,
-        "â­ Skip Next Turn",
+        "\u{23ED} Skip Next Turn",
         onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "skipNextTurn", label: "Skip Next Turn" }) : null
       );
       hasForPlayer = true;
@@ -309,7 +309,7 @@ export function renderStatusEffects(state, options = {}) {
     if (p.extraLife) {
       addChip(
         row,
-        "â¤ï¸ Extra Life",
+        "\u2764\uFE0F Extra Life",
         onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "extraLife", label: "Extra Life" }) : null
       );
       hasForPlayer = true;
