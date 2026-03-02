@@ -80,18 +80,19 @@ export function initSetup() {
       const player = { name, inventory: [] };
       ensurePlayerColor(player, state.players.length, state.players);
       state.players.push(player);
-      updatePlayerList();
+      updatePlayerList(state.players.length - 1);
       playerInput.value = "";
       startGameButton.disabled = state.players.length < MIN_PLAYERS;
     }
   }
 
-  function updatePlayerList() {
+  function updatePlayerList(addedIndex = -1) {
     playerList.innerHTML = "";
     state.players.forEach((player, index) => {
       const color = ensurePlayerColor(player, index, state.players);
       const li = document.createElement('li');
       li.classList.add('player-name-token');
+      if (index === addedIndex) li.classList.add('player-list-item--added');
       applyPlayerColor(li, color);
       li.textContent = player.name;
       playerList.appendChild(li);
