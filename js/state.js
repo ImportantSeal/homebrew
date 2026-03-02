@@ -67,6 +67,7 @@ export function createInitialState() {
     hiddenIndex: null,
     redrawUsed: false,
     cardHistory: [],
+    historyEntryCount: 0,
     penaltyCard: null,
     penaltyShown: false,
     stats: {

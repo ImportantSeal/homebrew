@@ -83,6 +83,11 @@ export function addHistoryEntry(message, options = {}) {
   const historyScroller = historyContainer.closest('.history-section') || historyContainer;
 
   if (!Array.isArray(state.cardHistory)) state.cardHistory = [];
+  if (!Number.isInteger(state.historyEntryCount) || state.historyEntryCount < 0) {
+    state.historyEntryCount = state.cardHistory.length;
+  }
+  state.historyEntryCount += 1;
+
   state.cardHistory.push(text);
   if (state.cardHistory.length > MAX_HISTORY_ENTRIES) {
     state.cardHistory.splice(0, state.cardHistory.length - MAX_HISTORY_ENTRIES);
@@ -91,7 +96,7 @@ export function addHistoryEntry(message, options = {}) {
   const latest = historyContainer.querySelector('.history-entry.is-latest');
   if (latest) latest.classList.remove('is-latest');
 
-  const entry = createHistoryEntryElement(text, state.cardHistory.length, kind, { leaderboardTopic });
+  const entry = createHistoryEntryElement(text, state.historyEntryCount, kind, { leaderboardTopic });
   historyContainer.appendChild(entry);
 
   while (historyContainer.childElementCount > MAX_HISTORY_ENTRIES) {
@@ -128,6 +133,7 @@ export function getLastHistoryEntry() {
 
 export function clearHistoryEntries() {
   state.cardHistory = [];
+  state.historyEntryCount = 0;
   const historyContainer = document.getElementById('card-history');
   if (historyContainer) historyContainer.innerHTML = "";
 }
