@@ -1559,13 +1559,72 @@ body[data-scene="penalty"] .penalty-deck::before {
   background: var(--front-bg);
   color: var(--front-text);
   font-weight: 900;
-  font-size: clamp(0.92rem, 1.05vw, 1.32rem);
+  font-size: calc(clamp(0.92rem, 1.05vw, 1.32rem) * var(--card-front-font-scale, 1));
   line-height: 1.15;
   word-break: normal;
   overflow-wrap: break-word;
   hyphens: none;
   position: relative;
-  padding-top: 1.55rem;
+  padding: 1.45rem 0.55rem 0.8rem;
+}
+
+.card .card__front[data-can-expand="true"] {
+  padding-bottom: 1.7rem;
+}
+
+.card .card__front .card-front-content {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+}
+
+.card .card__front .card-front-text {
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: calc(2 * 1.15em);
+  text-wrap: balance;
+}
+
+.card .card__front[data-compact-text="true"] .card-front-text {
+  letter-spacing: 0;
+}
+
+.card .card__front .card-open-detail {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.42rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(53,224,199,0.2), rgba(168,85,247,0.18)),
+    rgba(10, 14, 28, 0.68);
+  color: rgba(248,252,255,0.96);
+  font-size: 0.62rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  padding: 0.24rem 0.52rem;
+  cursor: pointer;
+  transition: transform 0.14s ease, filter 0.18s ease, border-color 0.18s ease;
+  touch-action: manipulation;
+}
+
+.card .card__front .card-open-detail:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  border-color: rgba(255,255,255,0.28);
+}
+
+.card .card__front .card-open-detail:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
 }
 
 /* Badge + bottom strip */
@@ -3107,9 +3166,21 @@ body[data-scene="penalty"] .penalty-deck::before {
   .status-effects { width: 100%; }
 
   .card .card__front {
-    font-size: clamp(0.72rem, 2.8vw, 0.98rem);
+    font-size: calc(clamp(0.72rem, 2.8vw, 0.98rem) * var(--card-front-font-scale, 1));
     line-height: 1.08;
-    padding: 1.3rem 0.35rem 0.35rem;
+    padding: 1.3rem 0.35rem 0.55rem;
+  }
+
+  .card .card__front[data-can-expand="true"] {
+    padding-bottom: 1.55rem;
+  }
+
+  .card .card__front .card-open-detail {
+    right: 0.3rem;
+    bottom: 0.3rem;
+    font-size: 0.54rem;
+    padding: 0.2rem 0.42rem;
+    letter-spacing: 0.07em;
   }
 
   .card.show-front .card__front::before {
@@ -3147,9 +3218,21 @@ body[data-scene="penalty"] .penalty-deck::before {
   }
 
   .card .card__front {
-    font-size: clamp(0.56rem, 3.6vw, 0.78rem);
+    font-size: calc(clamp(0.56rem, 3.6vw, 0.78rem) * var(--card-front-font-scale, 1));
     line-height: 1.02;
-    padding: 1.1rem 0.25rem 0.3rem;
+    padding: 1.1rem 0.25rem 0.5rem;
+  }
+
+  .card .card__front[data-can-expand="true"] {
+    padding-bottom: 1.45rem;
+  }
+
+  .card .card__front .card-open-detail {
+    right: 0.22rem;
+    bottom: 0.22rem;
+    font-size: 0.5rem;
+    padding: 0.18rem 0.36rem;
+    letter-spacing: 0.06em;
   }
 
   .card.show-front .card__front::before {

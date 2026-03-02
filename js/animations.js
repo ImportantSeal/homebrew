@@ -1,16 +1,95 @@
-function setFrontContent(frontEl, finalText) {
+import { showCardActionModal } from './ui/cardActionModal.js';
+import { bindTap } from './utils/tap.js';
+
+const CARD_DETAIL_MIN_LENGTH = 30;
+
+function normalizeCardText(value) {
+  return String(value ?? '').replace(/\s+/g, ' ').trim();
+}
+
+function resolveCardFrontScale(text) {
+  const length = text.length;
+  if (length >= 96) return 0.72;
+  if (length >= 76) return 0.78;
+  if (length >= 62) return 0.84;
+  if (length >= 48) return 0.9;
+  if (length >= 36) return 0.95;
+  return 1;
+}
+
+function shouldShowCardDetailButton(text) {
+  return text.length >= CARD_DETAIL_MIN_LENGTH;
+}
+
+function openCardDetailModal(text) {
+  const safeText = normalizeCardText(text);
+  if (!safeText) return;
+
+  showCardActionModal({
+    title: 'Card',
+    message: safeText,
+    fallbackMessage: safeText,
+    variant: 'normal',
+    closeLabel: 'Close'
+  });
+}
+
+function buildCardDetailButton(text) {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'card-open-detail';
+  button.textContent = 'Open';
+  button.setAttribute('aria-label', 'Open full card text');
+
+  bindTap(button, (event) => {
+    event?.preventDefault?.();
+    event?.stopPropagation?.();
+    openCardDetailModal(text);
+  });
+
+  button.addEventListener('keydown', (event) => {
+    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
+      event.stopPropagation();
+    }
+  });
+
+  return button;
+}
+
+function setFrontContent(frontEl, finalText, cardElement = null) {
   // safer & cleaner than innerHTML injections
   frontEl.replaceChildren();
+  frontEl.style.removeProperty('--card-front-font-scale');
+  frontEl.dataset.compactText = 'false';
+  frontEl.dataset.canExpand = 'false';
 
-  if (finalText === "Immunity") {
+  const safeText = normalizeCardText(finalText);
+
+  if (safeText === 'Immunity') {
     const img = document.createElement('img');
-    img.src = "images/immunity.png";
-    img.alt = "Immunity";
+    img.src = 'images/immunity.png';
+    img.alt = 'Immunity';
     frontEl.appendChild(img);
     return;
   }
 
-  frontEl.textContent = finalText;
+  frontEl.style.setProperty('--card-front-font-scale', String(resolveCardFrontScale(safeText)));
+  frontEl.dataset.compactText = shouldShowCardDetailButton(safeText) ? 'true' : 'false';
+
+  const content = document.createElement('div');
+  content.className = 'card-front-content';
+
+  const text = document.createElement('span');
+  text.className = 'card-front-text';
+  text.textContent = safeText;
+  content.appendChild(text);
+
+  if (cardElement?.classList?.contains('card') && shouldShowCardDetailButton(safeText)) {
+    content.appendChild(buildCardDetailButton(safeText));
+    frontEl.dataset.canExpand = 'true';
+  }
+
+  frontEl.appendChild(content);
 }
 
 export function flipCardAnimation(cardElement, finalText) {
@@ -38,7 +117,7 @@ export function flipCardAnimation(cardElement, finalText) {
 
   // Back -> Front
   if (!isFront) {
-    setFrontContent(front, finalText);
+    setFrontContent(front, finalText, cardElement);
     requestAnimationFrame(() => {
       if (cardElement._flipToken !== token) return;
       cardElement.classList.add('show-front');
@@ -52,7 +131,7 @@ export function flipCardAnimation(cardElement, finalText) {
 
   setTimeout(() => {
     if (cardElement._flipToken !== token) return;
-    setFrontContent(front, finalText);
+    setFrontContent(front, finalText, cardElement);
     cardElement.classList.add('show-front');
     cardElement.dataset.value = finalText;
   }, 230);
