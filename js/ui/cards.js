@@ -56,33 +56,46 @@ export function setCardKind(state, cardEl, cardData, isHidden) {
 export function renderCards(state, onSelectCard) {
   const cards = getCardElements();
 
+  cards.forEach((cardEl) => {
+    if (!cardEl) return;
+    cardEl.classList.remove('card--dealing');
+    cardEl.style.removeProperty('--deal-delay');
+  });
+  if (cards[0]) void cards[0].offsetWidth;
+
   for (let i = 0; i < 3; i++) {
+    const cardEl = cards[i];
+    if (!cardEl) continue;
+
+    cardEl.style.setProperty('--deal-delay', `${i * 55}ms`);
+    cardEl.classList.add('card--dealing');
+
     // reset root inline styles
-    cards[i].style.borderColor = "";
-    cards[i].style.backgroundColor = "";
-    cards[i].style.color = "";
+    cardEl.style.borderColor = "";
+    cardEl.style.backgroundColor = "";
+    cardEl.style.color = "";
 
     const isHidden = !state.revealed[i];
 
     // IMPORTANT: don't leak hidden card kind
-    setCardKind(state, cards[i], state.currentCards[i], isHidden);
+    setCardKind(state, cardEl, state.currentCards[i], isHidden);
 
     // reset possible Ditto / any overrides on front
-    const front = cards[i].querySelector('.card__front');
+    const front = cardEl.querySelector('.card__front');
     if (front) front.removeAttribute('style');
 
     if (isHidden) {
-      flipCardAnimation(cards[i], "???");
+      flipCardAnimation(cardEl, "???");
     } else {
-      flipCardAnimation(cards[i], getCardDisplayValue(state.currentCards[i]));
+      flipCardAnimation(cardEl, getCardDisplayValue(state.currentCards[i]));
     }
 
-    if (typeof cards[i]._unbindTap === 'function') {
-      cards[i]._unbindTap();
+    if (typeof cardEl._unbindTap === 'function') {
+      cardEl._unbindTap();
     }
-    cards[i]._unbindTap = bindTap(cards[i], () => onSelectCard(i));
+    cardEl._unbindTap = bindTap(cardEl, () => onSelectCard(i));
 
-    cards[i].onkeydown = (event) => {
+    cardEl.onkeydown = (event) => {
       if (!isActivationKey(event)) return;
       event.preventDefault();
       onSelectCard(i);

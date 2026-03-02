@@ -1,6 +1,8 @@
 // js/ui/turnOrder.js
 import { applyPlayerColor, ensurePlayerColor, ensurePlayerColors } from '../utils/playerColors.js';
 
+let lastCurrentPlayerIndex = null;
+
 export function renderTurnOrder(state) {
   const turnOrderElem = document.getElementById('turn-order');
   if (!turnOrderElem) return;
@@ -8,6 +10,8 @@ export function renderTurnOrder(state) {
   turnOrderElem.innerHTML = '';
   ensurePlayerColors(state.players);
   const canRemovePlayers = (state?.players?.length || 0) > 2;
+  const currentPlayerIndex = Number.isInteger(state?.currentPlayerIndex) ? state.currentPlayerIndex : null;
+  const shouldAnimateCurrent = currentPlayerIndex !== null && currentPlayerIndex !== lastCurrentPlayerIndex;
 
   state.players.forEach((player, index) => {
     const color = ensurePlayerColor(player, index);
@@ -20,6 +24,9 @@ export function renderTurnOrder(state) {
     nameSpan.classList.add('turn-player-name');
     if (isCurrentPlayer) {
       nameSpan.classList.add('turn-player-name--current');
+      if (shouldAnimateCurrent) {
+        nameSpan.classList.add('turn-player-name--turn-enter');
+      }
       nameSpan.setAttribute('aria-current', 'true');
     }
     nameSpan.dataset.index = String(index);
@@ -54,4 +61,6 @@ export function renderTurnOrder(state) {
       turnOrderElem.appendChild(arrowSpan);
     }
   });
+
+  lastCurrentPlayerIndex = currentPlayerIndex;
 }
