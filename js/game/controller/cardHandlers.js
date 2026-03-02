@@ -33,7 +33,12 @@ import {
 } from './helpers.js';
 
 import { runSpecialAction, runSpecialChoiceAction } from './specialActions.js';
-import { recordCardSelection, recordGiveDrinks, replaceCardSelectionKind } from '../../stats.js';
+import {
+  recordCardSelection,
+  recordGiveDrinks,
+  recordPenaltyTaken,
+  replaceCardSelectionKind
+} from '../../stats.js';
 import { resolveStatsLeaderboardTopic } from '../../statsLeaderboard.js';
 import {
   setBaseBackgroundScene,
@@ -97,6 +102,138 @@ export function createCardHandlers({
 
   function clearChoiceSelection() {
     state.choiceSelection = { active: false, pending: null };
+  }
+
+  function clearSharePenaltyState() {
+    state.sharePenalty = null;
+  }
+
+  function applySharedPenaltyToTarget(targetIndex, penaltyText) {
+    const targetPlayer = state.players?.[targetIndex];
+    if (!targetPlayer) return false;
+
+    if (targetPlayer.shield) {
+      delete targetPlayer.shield;
+      log(`${targetPlayer.name}'s Shield protected against the shared penalty!`);
+      return true;
+    }
+
+    const text = String(penaltyText || "").trim();
+    if (!text) return false;
+
+    recordPenaltyTaken(state, targetIndex);
+
+    const drinkMatch = text.match(/^Drink\s+(\d+)/i);
+    if (drinkMatch) {
+      applyDrinkEvent(state, targetIndex, parseInt(drinkMatch[1], 10) || 1, "Shared Penalty", log);
+      return true;
+    }
+
+    if (/^Shotgun$/i.test(text)) {
+      applyDrinkEvent(state, targetIndex, "Shotgun", "Shared Penalty: Shotgun", log);
+      return true;
+    }
+
+    if (/^Shot$/i.test(text)) {
+      applyDrinkEvent(state, targetIndex, "Shot", "Shared Penalty: Shot", log);
+      return true;
+    }
+
+    return false;
+  }
+
+  function startSharePenaltyTargetSelection(penaltyText) {
+    const share = state.sharePenalty;
+    if (!share?.active) return false;
+
+    const resolvedPenalty = String(penaltyText || share.penalty || "").trim();
+    if (!resolvedPenalty) {
+      clearSharePenaltyState();
+      log("Share Penalty could not continue because no penalty card was available.");
+      return false;
+    }
+
+    const sourcePlayerIndex = Number.isInteger(share.sourcePlayerIndex)
+      ? share.sourcePlayerIndex
+      : state.currentPlayerIndex;
+
+    const candidates = Array.isArray(state.players)
+      ? state.players
+        .map((_, idx) => ({ idx, name: playerName(idx) }))
+        .filter((entry) => entry.idx !== sourcePlayerIndex)
+      : [];
+
+    if (candidates.length === 0) {
+      clearSharePenaltyState();
+      log("Share Penalty needs at least one other player.");
+      return false;
+    }
+
+    state.choiceSelection = {
+      active: true,
+      pending: {
+        type: "share_penalty_target",
+        penalty: resolvedPenalty,
+        sourcePlayerIndex
+      }
+    };
+
+    openActionScreen(
+      "Share Penalty",
+      `Pick one other player to share penalty: ${resolvedPenalty}.`,
+      {
+        variant: "penalty",
+        dismissible: false,
+        actions: candidates.map((entry) => ({
+          id: `share_penalty_${entry.idx}`,
+          label: entry.name,
+          variant: "danger"
+        })),
+        onAction: (selectedAction) => {
+          if (!isChoiceSelectionActive()) return false;
+
+          const selectedId = String(selectedAction?.id || "");
+          const match = selectedId.match(/^share_penalty_(\d+)$/);
+          if (!match) {
+            log("Invalid share target. Pick one of the listed players.");
+            return false;
+          }
+
+          const targetIndex = Number.parseInt(match[1], 10);
+          const playerCount = state.players?.length || 0;
+          if (!Number.isInteger(targetIndex) || targetIndex < 0 || targetIndex >= playerCount) {
+            log("Invalid share target. Pick one of the listed players.");
+            return false;
+          }
+
+          const pending = state.choiceSelection?.pending;
+          if (targetIndex === pending?.sourcePlayerIndex) {
+            log("Pick one other player (not yourself).");
+            return false;
+          }
+
+          const targetName = playerName(targetIndex);
+          const penalty = String(pending?.penalty || resolvedPenalty).trim();
+          log(`${targetName} shares penalty: ${penalty}.`);
+
+          const applied = applySharedPenaltyToTarget(targetIndex, penalty);
+          if (!applied) {
+            log(`Shared penalty could not be auto-applied (${penalty}). Resolve it manually.`);
+          }
+
+          clearChoiceSelection();
+          clearSharePenaltyState();
+          syncBackgroundScene(state);
+          renderItems();
+          nextPlayer();
+          unlockUI();
+          renderEffectsPanel();
+          return true;
+        }
+      }
+    );
+
+    return true;
   }
 
   function isGroupPenaltyPending() {
@@ -349,6 +486,10 @@ export function createCardHandlers({
 
       // Shield blocked -> no penalty shown, continue turn flow.
       if (!state.penaltyShown) {
+        if (state.sharePenalty?.active) {
+          clearSharePenaltyState();
+          log("Share Penalty ended because no penalty card was revealed.");
+        }
         nextPlayer();
         unlockUI();
         renderEffectsPanel();
@@ -385,6 +526,10 @@ export function createCardHandlers({
       lockUI();
 
       const source = state.penaltySource;
+      const sharePenaltyActive = source === "card" && state.sharePenalty?.active;
+      const sharePenaltyText = sharePenaltyActive
+        ? String(state.sharePenalty?.penalty || state.penaltyCard || "").trim()
+        : "";
       hidePenaltyCard(state);
 
       if (source === "group") {
@@ -411,6 +556,15 @@ export function createCardHandlers({
         }
         renderEffectsPanel();
         return;
+      }
+
+      if (sharePenaltyActive) {
+        const selectionStarted = startSharePenaltyTargetSelection(sharePenaltyText);
+        if (selectionStarted) {
+          renderEffectsPanel();
+          return;
+        }
+        clearSharePenaltyState();
       }
 
       // "redraw" = preview/info penalty, does not end turn.

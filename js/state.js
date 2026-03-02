@@ -44,6 +44,10 @@ export function createInitialState() {
     // manual group-penalty queue (everyone/selected players roll one by one)
     penaltyGroup: null,
 
+    // Share Penalty flow: keep rolled penalty until one extra target is picked
+    // { active: true, sourcePlayerIndex, penalty } | null
+    sharePenalty: null,
+
     // Ditto: pending effect per card index
     dittoPending: [null, null, null],
 

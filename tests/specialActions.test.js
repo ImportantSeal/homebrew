@@ -125,6 +125,22 @@ test('PENALTY_ALL_MANUAL queues manual group penalties for all players', () => {
   assert.ok(lines.some((line) => line.includes('Fun for whole family: everybody takes a Penalty card.')));
 });
 
+test('SHARE_PENALTY_LOCKED arms share flow and keeps turn pending', () => {
+  const state = createState();
+  const { lines, log } = createLogCollector();
+
+  const result = runSpecialAction('SHARE_PENALTY_LOCKED', createContext(state, log));
+
+  assert.deepEqual(result, { endTurn: false });
+  assert.equal(state.penaltySource, 'card_pending');
+  assert.deepEqual(state.sharePenalty, {
+    active: true,
+    sourcePlayerIndex: 0,
+    penalty: null
+  });
+  assert.ok(lines.some((line) => line.includes('Share Penalty active: roll the Penalty Deck')));
+});
+
 test('MUTUAL_DAMAGE allows self target and applies Drink 3 once', () => {
   const state = createState();
   const { lines, log } = createLogCollector();

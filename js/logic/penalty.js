@@ -43,6 +43,9 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
   state.penaltyConfirmArmed = true;
   state.penaltySource = source;
   state.penaltyRollPlayerIndex = requestedIndex;
+  if (source === "card" && state.sharePenalty?.active) {
+    state.sharePenalty.penalty = penalty;
+  }
   syncBackgroundScene(state);
   triggerPenaltyDangerFlash();
 
@@ -52,7 +55,7 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
 
   log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
 
-  // ✅ NEW: route drink-like penalties through applyDrinkEvent (for Drink Buddy)
+  // Route drink-like penalties through applyDrinkEvent (for Drink Buddy).
   if (typeof applyDrinkEvent !== "function") return;
 
   const s = String(penalty || "").trim();
@@ -74,7 +77,7 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
   // If we are forcing a confirm from a real "Draw a Penalty Card", don't override it.
   if (state.penaltyShown && state.penaltySource === "card") return;
 
-  // Close any existing preview/deck penalty first (clean UI)
+  // Close any existing preview/deck penalty first (clean UI).
   if (state.penaltyShown) {
     hidePenaltyCard(state);
   }
@@ -85,7 +88,7 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
   state.penaltyShown = true;
   state.penaltyConfirmArmed = true;
 
-  // IMPORTANT: mark as "redraw" so penalty-deck click won't advance turn
+  // IMPORTANT: mark as "redraw" so penalty-deck click won't advance turn.
   state.penaltySource = "redraw";
   state.penaltyHintShown = false;
   state.penaltyRollPlayerIndex = null;
@@ -95,7 +98,7 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
 
-  if (label) log(`${label} → ${penalty}`);
+  if (label) log(`${label} -> ${penalty}`);
   return penalty;
 }
 

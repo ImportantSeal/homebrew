@@ -368,6 +368,7 @@ export function startGame() {
   state.penaltyHintShown = false;
   state.penaltyRollPlayerIndex = null;
   state.penaltyGroup = null;
+  state.sharePenalty = null;
 
   state.dittoPending = [null, null, null];
   state.dittoActive = [false, false, false];

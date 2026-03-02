@@ -898,11 +898,21 @@ export function runSpecialAction(action, context) {
     }
 
     case "SHARE_PENALTY_LOCKED": {
-      queueManualPenaltyDraw(
+      const queued = queueManualPenaltyDraw(
         state,
         log,
         "Share Penalty active: roll the Penalty Deck, then apply the same penalty to one other player."
       );
+      if (!queued) {
+        state.sharePenalty = null;
+        return;
+      }
+
+      state.sharePenalty = {
+        active: true,
+        sourcePlayerIndex: selfIndex,
+        penalty: null
+      };
       return { endTurn: false };
     }
 

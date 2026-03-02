@@ -54,15 +54,14 @@
     </div>
   </div>
 
-
-  <!-- Peli-näkymä -->
+  <!-- Game view -->
   <div id="game-container" class="container" style="display:none;">
     <main class="game-main">
 
       <!-- Vasen paneeli -->
       <aside class="left-panel">
         <div class="penalty-deck-container">
-          <!-- EI show-front oletuksena: deckin pitää näyttää BACK (cardback) -->
+          <!-- Keep back face visible by default (cardback) -->
           <div class="penalty-deck" id="penalty-deck" aria-label="Penalty deck" tabindex="0">
             <div class="card__inner">
               <div class="card__face card__back"></div>
@@ -179,7 +178,7 @@
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Rules</h2>
-        <button class="modal__close" type="button" data-close aria-label="Close rules">×</button>
+        <button class="modal__close" type="button" data-close aria-label="Close rules">&times;</button>
       </div>
 
       <div class="modal__body">
@@ -221,7 +220,7 @@
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Dice</h2>
-        <button class="modal__close" type="button" data-close aria-label="Close dice">×</button>
+        <button class="modal__close" type="button" data-close aria-label="Close dice">&times;</button>
       </div>
 
       <div class="modal__body">
@@ -266,7 +265,7 @@
 
         <div id="dice-box" class="dice-box" aria-label="3D dice tray"></div>
 
-        <div id="dice-result" class="dice-result">—</div>
+        <div id="dice-result" class="dice-result">&mdash;</div>
       </div>
     </div>
   </div>
