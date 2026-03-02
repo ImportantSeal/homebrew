@@ -20,6 +20,7 @@ import {
   ensureBag,
   getObjectCardPool,
   isDrawPenaltyCardText,
+  isDrawPenaltyForAllText,
   shouldTriggerPenaltyPreview,
   shouldWaitForPenaltyDeckRoll,
   parseDrinkFromText,
@@ -581,6 +582,38 @@ export function createCardHandlers({
       state.penaltySource = "card_pending";
       state.penaltyHintShown = false;
       log(`${p.name} selected Draw a Penalty Card. Click the Penalty Deck to roll.`);
+      unlockUI();
+      renderEffectsPanel();
+      syncBackgroundScene(state);
+      return;
+    }
+
+    // Everybody penalty card (manual queue through penalty deck).
+    if (isDrawPenaltyForAllText(txt)) {
+      flashElement(cardEl);
+
+      const allPlayers = Array.isArray(state.players)
+        ? state.players.map((_, idx) => idx)
+        : [];
+
+      if (allPlayers.length === 0) {
+        log("No valid players available for group penalty.");
+        unlockUI();
+        renderEffectsPanel();
+        return;
+      }
+
+      state.penaltyGroup = {
+        active: true,
+        queue: allPlayers,
+        cursor: 0,
+        originPlayerIndex: state.currentPlayerIndex
+      };
+      state.penaltyRollPlayerIndex = null;
+      state.penaltySource = "group_pending";
+      state.penaltyHintShown = false;
+
+      log(`${p.name} selected Everybody takes a Penalty card. Click the Penalty Deck to start.`);
       unlockUI();
       renderEffectsPanel();
       syncBackgroundScene(state);

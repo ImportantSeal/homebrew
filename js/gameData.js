@@ -47,6 +47,7 @@ export const gameData = {
   // Normaalikortit
   normalDeck: [
     "Draw a Penalty Card",
+    "Everybody takes a Penalty card",
     "Drink 1",
     "Drink 2",
     "Drink 3",

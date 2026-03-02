@@ -12,6 +12,12 @@ export function isDrawPenaltyCardText(txt) {
   return /^Draw a Penalty Card$/i.test(String(txt).trim());
 }
 
+export function isDrawPenaltyForAllText(txt) {
+  const text = String(txt).trim();
+  return /^Everybody takes a Penalty Card$/i.test(text)
+    || /^Penalty for All$/i.test(text);
+}
+
 export function shouldTriggerPenaltyPreview(subName, subInstruction, challengeText) {
   const text = `${String(subName || "")} ${String(subInstruction || "")} ${String(challengeText || "")}`.trim();
   if (!text) return false;
@@ -110,6 +116,7 @@ export function shouldShowActionScreenForPlainCard(text) {
   const t = String(text || "").trim();
   if (!t) return false;
   if (isDrawPenaltyCardText(t)) return false;
+  if (isDrawPenaltyForAllText(t)) return false;
   return !isDirectDrinkOnlyText(t);
 }
 

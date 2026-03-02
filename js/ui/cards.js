@@ -165,7 +165,9 @@ export function computeKind(state, cardData) {
   if (state.itemCards && state.itemCards.includes(value)) return 'item';
 
   // Penalty call
-  if (/^Draw a Penalty Card$/i.test(value)) return 'penaltycall';
+  if (/^Draw a Penalty Card$/i.test(value) || /^Everybody takes a Penalty Card$/i.test(value) || /^Penalty for All$/i.test(value)) {
+    return 'penaltycall';
+  }
 
   // Mix drink/give
   const hasDrink = isShot || /(Everybody drinks\b|^Drink\b)/i.test(value) || /\bDrink\b/i.test(value);

@@ -1,7 +1,7 @@
 import { flipCardAnimation } from '../animations.js';
 import { randomFromArray } from '../utils/random.js';
 import { getPenaltyDeckEl } from '../ui/uiFacade.js';
-import { syncBackgroundScene } from '../ui/backgroundScene.js';
+import { syncBackgroundScene, triggerPenaltyDangerFlash } from '../ui/backgroundScene.js';
 import { recordPenaltyTaken } from '../stats.js';
 
 /**
@@ -44,6 +44,7 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
   state.penaltySource = source;
   state.penaltyRollPlayerIndex = requestedIndex;
   syncBackgroundScene(state);
+  triggerPenaltyDangerFlash();
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
@@ -89,6 +90,7 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
   state.penaltyHintShown = false;
   state.penaltyRollPlayerIndex = null;
   syncBackgroundScene(state);
+  triggerPenaltyDangerFlash();
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
