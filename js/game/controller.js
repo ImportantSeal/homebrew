@@ -17,6 +17,7 @@ import { renderCards } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { renderItemsBoard } from '../ui/itemsBoard.js';
 import { showCardActionModal } from '../ui/cardActionModal.js';
+import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundScene.js';
 
 import {
   showGameContainer,
@@ -315,6 +316,7 @@ export function startGame() {
   // runtime flags
   state.uiLocked = false;
   state.historyLogKind = null;
+  state.backgroundScene = 'normal';
   state.penaltyConfirmArmed = false;
   state.penaltySource = null;
   state.penaltyHintShown = false;
@@ -349,6 +351,7 @@ export function startGame() {
 
 function initGameView() {
   showGameContainer();
+  syncBackgroundScene(state);
   bindPenaltyDeckSizeSync();
   requestAnimationFrame(syncPenaltyDeckSizeToCards);
   hidePenaltyCard(state);
@@ -420,6 +423,7 @@ function nextPlayer() {
 }
 
 function updateTurn() {
+  setBaseBackgroundScene(state, 'normal');
   renderTurnHeader();
   updateItemsPanelVisibility();
   renderItems();
@@ -477,6 +481,7 @@ function renderItems() {
 }
 
 function resetCards({ keepPenaltyOpen = false } = {}) {
+  setBaseBackgroundScene(state, 'normal');
   dealTurnCards(state);
   renderCards(state, onCardClick);
   if (!keepPenaltyOpen) {

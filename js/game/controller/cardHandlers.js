@@ -32,6 +32,13 @@ import {
 import { runSpecialAction, runSpecialChoiceAction } from './specialActions.js';
 import { recordCardSelection, recordGiveDrinks, replaceCardSelectionKind } from '../../stats.js';
 import { resolveStatsLeaderboardTopic } from '../../statsLeaderboard.js';
+import { setBaseBackgroundScene, syncBackgroundScene } from '../../ui/backgroundScene.js';
+
+const SPECIAL_SCENE_KINDS = new Set(['special', 'social', 'crowd', 'ditto']);
+
+function baseSceneForKind(kind) {
+  return SPECIAL_SCENE_KINDS.has(kind) ? 'special' : 'normal';
+}
 
 function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
   if (effectDef.type === "LEFT_HAND") {
@@ -114,6 +121,7 @@ export function createCardHandlers({
       state.penaltyGroup = null;
       state.penaltySource = null;
       state.penaltyHintShown = false;
+      syncBackgroundScene(state);
       return true;
     }
 
@@ -124,6 +132,7 @@ export function createCardHandlers({
       state.penaltyHintShown = false;
       const nextName = playerName(nextTargetIndex);
       log(`Group penalty: ${nextName} rolls next. Click the Penalty Deck to continue.`);
+      syncBackgroundScene(state);
       return false;
     }
 
@@ -136,6 +145,7 @@ export function createCardHandlers({
       state.currentPlayerIndex = group.originPlayerIndex;
     }
     log("Group penalties resolved.");
+    syncBackgroundScene(state);
     return true;
   }
 
@@ -183,6 +193,7 @@ export function createCardHandlers({
         }
 
         clearChoiceSelection();
+        syncBackgroundScene(state);
 
         if (result.choice) {
           const chained = startChoiceSelection(
@@ -224,12 +235,12 @@ export function createCardHandlers({
     if (isRedrawLockedPenaltyOpen(state)) {
       const penaltyText = String(state.penaltyCard || "").trim();
       const message = penaltyText
-        ? `Penalty: ${penaltyText}. Close this window to continue.`
-        : "Penalty rolled from Redraw. Close this window to continue.";
+        ? `Penalty: ${penaltyText}.`
+        : "Penalty rolled from Redraw.";
 
       openActionScreen("Redraw Penalty", message, {
         variant: "penalty",
-        fallbackMessage: "Close this window to continue.",
+        fallbackMessage: "",
         onClose: () => {
           if (isRedrawLockedPenaltyOpen(state)) {
             hidePenaltyCard(state);
@@ -521,6 +532,7 @@ export function createCardHandlers({
         rollPenaltyCard
       });
       renderEffectsPanel();
+      syncBackgroundScene(state);
     }
 
     if (actionResult?.choice) {
@@ -549,6 +561,7 @@ export function createCardHandlers({
       state.penaltySource = "card_pending";
       state.penaltyHintShown = false;
       log("Roll the Penalty Deck to continue.");
+      syncBackgroundScene(state);
       return false;
     }
 
@@ -569,6 +582,7 @@ export function createCardHandlers({
       log(`${p.name} selected Draw a Penalty Card. Click the Penalty Deck to roll.`);
       unlockUI();
       renderEffectsPanel();
+      syncBackgroundScene(state);
       return;
     }
 
@@ -713,6 +727,7 @@ export function createCardHandlers({
     const selectedKind = state.dittoActive[index]
       ? "ditto"
       : computeKind(state, cardData);
+    setBaseBackgroundScene(state, baseSceneForKind(selectedKind));
     const previousHistoryLogKind = state.historyLogKind ?? null;
     state.historyLogKind = selectedKind;
 

@@ -1,6 +1,7 @@
 import { flipCardAnimation } from '../animations.js';
 import { randomFromArray } from '../utils/random.js';
 import { getPenaltyDeckEl } from '../ui/uiFacade.js';
+import { syncBackgroundScene } from '../ui/backgroundScene.js';
 import { recordPenaltyTaken } from '../stats.js';
 
 /**
@@ -31,6 +32,7 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
     state.penaltyConfirmArmed = false;
     state.penaltySource = null;
     state.penaltyRollPlayerIndex = null;
+    syncBackgroundScene(state);
     return;
   }
 
@@ -41,6 +43,7 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
   state.penaltyConfirmArmed = true;
   state.penaltySource = source;
   state.penaltyRollPlayerIndex = requestedIndex;
+  syncBackgroundScene(state);
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
@@ -85,6 +88,7 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
   state.penaltySource = "redraw";
   state.penaltyHintShown = false;
   state.penaltyRollPlayerIndex = null;
+  syncBackgroundScene(state);
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
@@ -100,6 +104,7 @@ export function hidePenaltyCard(state) {
   state.penaltySource = null;
   state.penaltyHintShown = false;
   state.penaltyRollPlayerIndex = null;
+  syncBackgroundScene(state);
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, "Penalty Deck");

@@ -37,6 +37,7 @@ export function createInitialState() {
     // UI / flow guards
     uiLocked: false,
     historyLogKind: null,
+    backgroundScene: 'normal',
 
     // Penalty deck: 1st click reveals, 2nd click confirms (+ ends turn unless reset manually)
     penaltyConfirmArmed: false,
