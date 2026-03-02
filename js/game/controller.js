@@ -89,6 +89,11 @@ function renderTurnHeader() {
   renderTurnOrder(state);
 }
 
+function isPenaltyFlowActive() {
+  if (state.penaltyShown) return true;
+  return state.penaltySource === "card_pending" || state.penaltySource === "group_pending";
+}
+
 function remapPlayerIndexAfterRemoval(index, removedIndex) {
   if (!Number.isInteger(index)) return index;
   if (index === removedIndex) return null;
@@ -137,6 +142,50 @@ function normalizeStateAfterPlayerRemoval(removedIndex) {
       resetMirrorState(state);
     } else {
       state.mirror.sourceIndex = nextSource;
+    }
+  }
+
+  const nextPenaltyRollPlayerIndex = remapPlayerIndexAfterRemoval(state.penaltyRollPlayerIndex, removedIndex);
+  state.penaltyRollPlayerIndex = Number.isInteger(nextPenaltyRollPlayerIndex)
+    ? nextPenaltyRollPlayerIndex
+    : null;
+
+  if (state.penaltyGroup && typeof state.penaltyGroup === 'object') {
+    const group = state.penaltyGroup;
+
+    if (Array.isArray(group.queue)) {
+      const playerCount = state.players?.length || 0;
+      const rawCursor = Number.isInteger(group.cursor) && group.cursor >= 0 ? group.cursor : 0;
+      let remappedCursor = rawCursor;
+      const remappedQueue = [];
+
+      group.queue.forEach((queueIndex, position) => {
+        const remappedIndex = remapPlayerIndexAfterRemoval(queueIndex, removedIndex);
+        if (remappedIndex === null) {
+          if (position < rawCursor) remappedCursor -= 1;
+          return;
+        }
+
+        if (Number.isInteger(remappedIndex) && remappedIndex >= 0 && remappedIndex < playerCount) {
+          remappedQueue.push(remappedIndex);
+        }
+      });
+
+      group.queue = remappedQueue;
+      group.cursor = Math.max(0, Math.min(remappedCursor, remappedQueue.length));
+    }
+
+    const remappedOrigin = remapPlayerIndexAfterRemoval(group.originPlayerIndex, removedIndex);
+    group.originPlayerIndex = Number.isInteger(remappedOrigin)
+      ? remappedOrigin
+      : state.currentPlayerIndex;
+
+    if (!Array.isArray(group.queue) || group.queue.length === 0) {
+      state.penaltyGroup = null;
+      if (state.penaltySource === "group_pending") {
+        state.penaltySource = null;
+        state.penaltyHintShown = false;
+      }
     }
   }
 
@@ -198,6 +247,11 @@ function onTurnOrderPlayerRemoveClick(removeBtn, event) {
 
   if (state.effectSelection?.active) {
     log("Pick a target player first (effect selection is active).");
+    return;
+  }
+
+  if (isPenaltyFlowActive()) {
+    log("Resolve the current penalty before removing a player.");
     return;
   }
 
