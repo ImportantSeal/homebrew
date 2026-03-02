@@ -117,7 +117,8 @@ export function createCardHandlers({
     return null;
   }
 
-  function advanceGroupPenaltyQueue() {
+  function advanceGroupPenaltyQueue(options = {}) {
+    const announceNext = options.announceNext !== false;
     const group = state.penaltyGroup;
     if (!group?.active || !Array.isArray(group.queue)) {
       state.penaltyGroup = null;
@@ -132,8 +133,10 @@ export function createCardHandlers({
     if (Number.isInteger(nextTargetIndex)) {
       state.penaltySource = "group_pending";
       state.penaltyHintShown = false;
-      const nextName = playerName(nextTargetIndex);
-      log(`Group penalty: ${nextName} rolls next. Click the Penalty Deck to continue.`);
+      if (announceNext) {
+        const nextName = playerName(nextTargetIndex);
+        log(`Group penalty: ${nextName} rolls next. Click the Penalty Deck to continue.`);
+      }
       syncBackgroundScene(state);
       return false;
     }
@@ -149,6 +152,29 @@ export function createCardHandlers({
     log("Group penalties resolved.");
     syncBackgroundScene(state);
     return true;
+  }
+
+  // Rolls queued group penalties until one is visible for confirm, or the queue finishes.
+  function rollNextGroupPenaltyInQueue() {
+    while (!state.penaltyShown && isGroupPenaltyPending()) {
+      const targetIndex = currentGroupPenaltyTargetIndex();
+      if (!Number.isInteger(targetIndex)) {
+        const done = advanceGroupPenaltyQueue({ announceNext: false });
+        if (done) return { done: true, shown: false };
+        continue;
+      }
+
+      rollPenaltyCard(state, log, "group", applyDrinkEvent, { targetPlayerIndex: targetIndex });
+      if (state.penaltyShown) {
+        return { done: false, shown: true };
+      }
+
+      // Shield blocked -> advance and keep going in the same click.
+      const done = advanceGroupPenaltyQueue({ announceNext: false });
+      if (done) return { done: true, shown: false };
+    }
+
+    return { done: !isGroupPenaltyPending(), shown: state.penaltyShown };
   }
 
   function startChoiceSelection(choice, fallbackTitle = "Choose One", fallbackMessage = "") {
@@ -334,29 +360,20 @@ export function createCardHandlers({
 
     // Pending group penalty flow (each player rolls manually in queue order).
     if (!state.penaltyShown && isGroupPenaltyPending()) {
-      const targetIndex = currentGroupPenaltyTargetIndex();
-      if (!Number.isInteger(targetIndex)) {
-        const done = advanceGroupPenaltyQueue();
-        if (done) nextPlayer();
-        renderEffectsPanel();
-        return;
-      }
-
       lockUI();
-      rollPenaltyCard(state, log, "group", applyDrinkEvent, { targetPlayerIndex: targetIndex });
-
-      // Shield blocked -> immediately move to next queued player (or finish queue).
-      if (!state.penaltyShown) {
-        const done = advanceGroupPenaltyQueue();
-        if (done) {
-          nextPlayer();
-        }
+      const groupStep = rollNextGroupPenaltyInQueue();
+      if (groupStep.done) {
+        nextPlayer();
         unlockUI();
         renderEffectsPanel();
         return;
       }
 
-      unlockAfter(timing.PENALTY_UNLOCK_MS);
+      if (groupStep.shown) {
+        unlockAfter(timing.PENALTY_UNLOCK_MS);
+      } else {
+        unlockUI();
+      }
       renderEffectsPanel();
       return;
     }
@@ -369,11 +386,27 @@ export function createCardHandlers({
       hidePenaltyCard(state);
 
       if (source === "group") {
-        const done = advanceGroupPenaltyQueue();
+        const done = advanceGroupPenaltyQueue({ announceNext: false });
         if (done) {
           nextPlayer();
+          unlockUI();
+          renderEffectsPanel();
+          return;
         }
-        unlockUI();
+
+        const groupStep = rollNextGroupPenaltyInQueue();
+        if (groupStep.done) {
+          nextPlayer();
+          unlockUI();
+          renderEffectsPanel();
+          return;
+        }
+
+        if (groupStep.shown) {
+          unlockAfter(timing.PENALTY_UNLOCK_MS);
+        } else {
+          unlockUI();
+        }
         renderEffectsPanel();
         return;
       }
@@ -570,7 +603,7 @@ export function createCardHandlers({
     return actionResult?.endTurn ?? true;
   }
 
-  function handlePlainCard(cardEl, cardData, selectedKind) {
+  function handlePlainCard(cardEl, cardData, selectedKind, triggerEvent = null) {
     const p = currentPlayer();
     const value = getCardDisplayValue(cardData);
     const txt = String(value).trim();
@@ -578,7 +611,7 @@ export function createCardHandlers({
 
     // Penalty card (must confirm via penalty deck click).
     if (isDrawPenaltyCardText(txt)) {
-      flashElement(cardEl);
+      flashElement(cardEl, undefined, undefined, triggerEvent);
       state.penaltySource = "card_pending";
       state.penaltyHintShown = false;
       log(`${p.name} selected Draw a Penalty Card. Click the Penalty Deck to roll.`);
@@ -590,7 +623,7 @@ export function createCardHandlers({
 
     // Everybody penalty card (manual queue through penalty deck).
     if (isDrawPenaltyForAllText(txt)) {
-      flashElement(cardEl);
+      flashElement(cardEl, undefined, undefined, triggerEvent);
 
       const allPlayers = Array.isArray(state.players)
         ? state.players.map((_, idx) => idx)
@@ -625,7 +658,7 @@ export function createCardHandlers({
       log(`${p.name} acquired item: ${value}`);
       p.inventory.push(value);
 
-      flashElement(cardEl);
+      flashElement(cardEl, undefined, undefined, triggerEvent);
       renderTurnOrder(state);
       renderItems();
       renderEffectsPanel();
@@ -686,14 +719,14 @@ export function createCardHandlers({
       openActionScreen("Card Action", actionMessage, { variant: "normal" });
     }
 
-    flashElement(cardEl);
+    flashElement(cardEl, undefined, undefined, triggerEvent);
 
     nextPlayer();
     unlockUI();
     renderEffectsPanel();
   }
 
-  function onCardClick(index) {
+  function onCardClick(index, triggerEvent = null) {
     if (state.uiLocked) return;
 
     if (isChoiceSelectionActive()) {
@@ -821,7 +854,7 @@ export function createCardHandlers({
       }
 
       // 4) Plain cards / items / drink/give.
-      handlePlainCard(cardEl, cardData, selectedKind);
+      handlePlainCard(cardEl, cardData, selectedKind, triggerEvent);
     } finally {
       state.historyLogKind = previousHistoryLogKind;
     }

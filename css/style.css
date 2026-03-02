@@ -1226,6 +1226,8 @@ body[data-pickmode="effect-target"] .turn-player-name.turn-player-name--current 
   --badge-fg: rgba(255,255,255,0.92);
   --strip: rgba(11,16,32,0.10);
   --hover-ring: rgba(53,224,199,0.30);
+  --impact-color: rgba(255, 231, 158, 0.9);
+  --impact-duration: 460ms;
 }
 
 .card,
@@ -1272,6 +1274,92 @@ body[data-pickmode="effect-target"] .turn-player-name.turn-player-name--current 
 .card:not(:hover)::after,
 .penalty-deck:not(:hover)::after {
   transition-duration: 0ms;
+}
+
+.card-impact-flash {
+  border-color: var(--impact-color);
+  box-shadow:
+    calc(var(--card-depth-shadow-x) * 0.5)
+    calc(10px + var(--card-depth-shadow-y))
+    22px rgba(5, 9, 24, 0.34),
+    var(--elevation-active),
+    0 0 0 3px var(--impact-color),
+    0 0 1.1rem var(--impact-color);
+}
+
+.card-impact-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  border-radius: inherit;
+  overflow: hidden;
+  contain: paint;
+}
+
+.card-impact-burst::before,
+.card-impact-burst::after {
+  content: "";
+  position: absolute;
+  left: var(--impact-origin-x, 50%);
+  top: var(--impact-origin-y, 50%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.card-impact-burst::before {
+  width: clamp(0.55rem, 20%, 1rem);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 2px solid var(--impact-color);
+  box-shadow: 0 0 0 0 var(--impact-color);
+  opacity: 0;
+  animation: card-impact-ripple var(--impact-duration) cubic-bezier(0.18, 0.8, 0.24, 1) both;
+}
+
+.card-impact-burst::after {
+  width: clamp(0.7rem, 24%, 1.25rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, var(--impact-color) 42%, transparent 72%);
+  mix-blend-mode: screen;
+  filter: blur(0px);
+  opacity: 0;
+  animation: card-impact-glow var(--impact-duration) cubic-bezier(0.16, 0.86, 0.24, 1) both;
+}
+
+@keyframes card-impact-ripple {
+  0% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(0.2);
+    box-shadow: 0 0 0 0 var(--impact-color);
+  }
+  46% {
+    opacity: 0.62;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(10);
+    box-shadow: 0 0 0 0.45rem transparent;
+  }
+}
+
+@keyframes card-impact-glow {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+    filter: blur(0px);
+  }
+  26% {
+    opacity: 0.98;
+    transform: translate(-50%, -50%) scale(2.7);
+    filter: blur(0.3px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(6.8);
+    filter: blur(8px);
+  }
 }
 
 .card.card--dealing {
@@ -3195,5 +3283,15 @@ body[data-scene="penalty"] .penalty-deck::before {
   .card::after,
   .penalty-deck::after {
     opacity: 0 !important;
+  }
+
+  .card-impact-burst {
+    display: none !important;
+  }
+
+  .card-impact-flash {
+    box-shadow:
+      var(--elevation-active),
+      0 0 0 2px var(--impact-color) !important;
   }
 }

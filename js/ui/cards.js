@@ -214,11 +214,20 @@ export function renderCards(state, onSelectCard) {
 
     cardEl.style.setProperty('--deal-delay', `${i * 55}ms`);
     cardEl.classList.add('card--dealing');
+    cardEl.classList.remove('card-impact-flash');
+    cardEl.querySelectorAll('.card-impact-burst').forEach((burstEl) => burstEl.remove());
+
+    if (typeof cardEl._impactFlashTimeout === 'number') {
+      clearTimeout(cardEl._impactFlashTimeout);
+      cardEl._impactFlashTimeout = null;
+    }
 
     // reset root inline styles
     cardEl.style.borderColor = "";
     cardEl.style.backgroundColor = "";
     cardEl.style.color = "";
+    cardEl.style.removeProperty('--impact-color');
+    cardEl.style.removeProperty('--impact-duration');
 
     const isHidden = !state.revealed[i];
 
@@ -238,12 +247,12 @@ export function renderCards(state, onSelectCard) {
     if (typeof cardEl._unbindTap === 'function') {
       cardEl._unbindTap();
     }
-    cardEl._unbindTap = bindTap(cardEl, () => onSelectCard(i));
+    cardEl._unbindTap = bindTap(cardEl, (event) => onSelectCard(i, event));
 
     cardEl.onkeydown = (event) => {
       if (!isActivationKey(event)) return;
       event.preventDefault();
-      onSelectCard(i);
+      onSelectCard(i, event);
     };
   }
 }
