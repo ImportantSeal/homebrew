@@ -10,8 +10,7 @@ const listeners = {
   penaltyRefreshUnbind: null,
   penaltyDeckUnbind: null,
   turnOrderUnbind: null,
-  turnOrderRemoveUnbind: null,
-  closeDropdownsBound: false
+  turnOrderRemoveUnbind: null
 };
 
 function getEl(id) {
@@ -98,18 +97,6 @@ export function bindTurnOrderRemoveClick(handler) {
 
     handler?.(removeBtn, event);
   });
-}
-
-export function bindCloseDropdownsOnOutsideClick() {
-  if (listeners.closeDropdownsBound) return;
-
-  document.addEventListener('click', () => {
-    document
-      .querySelectorAll('.player-dropdown.show')
-      .forEach(d => d.classList.remove('show'));
-  });
-
-  listeners.closeDropdownsBound = true;
 }
 
 // Optional: if you ever need to reset cached refs (rare)

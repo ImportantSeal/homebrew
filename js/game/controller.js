@@ -27,8 +27,7 @@ import {
   bindPenaltyRefreshClick,
   bindPenaltyDeckClick,
   bindTurnOrderPlayerClick,
-  bindTurnOrderRemoveClick,
-  bindCloseDropdownsOnOutsideClick
+  bindTurnOrderRemoveClick
 } from '../ui/uiFacade.js';
 
 import { createEffectsPanelController } from './controller/effectsPanel.js';
@@ -402,7 +401,6 @@ function setupEventListeners() {
   bindPenaltyDeckClick(onPenaltyDeckClick);
   bindTurnOrderPlayerClick(onTurnOrderPlayerClick);
   bindTurnOrderRemoveClick(onTurnOrderPlayerRemoveClick);
-  bindCloseDropdownsOnOutsideClick();
 }
 
 function onTurnOrderPlayerClick(playerBtn) {

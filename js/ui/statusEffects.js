@@ -262,7 +262,7 @@ export function renderStatusEffects(state, options = {}) {
       const mid = el("div", "effect-mid");
       mid.appendChild(el("div", "effect-title", "Pick a target"));
       mid.appendChild(el("div", "effect-desc", "Click a player name in the turn order to finish this effect."));
-      mid.appendChild(el("div", "effect-applies", pending?.type ? `Effect: ${effectTitle(pending.type)}` : "Effect: â€”"));
+      mid.appendChild(el("div", "effect-applies", pending?.type ? `Effect: ${effectTitle(pending.type)}` : "Effect: \u2014"));
       pendingCard.appendChild(mid);
 
       const right = el("div", "effect-right");
