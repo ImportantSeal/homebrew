@@ -15,7 +15,10 @@ import { recordPenaltyTaken } from '../stats.js';
 export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, options = {}) {
   if (state.penaltyShown) return;
 
-  const defaultIndex = state.currentPlayerIndex;
+  const hasPendingPenaltyTarget = source === "card" && Number.isInteger(state.penaltyRollPlayerIndex);
+  const defaultIndex = hasPendingPenaltyTarget
+    ? state.penaltyRollPlayerIndex
+    : state.currentPlayerIndex;
   const requestedIndex = Number.isInteger(options?.targetPlayerIndex)
     ? options.targetPlayerIndex
     : defaultIndex;

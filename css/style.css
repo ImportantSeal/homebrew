@@ -1387,6 +1387,11 @@ body[data-pickmode="effect-target"] .turn-player-name.turn-player-name--current 
 }
 
 .penalty-deck {
+  appearance: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
   width: min(100%, var(--card-max-width));
   border: 1px solid rgba(255,255,255,0.14);
   box-shadow: var(--elevation-raised);

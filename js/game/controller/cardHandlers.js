@@ -749,10 +749,10 @@ export function createCardHandlers({
     }
 
     if (waitsForPenaltyDeckRoll) {
-      state.penaltySource = "card_pending";
-      state.penaltyHintShown = false;
-      log("Roll the Penalty Deck to continue.");
-      syncBackgroundScene(state);
+      const queuedPenalty = queueManualPenaltyDraw(state, log, "Roll the Penalty Deck to continue.");
+      if (queuedPenalty) {
+        syncBackgroundScene(state);
+      }
       return false;
     }
 

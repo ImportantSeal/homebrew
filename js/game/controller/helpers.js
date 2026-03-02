@@ -37,7 +37,12 @@ export function queueManualPenaltyDraw(
     return false;
   }
 
+  const targetPlayerIndex = Number.isInteger(state.currentPlayerIndex)
+    ? state.currentPlayerIndex
+    : null;
+
   state.penaltySource = "card_pending";
+  state.penaltyRollPlayerIndex = targetPlayerIndex;
   state.penaltyHintShown = false;
   log?.(prompt);
   return true;

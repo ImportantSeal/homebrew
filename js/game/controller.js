@@ -408,6 +408,8 @@ function onTurnOrderPlayerClick(playerBtn) {
   const rawIndex = Number(playerBtn?.dataset?.index);
   if (!Number.isInteger(rawIndex)) return;
 
+  if (state.uiLocked) return;
+  if (isPenaltyFlowActive()) return;
   if (state.choiceSelection?.active) return;
   if (state.effectSelection?.active) return;
 
@@ -419,6 +421,7 @@ function jumpToPlayerTurn(targetIndex) {
   if (playerCount === 0) return;
   if (targetIndex < 0 || targetIndex >= playerCount) return;
   if (targetIndex === state.currentPlayerIndex) return;
+  if (state.uiLocked || isPenaltyFlowActive()) return;
 
   const fromName = playerName(state.currentPlayerIndex);
   const toName = playerName(targetIndex);
