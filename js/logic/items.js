@@ -1,6 +1,7 @@
 import { flipCardAnimation } from '../animations.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
 import { setCardKind } from '../ui/cards.js';
+import { resetMirrorState } from './mirror.js';
 
 function getCardEls() {
   return [
@@ -56,16 +57,8 @@ export function useItem(
       return;
 
     case "Mirror":
-      state.mirror = {
-        active: false,
-        sourceIndex: null,
-        selectedCardIndex: null,
-        parentName: "",
-        subName: "",
-        subInstruction: "",
-        displayText: ""
-      };
-      log(`${player.name} used Mirror. (No target selection.)`);
+      resetMirrorState(state);
+      log(`${player.name} used Mirror. No automatic target selection in this version.`);
       return;
 
     case "Skip Turn":

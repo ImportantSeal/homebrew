@@ -1,4 +1,5 @@
 import { recordGiveDrinks } from '../../stats.js';
+import { queueManualPenaltyDraw, queueManualPenaltyDrawForPlayers } from './helpers.js';
 
 function inventoryCount(player) {
   return Array.isArray(player?.inventory) ? player.inventory.length : 0;
@@ -77,56 +78,6 @@ function applyEveryoneElseDrink(state, selfIndex, amount, reason, log, applyDrin
     if (idx === selfIndex) return;
     applyDrinkEvent(state, idx, amount, reason, log, { suppressSelfLog: true });
   });
-}
-
-function queueManualPenaltyDraw(state, log, prompt = "Click the Penalty Deck to roll and continue.") {
-  if (state.penaltyShown) {
-    log?.("Resolve the current penalty first.");
-    return false;
-  }
-
-  state.penaltySource = "card_pending";
-  state.penaltyHintShown = false;
-  log?.(prompt);
-  return true;
-}
-
-function queueManualPenaltyDrawForPlayers(
-  state,
-  log,
-  playerIndexes,
-  originPlayerIndex,
-  prompt = "Group penalty active: click the Penalty Deck to roll and continue."
-) {
-  if (state.penaltyShown) {
-    log?.("Resolve the current penalty first.");
-    return false;
-  }
-
-  const players = Array.isArray(state?.players) ? state.players : [];
-  const queue = Array.isArray(playerIndexes)
-    ? playerIndexes.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < players.length)
-    : [];
-
-  if (queue.length === 0) {
-    log?.("No valid players available for group penalty.");
-    return false;
-  }
-
-  state.penaltyGroup = {
-    active: true,
-    queue,
-    cursor: 0,
-    originPlayerIndex: Number.isInteger(originPlayerIndex) ? originPlayerIndex : state.currentPlayerIndex
-  };
-  state.penaltyRollPlayerIndex = null;
-  state.penaltySource = "group_pending";
-  state.penaltyHintShown = false;
-
-  const firstPlayerIndex = queue[0];
-  const firstPlayerName = normalizeChoiceText(players[firstPlayerIndex]?.name, `Player ${firstPlayerIndex + 1}`);
-  log?.(`${prompt} ${firstPlayerName} rolls first.`);
-  return true;
 }
 
 function ensureInventory(player) {

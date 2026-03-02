@@ -10,6 +10,7 @@ import { ensurePlayerColors } from '../utils/playerColors.js';
 import { dealTurnCards } from '../logic/deck.js';
 import { hidePenaltyCard } from '../logic/penalty.js';
 import { tickEffects, cancelTargetedEffectSelection } from '../logic/effects.js';
+import { resetMirrorState } from '../logic/mirror.js';
 import { useItem } from '../logic/items.js';
 import { enableLeaveGuard } from '../navigationGuard.js';
 
@@ -133,15 +134,7 @@ function normalizeStateAfterPlayerRemoval(removedIndex) {
   if (state.mirror && typeof state.mirror === 'object') {
     const nextSource = remapPlayerIndexAfterRemoval(state.mirror.sourceIndex, removedIndex);
     if (nextSource === null) {
-      state.mirror = {
-        active: false,
-        sourceIndex: null,
-        selectedCardIndex: null,
-        parentName: '',
-        subName: '',
-        subInstruction: '',
-        displayText: ''
-      };
+      resetMirrorState(state);
     } else {
       state.mirror.sourceIndex = nextSource;
     }
@@ -330,15 +323,7 @@ export function startGame() {
   state.effects = [];
   state.effectSelection = { active: false, pending: null, cleanup: null };
   state.choiceSelection = { active: false, pending: null };
-  state.mirror = {
-    active: false,
-    sourceIndex: null,
-    selectedCardIndex: null,
-    parentName: "",
-    subName: "",
-    subInstruction: "",
-    displayText: ""
-  };
+  resetMirrorState(state);
 
   if (!state.bags) state.bags = {};
   clearHistoryEntries();

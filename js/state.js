@@ -1,4 +1,5 @@
 import { gameData } from './gameData.js';
+import { createMirrorState } from './logic/mirror.js';
 
 function createEffectSelectionState() {
   return {
@@ -12,18 +13,6 @@ function createChoiceSelectionState() {
   return {
     active: false,
     pending: null
-  };
-}
-
-function createMirrorState() {
-  return {
-    active: false,
-    sourceIndex: null,
-    selectedCardIndex: null,
-    parentName: '',
-    subName: '',
-    subInstruction: '',
-    displayText: ''
   };
 }
 

@@ -18,6 +18,72 @@ export function isDrawPenaltyForAllText(txt) {
     || /^Penalty for All$/i.test(text);
 }
 
+export function isPenaltyCardInstructionText(txt) {
+  return isDrawPenaltyCardText(txt) || isDrawPenaltyForAllText(txt);
+}
+
+function normalizePenaltyPlayerName(value, fallback) {
+  const text = String(value ?? "").trim();
+  return text || fallback;
+}
+
+export function queueManualPenaltyDraw(
+  state,
+  log,
+  prompt = "Click the Penalty Deck to roll and continue."
+) {
+  if (state.penaltyShown) {
+    log?.("Resolve the current penalty first.");
+    return false;
+  }
+
+  state.penaltySource = "card_pending";
+  state.penaltyHintShown = false;
+  log?.(prompt);
+  return true;
+}
+
+export function queueManualPenaltyDrawForPlayers(
+  state,
+  log,
+  playerIndexes,
+  originPlayerIndex,
+  prompt = "Group penalty active: click the Penalty Deck to roll and continue."
+) {
+  if (state.penaltyShown) {
+    log?.("Resolve the current penalty first.");
+    return false;
+  }
+
+  const players = Array.isArray(state?.players) ? state.players : [];
+  const queue = Array.isArray(playerIndexes)
+    ? playerIndexes.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < players.length)
+    : [];
+
+  if (queue.length === 0) {
+    log?.("No valid players available for group penalty.");
+    return false;
+  }
+
+  state.penaltyGroup = {
+    active: true,
+    queue,
+    cursor: 0,
+    originPlayerIndex: Number.isInteger(originPlayerIndex) ? originPlayerIndex : state.currentPlayerIndex
+  };
+  state.penaltyRollPlayerIndex = null;
+  state.penaltySource = "group_pending";
+  state.penaltyHintShown = false;
+
+  const firstPlayerIndex = queue[0];
+  const firstPlayerName = normalizePenaltyPlayerName(
+    players[firstPlayerIndex]?.name,
+    `Player ${firstPlayerIndex + 1}`
+  );
+  log?.(`${prompt} ${firstPlayerName} rolls first.`);
+  return true;
+}
+
 export function shouldTriggerPenaltyPreview(subName, subInstruction, challengeText) {
   const text = `${String(subName || "")} ${String(subInstruction || "")} ${String(challengeText || "")}`.trim();
   if (!text) return false;
@@ -115,8 +181,7 @@ function isDirectDrinkOnlyText(text) {
 export function shouldShowActionScreenForPlainCard(text) {
   const t = String(text || "").trim();
   if (!t) return false;
-  if (isDrawPenaltyCardText(t)) return false;
-  if (isDrawPenaltyForAllText(t)) return false;
+  if (isPenaltyCardInstructionText(t)) return false;
   return !isDirectDrinkOnlyText(t);
 }
 

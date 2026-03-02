@@ -5,7 +5,7 @@ import { gameData } from '../js/gameData.js';
 import {
   parseDrinkFromText,
   parseGiveFromText,
-  isDrawPenaltyCardText
+  isPenaltyCardInstructionText
 } from '../js/game/controller/helpers.js';
 
 function isPositiveInteger(value) {
@@ -28,7 +28,7 @@ test('normalDeck entries stay compatible with plain-card parser rules', () => {
     const text = String(entry || '').trim();
     const isDrink = Boolean(parseDrinkFromText(text));
     const isGive = Boolean(parseGiveFromText(text));
-    const isPenaltyCall = isDrawPenaltyCardText(text);
+    const isPenaltyCall = isPenaltyCardInstructionText(text);
     assert.ok(
       isDrink || isGive || isPenaltyCall,
       `Unsupported normalDeck entry for parser flow: "${text}"`

@@ -10,6 +10,26 @@ function logDitto(log, message) {
   }
 }
 
+function applyPenaltyResult(state, playerIndex, penaltyText, log, applyDrinkEvent) {
+  if (typeof applyDrinkEvent !== 'function') return;
+
+  const text = String(penaltyText || '').trim();
+  const match = text.match(/^Drink\s+(\d+)$/i);
+  if (match) {
+    applyDrinkEvent(state, playerIndex, parseInt(match[1], 10) || 1, 'Ditto penalty', log);
+    return;
+  }
+
+  if (/^Shotgun$/i.test(text)) {
+    applyDrinkEvent(state, playerIndex, 'Shotgun', 'Ditto penalty', log);
+    return;
+  }
+
+  if (/^Shot$/i.test(text)) {
+    applyDrinkEvent(state, playerIndex, 'Shot', 'Ditto penalty', log);
+  }
+}
+
 export function getDittoEventPool(state) {
   const pool = [
     { type: 'LOSE_ONE_ITEM_ALL' },
@@ -146,12 +166,33 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
     }
 
     case 'PENALTY_ALL': {
-      logDitto(log, "Ditto says: everyone takes a Penalty card.");
-      logDitto(log, "Resolve penalty cards manually. No automatic penalty roll was made.");
-      return {
-        title: infoTitle,
-        message: "Everyone takes a Penalty card. Resolve all penalties manually."
-      };
+      const penalty = randomFromArray(state.penaltyDeck) || 'Drink 1';
+      let affectedCount = 0;
+      let blockedByShieldCount = 0;
+
+      state.players.forEach((player, idx) => {
+        if (state.includeItems && player?.shield) {
+          delete player.shield;
+          blockedByShieldCount += 1;
+          return;
+        }
+
+        affectedCount += 1;
+        applyPenaltyResult(state, idx, penalty, log, applyDrinkEvent);
+      });
+
+      if (blockedByShieldCount > 0) {
+        updateTurnOrder();
+        renderItemsBoard();
+      }
+
+      let message = `Penalty for everyone: ${penalty}. Affected: ${affectedCount}.`;
+      if (blockedByShieldCount > 0) {
+        message += ` Blocked by Shield: ${blockedByShieldCount}.`;
+      }
+
+      logDitto(log, `Ditto triggered group penalty ${penalty}. Affected ${affectedCount}.`);
+      return { title: infoTitle, message };
     }
 
     default:

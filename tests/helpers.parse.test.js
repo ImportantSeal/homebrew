@@ -6,7 +6,8 @@ import {
   parseGiveFromText,
   shouldTriggerPenaltyPreview,
   shouldShowActionScreenForPlainCard,
-  isDrawPenaltyCardText
+  isDrawPenaltyCardText,
+  isPenaltyCardInstructionText
 } from '../js/game/controller/helpers.js';
 
 test('parseDrinkFromText parses direct drink values', () => {
@@ -45,6 +46,13 @@ test('isDrawPenaltyCardText matches only expected card text', () => {
   assert.equal(isDrawPenaltyCardText('Draw a Penalty Card'), true);
   assert.equal(isDrawPenaltyCardText('draw a penalty card'), true);
   assert.equal(isDrawPenaltyCardText('Draw penalty'), false);
+});
+
+test('isPenaltyCardInstructionText matches single and group penalty instructions', () => {
+  assert.equal(isPenaltyCardInstructionText('Draw a Penalty Card'), true);
+  assert.equal(isPenaltyCardInstructionText('Everybody takes a Penalty card'), true);
+  assert.equal(isPenaltyCardInstructionText('Penalty for All'), true);
+  assert.equal(isPenaltyCardInstructionText('Drink 3'), false);
 });
 
 test('shouldTriggerPenaltyPreview only for immediate penalty reveal instructions', () => {
