@@ -203,12 +203,9 @@ body::before {
   background: rgba(10, 14, 28, 0.7);
 }
 
-#setup-container button,
-#redraw-button,
-#penalty-refresh-button {
+.btn {
   border: 1px solid rgba(255,255,255,0.16);
   color: var(--text);
-  padding: 0.75rem 1.15rem;
   border-radius: 0.8rem;
   cursor: pointer;
   font-size: 1rem;
@@ -216,13 +213,22 @@ body::before {
   font-weight: 700;
   letter-spacing: 0.01em;
   transition: transform 0.15s, filter 0.2s, border-color 0.2s;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+
+.btn--primary {
+  padding: 0.75rem 1.15rem;
   background:
     linear-gradient(135deg, rgba(53,224,199,0.14), rgba(168,85,247,0.16)),
     rgba(10, 14, 28, 0.65);
   box-shadow: var(--shadow-soft);
 }
 
-#setup-container button {
+#setup-container .btn {
   margin: 0;
 }
 
@@ -234,14 +240,11 @@ body::before {
   gap: 0.5rem;
 }
 
-#redraw-button,
-#penalty-refresh-button {
+.penalty-actions .btn--primary {
   width: 100%;
 }
 
-#setup-container button:hover,
-#redraw-button:hover,
-#penalty-refresh-button:hover {
+.btn--primary:hover {
   transform: translateY(-1px);
   filter: brightness(1.06);
   border-color: rgba(255,255,255,0.22);
@@ -322,6 +325,7 @@ body::before {
   width: 1.85rem;
   height: 1.85rem;
   padding: 0;
+  cursor: pointer;
   border-radius: 999px;
   border: 1px solid rgba(255,255,255,0.22);
   background: rgba(255,255,255,0.06);
@@ -2383,8 +2387,7 @@ body[data-pickmode="effect-target"] .turn-player-name.turn-player-name--current 
     gap: 0.45rem;
   }
 
-  #redraw-button,
-  #penalty-refresh-button {
+  .penalty-actions .btn--primary {
     margin-top: 0;
     min-width: 0;
     padding: 0.58rem 0.92rem;
@@ -2627,9 +2630,7 @@ body[data-pickmode="effect-target"] .turn-player-name.turn-player-name--current 
 }
 
 @media (hover: none), (pointer: coarse) {
-  #setup-container button,
-  #redraw-button,
-  #penalty-refresh-button,
+  .btn,
   .rules-button,
   .dice-roll,
   .dice-chip,
