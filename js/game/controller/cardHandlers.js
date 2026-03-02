@@ -32,12 +32,13 @@ import {
 import { runSpecialAction, runSpecialChoiceAction } from './specialActions.js';
 import { recordCardSelection, recordGiveDrinks, replaceCardSelectionKind } from '../../stats.js';
 import { resolveStatsLeaderboardTopic } from '../../statsLeaderboard.js';
-import { setBaseBackgroundScene, syncBackgroundScene } from '../../ui/backgroundScene.js';
-
-const SPECIAL_SCENE_KINDS = new Set(['special', 'social', 'crowd', 'ditto']);
+import {
+  setBaseBackgroundScene,
+  syncBackgroundScene
+} from '../../ui/backgroundScene.js';
 
 function baseSceneForKind(kind) {
-  return SPECIAL_SCENE_KINDS.has(kind) ? 'special' : 'normal';
+  return kind === 'ditto' ? 'ditto' : 'normal';
 }
 
 function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel) {
@@ -608,6 +609,7 @@ export function createCardHandlers({
 
       onDittoActivated(state, state.currentPlayerIndex, log);
       replaceCardSelectionKind(state, state.currentPlayerIndex, selectedKind, 'ditto');
+      setBaseBackgroundScene(state, 'ditto');
 
       unlockUI();
       renderEffectsPanel();
@@ -727,7 +729,8 @@ export function createCardHandlers({
     const selectedKind = state.dittoActive[index]
       ? "ditto"
       : computeKind(state, cardData);
-    setBaseBackgroundScene(state, baseSceneForKind(selectedKind));
+    const selectedScene = baseSceneForKind(selectedKind);
+    setBaseBackgroundScene(state, selectedScene);
     const previousHistoryLogKind = state.historyLogKind ?? null;
     state.historyLogKind = selectedKind;
 

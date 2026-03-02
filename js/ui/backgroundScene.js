@@ -8,14 +8,41 @@ const PENALTY_SCENE_SOURCES = new Set([
   'redraw_hold'
 ]);
 
+const BASE_SCENES = new Set([
+  'normal',
+  'ditto'
+]);
+const SURGE_SCENES = new Set(['penalty', 'ditto']);
+const SURGE_DURATION_MS = 460;
+let surgeTimeoutId = null;
+
 function normalizeScene(scene) {
-  if (scene === 'penalty') return 'penalty';
-  if (scene === 'special') return 'special';
+  const normalized = String(scene || '').trim().toLowerCase();
+  if (normalized === 'penalty') return 'penalty';
+  if (BASE_SCENES.has(normalized)) return normalized;
   return 'normal';
 }
 
 function resolveBaseScene(scene) {
-  return scene === 'special' ? 'special' : 'normal';
+  const normalized = normalizeScene(scene);
+  return normalized === 'penalty' ? 'normal' : normalized;
+}
+
+function applySceneSurge() {
+  if (typeof document === 'undefined') return;
+
+  const body = document.body;
+  if (!body?.classList) return;
+
+  body.classList.remove('scene-surge');
+  void body.offsetWidth;
+  body.classList.add('scene-surge');
+
+  if (surgeTimeoutId) clearTimeout(surgeTimeoutId);
+  surgeTimeoutId = setTimeout(() => {
+    if (!document.body?.classList) return;
+    document.body.classList.remove('scene-surge');
+  }, SURGE_DURATION_MS);
 }
 
 export function applyBackgroundScene(scene = 'normal') {
@@ -35,7 +62,16 @@ export function resolveBackgroundScene(state) {
 }
 
 export function syncBackgroundScene(state) {
-  applyBackgroundScene(resolveBackgroundScene(state));
+  const nextScene = resolveBackgroundScene(state);
+  const previousScene = typeof document !== 'undefined' && document.body?.dataset
+    ? normalizeScene(document.body.dataset.scene)
+    : null;
+
+  applyBackgroundScene(nextScene);
+
+  if (previousScene !== nextScene && SURGE_SCENES.has(nextScene)) {
+    applySceneSurge();
+  }
 }
 
 export function setBaseBackgroundScene(state, scene = 'normal') {
