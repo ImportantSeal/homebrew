@@ -1,6 +1,7 @@
 import { flipCardAnimation, flashElement } from '../../animations.js';
 
 import { getCardDisplayValue } from '../../utils/cardDisplay.js';
+import { systemRng } from '../../utils/rng.js';
 
 import { rollPenaltyCard, hidePenaltyCard, showPenaltyPreview } from '../../logic/penalty.js';
 import { activateDitto, runDittoEffect } from '../../logic/ditto.js';
@@ -49,7 +50,8 @@ export function createCardHandlers({
   renderItems,
   renderTurnOrder,
   resetCards,
-  openActionScreen
+  openActionScreen,
+  rng = systemRng
 }) {
   const { startChoiceSelection } = createChoiceFlow({
     state,
@@ -65,6 +67,11 @@ export function createCardHandlers({
     renderEffectsPanel,
     syncBackgroundScene
   });
+
+  const createBagWithRng = (items) => createBag(items, rng);
+  const createEffectWithRng = (type, turns, opts = {}) => createEffect(type, turns, { ...opts, rng });
+  const beginTargetedEffectSelectionWithRng = (stateArg, def, sourceIndex, logFn, onDone) =>
+    beginTargetedEffectSelection(stateArg, def, sourceIndex, logFn, onDone, rng);
 
   const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick } = createPenaltyFlow({
     state,
@@ -88,7 +95,7 @@ export function createCardHandlers({
 
   const { handleObjectCardDraw } = createObjectCardFlow({
     state,
-    createBag,
+    createBag: createBagWithRng,
     log,
     currentPlayer,
     playerName,
@@ -99,9 +106,9 @@ export function createCardHandlers({
     applyDrinkEvent,
     rollPenaltyCard,
     showPenaltyPreview,
-    beginTargetedEffectSelection,
+    beginTargetedEffectSelection: beginTargetedEffectSelectionWithRng,
     addEffect,
-    createEffect,
+    createEffect: createEffectWithRng,
     startChoiceSelection,
     syncBackgroundScene,
     flipCardAnimation

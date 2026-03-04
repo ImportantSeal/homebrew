@@ -3,11 +3,12 @@ import { enablePlayerNameSelection } from './mirror.js';
 import { recordDrinkTaken } from '../stats.js';
 import { EFFECT_TYPES } from './actionEffectRegistry.js';
 import { getEffectTitle } from './effectNames.js';
+import { systemRng } from '../utils/rng.js';
 
 let activeCleanup = null;
 
-function makeId() {
-  return `eff_${Date.now()}_${Math.floor(Math.random() * 1e9)}`;
+function makeId(rng = systemRng) {
+  return `eff_${Date.now()}_${Math.floor(rng.nextFloat() * 1e9)}`;
 }
 
 function clearPickMode() {
@@ -29,9 +30,9 @@ export function addEffect(state, effect) {
   state.effects.push(effect);
 }
 
-export function createEffect(type, turns, { sourceIndex = null, targetIndex = null } = {}) {
+export function createEffect(type, turns, { sourceIndex = null, targetIndex = null, rng = systemRng } = {}) {
   return {
-    id: makeId(),
+    id: makeId(rng),
     type,
     totalTurns: turns,
     remainingTurns: turns,
@@ -83,7 +84,7 @@ export function cancelTargetedEffectSelection(state) {
  * - Adds highlight mode to turn order names
  * - Blocks other actions until target picked (controller handles the guard)
  */
-export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDone) {
+export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDone, rng = systemRng) {
   cancelTargetedEffectSelection(state);
 
   const players = Array.isArray(state.players) ? state.players : [];
@@ -118,7 +119,7 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
     activeCleanup = null;
 
     // Create + store the real effect
-    const eff = createEffect(def.type, def.turns, { sourceIndex, targetIndex });
+    const eff = createEffect(def.type, def.turns, { sourceIndex, targetIndex, rng });
     addEffect(state, eff);
 
     // Exit pick mode

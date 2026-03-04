@@ -1,14 +1,15 @@
 // homebrew/js/utils/random.js
+import { systemRng } from './rng.js';
 
-export function randomFromArray(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
+export function randomFromArray(arr, rng = systemRng) {
+  return arr[Math.floor(rng.nextFloat() * arr.length)];
 }
 
 // Fisher–Yates shuffle (returns a NEW shuffled copy)
-export function shuffle(arr) {
+export function shuffle(arr, rng = systemRng) {
   const a = arr.slice();
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng.nextFloat() * (i + 1));
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -20,20 +21,20 @@ export function shuffle(arr) {
  * - When empty, reshuffles and continues.
  * - Avoids immediate repeats across bag boundaries when possible.
  */
-export function createBag(items) {
+export function createBag(items, rng = systemRng) {
   const source = items.slice();
-  let bag = shuffle(source);
+  let bag = shuffle(source, rng);
   let last = null;
 
   function refill() {
-    bag = shuffle(source);
+    bag = shuffle(source, rng);
 
     // Avoid immediate repeat across refill boundary if possible
     if (bag.length > 1 && last != null) {
       const lastName = getComparableKey(last);
       if (getComparableKey(bag[bag.length - 1]) === lastName) {
         // swap last element with some other element
-        const swapIndex = Math.floor(Math.random() * (bag.length - 1));
+        const swapIndex = Math.floor(rng.nextFloat() * (bag.length - 1));
         const tmp = bag[bag.length - 1];
         bag[bag.length - 1] = bag[swapIndex];
         bag[swapIndex] = tmp;
@@ -63,7 +64,7 @@ export function createBag(items) {
   }
 
   function reset() {
-    bag = shuffle(source);
+    bag = shuffle(source, rng);
     last = null;
   }
 

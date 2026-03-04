@@ -5,6 +5,7 @@ import { addHistoryEntry, clearHistoryEntries } from '../cardHistory.js';
 import { resetStats, removePlayerStats } from '../stats.js';
 
 import { createBag } from '../utils/random.js';
+import { systemRng } from '../utils/rng.js';
 import { ensurePlayerColors } from '../utils/playerColors.js';
 
 import { dealTurnCards } from '../logic/deck.js';
@@ -336,10 +337,13 @@ const { renderEffectsPanel } = createEffectsPanelController({
   playerName
 });
 
+const rng = state.rng ?? systemRng;
+
 const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } = createCardHandlers({
   state,
   timing: TIMING,
   createBag,
+  rng,
   log,
   currentPlayer,
   playerName,
