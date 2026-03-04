@@ -61,7 +61,12 @@ function createHarness(stateOverrides = {}) {
     { name: 'C', inventory: [] }
   ];
   state.currentPlayerIndex = 0;
-  state.penaltyDeck = ['Drink 3', 'Drink 5', 'Shot', 'Shotgun'];
+  state.penaltyDeck = [
+    { type: 'penalty', name: 'Drink 3', drink: { amount: 3 } },
+    { type: 'penalty', name: 'Drink 5', drink: { amount: 5 } },
+    { type: 'penalty', name: 'Shot', drink: { amount: 'Shot' } },
+    { type: 'penalty', name: 'Shotgun', drink: { amount: 'Shotgun' } }
+  ];
   state.stats = { players: [], updatedAt: 0 };
 
   Object.assign(state, stateOverrides);
@@ -131,15 +136,16 @@ function createHarness(stateOverrides = {}) {
 
 test('Share Penalty confirm flow opens target choice and applies shared drink penalty', () => {
   withMockDom(() => {
+    const penaltyCard = { type: 'penalty', name: 'Drink 5', drink: { amount: 5 } };
     const { state, handlers, logs, actionScreens, counts } = createHarness({
       penaltyShown: true,
-      penaltyCard: 'Drink 5',
+      penaltyCard,
       penaltyConfirmArmed: true,
       penaltySource: 'card',
       sharePenalty: {
         active: true,
         sourcePlayerIndex: 0,
-        penalty: 'Drink 5'
+        penalty: penaltyCard
       }
     });
 
@@ -202,15 +208,16 @@ test('Share Penalty target flow falls back to manual resolution for unsupported 
 
 test('Share Penalty target can be shielded and shared penalty does not apply drinks', () => {
   withMockDom(() => {
+    const penaltyCard = { type: 'penalty', name: 'Shot', drink: { amount: 'Shot' } };
     const { state, handlers, logs, actionScreens, counts } = createHarness({
       penaltyShown: true,
-      penaltyCard: 'Shot',
+      penaltyCard,
       penaltyConfirmArmed: true,
       penaltySource: 'card',
       sharePenalty: {
         active: true,
         sourcePlayerIndex: 0,
-        penalty: 'Shot'
+        penalty: penaltyCard
       }
     });
     state.players[1].shield = true;

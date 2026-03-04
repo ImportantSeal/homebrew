@@ -75,7 +75,7 @@ export function createBag(items, rng = systemRng) {
 function getComparableKey(v) {
   if (v && typeof v === "object") {
     // subcategory objects have name; fallback to JSON-ish
-    return String(v.name ?? v.instruction ?? JSON.stringify(v));
+    return String(v.id ?? v.name ?? v.label ?? v.instruction ?? JSON.stringify(v));
   }
   return String(v);
 }

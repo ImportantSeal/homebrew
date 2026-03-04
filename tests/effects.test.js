@@ -5,6 +5,7 @@ import {
   createEffect,
   tickEffects,
   applyDrinkEvent,
+  beginTargetedEffectSelection,
   onDittoActivated
 } from '../js/logic/effects.js';
 
@@ -163,4 +164,47 @@ test('onDittoActivated applies shot and consumes magnet on trigger', () => {
   assert.ok(lines.some((line) => line.includes('A got Ditto while magnetized')));
   assert.ok(lines.some((line) => line.includes('A: Shot (Ditto Magnet)')));
   assert.ok(lines.some((line) => line.includes('Ditto Magnet ended for A.')));
+});
+
+test('beginTargetedEffectSelection uses UI adapter and creates effect on pick', () => {
+  const state = createState();
+  const { log } = createLogCollector();
+  let pickMode = null;
+  let cleared = false;
+  let cleanupCalled = false;
+  let capturedPick = null;
+
+  const ui = {
+    setPickMode: (mode) => { pickMode = mode; },
+    clearPickMode: () => { cleared = true; },
+    enablePlayerNameSelection: (innerState, onPick) => {
+      capturedPick = onPick;
+      return () => { cleanupCalled = true; };
+    }
+  };
+
+  let doneTarget = null;
+  beginTargetedEffectSelection(
+    state,
+    { type: 'DRINK_BUDDY', turns: 2 },
+    0,
+    log,
+    (target) => { doneTarget = target; },
+    undefined,
+    ui
+  );
+
+  assert.equal(state.effectSelection.active, true);
+  assert.equal(pickMode, 'effect-target');
+  assert.ok(typeof capturedPick === 'function');
+
+  capturedPick(1, () => { cleanupCalled = true; });
+
+  assert.equal(cleared, true);
+  assert.equal(cleanupCalled, true);
+  assert.equal(state.effectSelection.active, false);
+  assert.equal(state.effects.length, 1);
+  assert.equal(state.effects[0].type, 'DRINK_BUDDY');
+  assert.equal(state.effects[0].targetIndex, 1);
+  assert.equal(doneTarget, 1);
 });

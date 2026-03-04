@@ -1,15 +1,4 @@
-import { flipCardAnimation } from '../animations.js';
-import { getCardDisplayValue } from '../utils/cardDisplay.js';
-import { setCardKind } from '../ui/cards.js';
 import { resetMirrorState } from './mirror.js';
-
-function getCardEls() {
-  return [
-    document.getElementById('card0'),
-    document.getElementById('card1'),
-    document.getElementById('card2')
-  ];
-}
 
 export function useItem(
   state,
@@ -18,7 +7,8 @@ export function useItem(
   log,
   updateTurnOrder,
   renderItemsBoard,
-  updateTurn
+  updateTurn,
+  ui = {}
 ) {
   const player = state.players[playerIndex];
   const item = player.inventory[itemIndex];
@@ -41,15 +31,13 @@ export function useItem(
 
     case "Reveal Free":
       if (state.hiddenIndex !== null && !state.revealed[state.hiddenIndex]) {
-        const cards = getCardEls();
         const idx = state.hiddenIndex;
-
         state.revealed[idx] = true;
 
-        // NOW that it's revealed: apply real kind styling
-        setCardKind(state, cards[idx], state.currentCards[idx], false);
+        if (typeof ui.revealHiddenCard === 'function') {
+          ui.revealHiddenCard(state, idx);
+        }
 
-        flipCardAnimation(cards[idx], getCardDisplayValue(state.currentCards[idx]));
         log(`${player.name} used Reveal Free! Mystery card revealed.`);
       } else {
         log("No mystery card to reveal.");

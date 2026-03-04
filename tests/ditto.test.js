@@ -8,7 +8,7 @@ function createBaseState() {
     includeItems: false,
     players: [{ name: 'A' }, { name: 'B' }],
     currentPlayerIndex: 0,
-    penaltyDeck: ['Drink 4'],
+    penaltyDeck: [{ type: 'penalty', name: 'Drink 4', drink: { amount: 4 } }],
     stats: { players: [], updatedAt: 0 },
     dittoPending: [{ type: 'DRINK_3' }]
   };

@@ -6,6 +6,7 @@ import {
 } from './guards.js';
 import { isRedrawLockedPenaltyOpen } from '../helpers.js';
 import { recordPenaltyTaken } from '../../../stats.js';
+import { getPenaltyDisplayValue, getPenaltySpec } from '../../../logic/penaltySchema.js';
 
 export function createPenaltyFlow({
   state,
@@ -26,7 +27,7 @@ export function createPenaltyFlow({
   hidePenaltyCard,
   syncBackgroundScene
 }) {
-  function applySharedPenaltyToTarget(targetIndex, penaltyText) {
+  function applySharedPenaltyToTarget(targetIndex, penaltyCard) {
     const targetPlayer = state.players?.[targetIndex];
     if (!targetPlayer) return false;
 
@@ -36,35 +37,24 @@ export function createPenaltyFlow({
       return true;
     }
 
-    const text = String(penaltyText || "").trim();
-    if (!text) return false;
+    const penaltySpec = getPenaltySpec(penaltyCard);
+    if (!penaltySpec?.label) return false;
 
     recordPenaltyTaken(state, targetIndex);
 
-    const drinkMatch = text.match(/^Drink\s+(\d+)/i);
-    if (drinkMatch) {
-      applyDrinkEvent(state, targetIndex, parseInt(drinkMatch[1], 10) || 1, "Shared Penalty", log);
-      return true;
-    }
-
-    if (/^Shotgun$/i.test(text)) {
-      applyDrinkEvent(state, targetIndex, "Shotgun", "Shared Penalty: Shotgun", log);
-      return true;
-    }
-
-    if (/^Shot$/i.test(text)) {
-      applyDrinkEvent(state, targetIndex, "Shot", "Shared Penalty: Shot", log);
+    if (penaltySpec.drink) {
+      applyDrinkEvent(state, targetIndex, penaltySpec.drink.amount, "Shared Penalty", log);
       return true;
     }
 
     return false;
   }
 
-  function startSharePenaltyTargetSelection(penaltyText) {
+  function startSharePenaltyTargetSelection(penaltyCard) {
     const share = state.sharePenalty;
     if (!share?.active) return false;
 
-    const resolvedPenalty = String(penaltyText || share.penalty || "").trim();
+    const resolvedPenalty = getPenaltyDisplayValue(penaltyCard ?? share.penalty);
     if (!resolvedPenalty) {
       clearSharePenaltyState(state);
       log("Share Penalty could not continue because no penalty card was available.");
@@ -91,7 +81,8 @@ export function createPenaltyFlow({
       active: true,
       pending: {
         type: "share_penalty_target",
-        penalty: resolvedPenalty,
+        penalty: penaltyCard ?? share.penalty,
+        penaltyLabel: resolvedPenalty,
         sourcePlayerIndex
       }
     };
@@ -131,12 +122,13 @@ export function createPenaltyFlow({
           }
 
           const targetName = playerName(targetIndex);
-          const penalty = String(pending?.penalty || resolvedPenalty).trim();
-          log(`${targetName} shares penalty: ${penalty}.`);
+          const penaltyCardToApply = pending?.penalty ?? penaltyCard;
+          const penaltyLabel = pending?.penaltyLabel || resolvedPenalty;
+          log(`${targetName} shares penalty: ${penaltyLabel}.`);
 
-          const applied = applySharedPenaltyToTarget(targetIndex, penalty);
+          const applied = applySharedPenaltyToTarget(targetIndex, penaltyCardToApply);
           if (!applied) {
-            log(`Shared penalty could not be auto-applied (${penalty}). Resolve it manually.`);
+            log(`Shared penalty could not be auto-applied (${penaltyLabel}). Resolve it manually.`);
           }
 
           clearChoiceSelection(state);
@@ -234,7 +226,7 @@ export function createPenaltyFlow({
     rollPenaltyCard(state, log, "redraw_hold");
 
     if (isRedrawLockedPenaltyOpen(state)) {
-      const penaltyText = String(state.penaltyCard || "").trim();
+      const penaltyText = getPenaltyDisplayValue(state.penaltyCard);
       const message = penaltyText
         ? `Penalty: ${penaltyText}.`
         : "Penalty rolled from Redraw.";
@@ -361,9 +353,9 @@ export function createPenaltyFlow({
 
       const source = state.penaltySource;
       const sharePenaltyActive = source === "card" && state.sharePenalty?.active;
-      const sharePenaltyText = sharePenaltyActive
-        ? String(state.sharePenalty?.penalty || state.penaltyCard || "").trim()
-        : "";
+      const sharePenaltyCard = sharePenaltyActive
+        ? (state.sharePenalty?.penalty ?? state.penaltyCard)
+        : null;
       hidePenaltyCard(state);
 
       if (source === "group") {
@@ -393,7 +385,7 @@ export function createPenaltyFlow({
       }
 
       if (sharePenaltyActive) {
-        const selectionStarted = startSharePenaltyTargetSelection(sharePenaltyText);
+        const selectionStarted = startSharePenaltyTargetSelection(sharePenaltyCard);
         if (selectionStarted) {
           renderEffectsPanel();
           return;

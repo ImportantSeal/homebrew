@@ -18,6 +18,11 @@ test('parseDrinkFromText parses direct drink values', () => {
   assert.deepEqual(parseDrinkFromText('Shot + Shotgun'), { scope: 'self', amount: 'Shot+Shotgun' });
 });
 
+test('parseDrinkFromText uses structured plain card data when available', () => {
+  const card = { type: 'plain', name: 'Drink 4', drink: { scope: 'self', amount: 4 } };
+  assert.deepEqual(parseDrinkFromText(card), { scope: 'self', amount: 4 });
+});
+
 test('parseDrinkFromText parses group drink values', () => {
   assert.deepEqual(parseDrinkFromText('Everybody drinks 2'), { scope: 'all', amount: 2 });
   assert.deepEqual(parseDrinkFromText('Everybody takes a Shot'), { scope: 'all', amount: 'Shot' });
@@ -35,11 +40,23 @@ test('parseGiveFromText parses give values', () => {
   assert.equal(parseGiveFromText('Drink 3'), null);
 });
 
+test('parseGiveFromText uses structured plain card data when available', () => {
+  const card = { type: 'plain', name: 'Give 5', give: { amount: 5 } };
+  assert.deepEqual(parseGiveFromText(card), { amount: 5 });
+});
+
 test('plain card action screen guard works for direct drink/give cards', () => {
   assert.equal(shouldShowActionScreenForPlainCard('Drink 2'), false);
   assert.equal(shouldShowActionScreenForPlainCard('Drink 2, Give 1'), false);
   assert.equal(shouldShowActionScreenForPlainCard('Draw a Penalty Card'), false);
   assert.equal(shouldShowActionScreenForPlainCard('Categories challenge starts now'), true);
+});
+
+test('plain card action screen guard respects structured cards', () => {
+  const card = { type: 'plain', name: 'Drink 1', drink: { scope: 'self', amount: 1 } };
+  const actionCard = { type: 'plain', name: 'Just talk', requiresActionScreen: true };
+  assert.equal(shouldShowActionScreenForPlainCard(card), false);
+  assert.equal(shouldShowActionScreenForPlainCard(actionCard), true);
 });
 
 test('isDrawPenaltyCardText matches only expected card text', () => {

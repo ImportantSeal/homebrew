@@ -102,7 +102,8 @@ export function createObjectCardFlow({
       ? `${subName} - ${subInstruction}`
       : (subInstruction || subName);
     const actionMessage = subInstruction || shownText || subName || "";
-    const leaderboardTopic = resolveStatsLeaderboardTopic(subName, subInstruction);
+    const explicitLeaderboardTopic = event?.leaderboardTopic || event?.statsTopic || event?.statsLeaderboardTopic;
+    const leaderboardTopic = explicitLeaderboardTopic || resolveStatsLeaderboardTopic(subName, subInstruction);
 
     if (drawMessage) {
       if (leaderboardTopic) {
@@ -113,13 +114,21 @@ export function createObjectCardFlow({
     }
 
     const actionResolvesFlow = Boolean(action);
+    const penaltyMeta = event?.penalty;
     const waitsForPenaltyDeckRoll = !actionResolvesFlow
-      && shouldWaitForPenaltyDeckRoll(subName, subInstruction, shownText);
+      && (
+        penaltyMeta?.requiresRoll === true
+        || penaltyMeta?.waitForRoll === true
+        || penaltyMeta?.manualRoll === true
+        || shouldWaitForPenaltyDeckRoll(subName, subInstruction, shownText)
+      );
 
     // If the subevent mentions penalty, also flip penalty deck (preview only).
     if (!actionResolvesFlow
       && !waitsForPenaltyDeckRoll
-      && shouldTriggerPenaltyPreview(subName, subInstruction, shownText)) {
+      && (penaltyMeta?.preview === true
+        || penaltyMeta?.showPreview === true
+        || shouldTriggerPenaltyPreview(subName, subInstruction, shownText))) {
       const label = `${parentName}${subName ? `: ${subName}` : ""}`;
       showPenaltyPreview(state, log, label);
     }

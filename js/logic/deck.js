@@ -8,7 +8,7 @@ const ITEM_OVERRIDE_CHANCE = 0.01;
 
 function cardKey(card) {
   if (card && typeof card === 'object') {
-    return `obj:${card.name || 'unnamed'}`;
+    return `obj:${card.id || card.name || card.label || 'unnamed'}`;
   }
   return `str:${String(card)}`;
 }

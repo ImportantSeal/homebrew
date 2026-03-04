@@ -15,6 +15,7 @@ import {
 } from '../../logic/effects.js';
 
 import { computeKind, getCardElements, setCardKind } from '../../ui/cards.js';
+import { effectSelectionUi } from '../../ui/effectSelectionUi.js';
 
 import {
   recordCardSelection,
@@ -51,7 +52,8 @@ export function createCardHandlers({
   renderTurnOrder,
   resetCards,
   openActionScreen,
-  rng = systemRng
+  rng = systemRng,
+  effectUi = effectSelectionUi
 }) {
   const { startChoiceSelection } = createChoiceFlow({
     state,
@@ -71,7 +73,7 @@ export function createCardHandlers({
   const createBagWithRng = (items) => createBag(items, rng);
   const createEffectWithRng = (type, turns, opts = {}) => createEffect(type, turns, { ...opts, rng });
   const beginTargetedEffectSelectionWithRng = (stateArg, def, sourceIndex, logFn, onDone) =>
-    beginTargetedEffectSelection(stateArg, def, sourceIndex, logFn, onDone, rng);
+    beginTargetedEffectSelection(stateArg, def, sourceIndex, logFn, onDone, rng, effectUi);
 
   const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick } = createPenaltyFlow({
     state,

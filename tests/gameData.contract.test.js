@@ -7,17 +7,10 @@ import {
   parseGiveFromText,
   isPenaltyCardInstructionText
 } from '../js/game/controller/helpers.js';
+import { getPenaltySpec } from '../js/logic/penaltySchema.js';
 
 function isPositiveInteger(value) {
   return Number.isInteger(value) && value > 0;
-}
-
-function isPenaltyDrinkLike(value) {
-  const t = String(value || '').trim();
-  if (/^Drink\s+\d+$/i.test(t)) return true;
-  if (/^Shot$/i.test(t)) return true;
-  if (/^Shotgun$/i.test(t)) return true;
-  return false;
 }
 
 test('normalDeck entries stay compatible with plain-card parser rules', () => {
@@ -25,13 +18,12 @@ test('normalDeck entries stay compatible with plain-card parser rules', () => {
   assert.ok(gameData.normalDeck.length > 0);
 
   for (const entry of gameData.normalDeck) {
-    const text = String(entry || '').trim();
-    const isDrink = Boolean(parseDrinkFromText(text));
-    const isGive = Boolean(parseGiveFromText(text));
-    const isPenaltyCall = isPenaltyCardInstructionText(text);
+    const isDrink = Boolean(parseDrinkFromText(entry));
+    const isGive = Boolean(parseGiveFromText(entry));
+    const isPenaltyCall = isPenaltyCardInstructionText(entry);
     assert.ok(
       isDrink || isGive || isPenaltyCall,
-      `Unsupported normalDeck entry for parser flow: "${text}"`
+      `Unsupported normalDeck entry for parser flow: "${entry?.name ?? entry}"`
     );
   }
 });
@@ -41,9 +33,10 @@ test('penaltyDeck values stay compatible with penalty drink handling', () => {
   assert.ok(gameData.penaltyDeck.length > 0);
 
   for (const entry of gameData.penaltyDeck) {
+    const spec = getPenaltySpec(entry);
     assert.ok(
-      isPenaltyDrinkLike(entry),
-      `Unsupported penaltyDeck entry for rollPenaltyCard(): "${entry}"`
+      Boolean(spec?.drink?.amount),
+      `Unsupported penaltyDeck entry for rollPenaltyCard(): "${entry?.name ?? entry}"`
     );
   }
 });

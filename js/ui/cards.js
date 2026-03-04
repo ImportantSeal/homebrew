@@ -152,6 +152,10 @@ export function getCardElements() {
 export function computeKind(state, cardData) {
   // Object cards (Challenge / Crowd / Special)
   if (typeof cardData === 'object' && cardData !== null) {
+    if (cardData.type === 'plain') {
+      return getPlainCardKind(cardData);
+    }
+
     const name = String(cardData.name || "").trim();
     if (/^Challenge$/i.test(name)) return 'social';
     if (/^Crowd Challenge$/i.test(name)) return 'crowd';
@@ -164,7 +168,7 @@ export function computeKind(state, cardData) {
   // Items
   if (state.itemCards && state.itemCards.includes(value)) return 'item';
 
-  return getPlainCardKind(value);
+  return getPlainCardKind(cardData);
 }
 
 /**

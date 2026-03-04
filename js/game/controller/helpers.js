@@ -128,6 +128,7 @@ export function ensureBag(stateObj, key, items, createBag) {
 
 function isItemRelatedSpecialSubcategory(entry) {
   if (!entry || typeof entry !== "object") return false;
+  if (typeof entry.itemRelated === "boolean") return entry.itemRelated;
   if (entry.action && ITEM_RELATED_SPECIAL_ACTIONS.has(String(entry.action))) return true;
 
   const name = String(entry.name || "");
@@ -152,8 +153,8 @@ export function parseGiveFromText(text) {
 }
 
 export function shouldShowActionScreenForPlainCard(text) {
-  if (!String(text || "").trim()) return false;
   const spec = getPlainCardSpec(text);
+  if (!spec.text) return false;
   if (spec.penaltyCall) return false;
   return spec.requiresActionScreen;
 }

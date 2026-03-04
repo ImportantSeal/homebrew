@@ -13,6 +13,7 @@ function createHarness(event) {
   };
 
   const logs = [];
+  const logEntries = [];
   const actionScreens = [];
   const calls = {
     flipCardAnimation: [],
@@ -23,7 +24,11 @@ function createHarness(event) {
   const flow = createObjectCardFlow({
     state,
     createBag: () => ({ next: () => event }),
-    log: (line) => logs.push(String(line)),
+    log: (line, options) => {
+      const message = String(line);
+      logs.push(message);
+      logEntries.push({ message, options });
+    },
     currentPlayer: () => state.players[state.currentPlayerIndex],
     playerName: (index) => state.players[index]?.name || `Player ${index + 1}`,
     nextPlayer: () => {},
@@ -49,7 +54,7 @@ function createHarness(event) {
     }
   });
 
-  return { state, logs, actionScreens, calls, flow };
+  return { state, logs, logEntries, actionScreens, calls, flow };
 }
 
 test('object card flow logs and opens action screen for simple subcard', () => {
@@ -69,4 +74,16 @@ test('object card flow logs and opens action screen for simple subcard', () => {
   assert.equal(calls.flipCardAnimation.length, 1);
   assert.equal(calls.flipCardAnimation[0].text, 'Do something fun');
   assert.ok(logs.some((line) => line.includes('Quick Test - Do something fun')));
+});
+
+test('object card flow prefers explicit leaderboard topic metadata', () => {
+  const event = { name: 'Most Drinks Guess', instruction: 'Check Stats.', leaderboardTopic: 'drinks_taken_max' };
+  const { logEntries, flow } = createHarness(event);
+
+  const parentCard = { name: 'Crowd Challenge', subcategories: [event] };
+  const cardEl = {};
+  flow.handleObjectCardDraw(cardEl, parentCard);
+
+  const entry = logEntries.find((item) => item.message.includes('Most Drinks Guess'));
+  assert.equal(entry?.options?.leaderboardTopic, 'drinks_taken_max');
 });

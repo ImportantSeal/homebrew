@@ -3,9 +3,37 @@ const PENALTY_GROUP_RE = /^Everybody takes a Penalty Card$/i;
 const PENALTY_GROUP_ALT_RE = /^Penalty for All$/i;
 
 const CACHE = new Map();
+const OBJECT_CACHE = new WeakMap();
 
 function normalizeText(value) {
   return String(value ?? "").trim();
+}
+
+function normalizeDrinkSpec(value) {
+  if (!value) return null;
+  if (typeof value === 'object') {
+    if (!Object.prototype.hasOwnProperty.call(value, 'amount')) return null;
+    return {
+      scope: value.scope === 'all' ? 'all' : 'self',
+      amount: value.amount
+    };
+  }
+  if (typeof value === 'number' || typeof value === 'string') {
+    return { scope: 'self', amount: value };
+  }
+  return null;
+}
+
+function normalizeGiveSpec(value) {
+  if (!value) return null;
+  if (typeof value === 'object') {
+    if (!Object.prototype.hasOwnProperty.call(value, 'amount')) return null;
+    return { amount: value.amount };
+  }
+  if (typeof value === 'number') {
+    return { amount: value };
+  }
+  return null;
 }
 
 function parseDrink(text) {
@@ -54,7 +82,55 @@ function freezeSpec(spec) {
   return Object.freeze(spec);
 }
 
+function buildSpecFromObject(card) {
+  const cached = OBJECT_CACHE.get(card);
+  if (cached) return cached;
+
+  const text = normalizeText(card.label ?? card.name ?? card.text ?? "");
+  const spec = {
+    text,
+    kind: "normal",
+    penaltyCall: null,
+    drink: null,
+    give: null,
+    requiresActionScreen: false
+  };
+
+  if (card && typeof card === 'object') {
+    if (card.penaltyCall) {
+      spec.kind = "penaltycall";
+      spec.penaltyCall = card.penaltyCall;
+    }
+
+    spec.drink = normalizeDrinkSpec(card.drink);
+    spec.give = normalizeGiveSpec(card.give);
+
+    if (spec.drink && spec.give) spec.kind = "mix";
+    else if (spec.drink) spec.kind = "drink";
+    else if (spec.give) spec.kind = "give";
+  }
+
+  const explicitAction = typeof card?.requiresActionScreen === 'boolean'
+    ? card.requiresActionScreen
+    : null;
+  spec.requiresActionScreen = explicitAction !== null
+    ? explicitAction
+    : !(spec.drink || spec.give || spec.penaltyCall);
+
+  const frozen = freezeSpec(spec);
+  OBJECT_CACHE.set(card, frozen);
+  return frozen;
+}
+
 export function getPlainCardSpec(value) {
+  if (value && typeof value === 'object') {
+    if (value.type === 'plain') {
+      return buildSpecFromObject(value);
+    }
+    const fallbackText = normalizeText(value.label ?? value.name ?? value.text ?? "");
+    return getPlainCardSpec(fallbackText);
+  }
+
   const text = normalizeText(value);
   const cached = CACHE.get(text);
   if (cached) return cached;

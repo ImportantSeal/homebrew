@@ -15,7 +15,9 @@ import { resetMirrorState } from '../logic/mirror.js';
 import { useItem } from '../logic/items.js';
 import { enableLeaveGuard } from '../navigationGuard.js';
 
-import { renderCards } from '../ui/cards.js';
+import { flipCardAnimation } from '../animations.js';
+import { getCardDisplayValue } from '../utils/cardDisplay.js';
+import { getCardElements, renderCards, setCardKind } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { renderItemsBoard } from '../ui/itemsBoard.js';
 import { showCardActionModal } from '../ui/cardActionModal.js';
@@ -518,7 +520,16 @@ function renderItems() {
       log,
       renderTurnHeader,
       renderItems,
-      updateTurn
+      updateTurn,
+      {
+        revealHiddenCard: (stateObj, index) => {
+          const cards = getCardElements();
+          const cardEl = cards[index];
+          if (!cardEl) return;
+          setCardKind(stateObj, cardEl, stateObj.currentCards[index], false);
+          flipCardAnimation(cardEl, getCardDisplayValue(stateObj.currentCards[index]));
+        }
+      }
     );
 
     renderEffectsPanel();

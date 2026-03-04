@@ -2,6 +2,7 @@
 
 import { randomFromArray } from '../utils/random.js';
 import { resolveRng } from '../utils/rng.js';
+import { getPenaltyDisplayValue, getPenaltySpec } from './penaltySchema.js';
 
 const ITEM_DITTO_TYPES = new Set(['LOSE_ONE_ITEM_ALL', 'STEAL_RANDOM_ITEM']);
 
@@ -11,23 +12,12 @@ function logDitto(log, message) {
   }
 }
 
-function applyPenaltyResult(state, playerIndex, penaltyText, log, applyDrinkEvent) {
+function applyPenaltyResult(state, playerIndex, penaltyCard, log, applyDrinkEvent) {
   if (typeof applyDrinkEvent !== 'function') return;
 
-  const text = String(penaltyText || '').trim();
-  const match = text.match(/^Drink\s+(\d+)$/i);
-  if (match) {
-    applyDrinkEvent(state, playerIndex, parseInt(match[1], 10) || 1, 'Ditto penalty', log);
-    return;
-  }
-
-  if (/^Shotgun$/i.test(text)) {
-    applyDrinkEvent(state, playerIndex, 'Shotgun', 'Ditto penalty', log);
-    return;
-  }
-
-  if (/^Shot$/i.test(text)) {
-    applyDrinkEvent(state, playerIndex, 'Shot', 'Ditto penalty', log);
+  const penaltySpec = getPenaltySpec(penaltyCard);
+  if (penaltySpec?.drink) {
+    applyDrinkEvent(state, playerIndex, penaltySpec.drink.amount, 'Ditto penalty', log);
   }
 }
 
@@ -170,6 +160,7 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
     case 'PENALTY_ALL': {
       const penalty = randomFromArray(state.penaltyDeck, rng) || 'Drink 1';
+      const penaltyLabel = getPenaltyDisplayValue(penalty);
       let affectedCount = 0;
       let blockedByShieldCount = 0;
 
@@ -189,12 +180,12 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
         renderItemsBoard();
       }
 
-      let message = `Penalty for everyone: ${penalty}. Affected: ${affectedCount}.`;
+      let message = `Penalty for everyone: ${penaltyLabel}. Affected: ${affectedCount}.`;
       if (blockedByShieldCount > 0) {
         message += ` Blocked by Shield: ${blockedByShieldCount}.`;
       }
 
-      logDitto(log, `Ditto triggered group penalty ${penalty}. Affected ${affectedCount}.`);
+      logDitto(log, `Ditto triggered group penalty ${penaltyLabel}. Affected ${affectedCount}.`);
       return { title: infoTitle, message };
     }
 

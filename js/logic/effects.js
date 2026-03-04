@@ -1,19 +1,36 @@
 // js/logic/effects.js
-import { enablePlayerNameSelection } from './mirror.js';
 import { recordDrinkTaken } from '../stats.js';
 import { EFFECT_TYPES } from './actionEffectRegistry.js';
 import { getEffectTitle } from './effectNames.js';
 import { systemRng } from '../utils/rng.js';
 
 let activeCleanup = null;
+let activeUi = null;
+
+const NOOP_EFFECT_UI = Object.freeze({
+  setPickMode: () => {},
+  clearPickMode: () => {},
+  enablePlayerNameSelection: () => () => {}
+});
+
+function normalizeEffectUi(ui) {
+  if (!ui || typeof ui !== 'object') return NOOP_EFFECT_UI;
+  return {
+    setPickMode: typeof ui.setPickMode === 'function' ? ui.setPickMode : NOOP_EFFECT_UI.setPickMode,
+    clearPickMode: typeof ui.clearPickMode === 'function' ? ui.clearPickMode : NOOP_EFFECT_UI.clearPickMode,
+    enablePlayerNameSelection: typeof ui.enablePlayerNameSelection === 'function'
+      ? ui.enablePlayerNameSelection
+      : NOOP_EFFECT_UI.enablePlayerNameSelection
+  };
+}
 
 function makeId(rng = systemRng) {
   return `eff_${Date.now()}_${Math.floor(rng.nextFloat() * 1e9)}`;
 }
 
 function clearPickMode() {
-  if (typeof document === "undefined" || !document.body?.dataset) return;
-  delete document.body.dataset.pickmode;
+  if (!activeUi || typeof activeUi.clearPickMode !== 'function') return;
+  activeUi.clearPickMode();
 }
 
 function setEffectSelectionState(state, overrides = {}) {
@@ -75,8 +92,9 @@ export function cancelTargetedEffectSelection(state) {
     activeCleanup = null;
   }
 
-  setEffectSelectionState(state);
   clearPickMode();
+  activeUi = null;
+  setEffectSelectionState(state);
 }
 
 /**
@@ -84,8 +102,9 @@ export function cancelTargetedEffectSelection(state) {
  * - Adds highlight mode to turn order names
  * - Blocks other actions until target picked (controller handles the guard)
  */
-export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDone, rng = systemRng) {
+export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDone, rng = systemRng, ui = null) {
   cancelTargetedEffectSelection(state);
+  activeUi = normalizeEffectUi(ui);
 
   const players = Array.isArray(state.players) ? state.players : [];
   const hasValidTarget = players.length > 0;
@@ -94,6 +113,7 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
     log?.(`${effectName} needs at least one player. Effect was skipped.`);
     setEffectSelectionState(state);
     clearPickMode();
+    activeUi = null;
     onDone?.(null);
     return null;
   }
@@ -108,13 +128,11 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
   });
 
   // Visual hint: highlight player names while picking
-  if (typeof document !== "undefined" && document.body?.dataset) {
-    document.body.dataset.pickmode = 'effect-target';
-  }
+  activeUi.setPickMode('effect-target');
 
   log?.(`Pick a player for: ${getEffectTitle(def.type, def.type)}. Click a player name in turn order.`);
 
-  activeCleanup = enablePlayerNameSelection(state, (targetIndex, cleanup) => {
+  activeCleanup = activeUi.enablePlayerNameSelection(state, (targetIndex, cleanup) => {
     cleanup?.();
     activeCleanup = null;
 
@@ -125,6 +143,7 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
     // Exit pick mode
     setEffectSelectionState(state);
     clearPickMode();
+    activeUi = null;
 
     const srcName = state.players?.[sourceIndex]?.name ?? "Someone";
     const tgtName = state.players?.[targetIndex]?.name ?? "Someone";

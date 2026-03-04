@@ -1,5 +1,34 @@
 import { ACTION_CODES, EFFECT_TYPES } from './logic/actionEffectRegistry.js';
 
+const makePlainCard = (id, name, spec = {}) => Object.freeze({
+  id,
+  type: "plain",
+  name,
+  ...spec
+});
+
+const makeDrinkCard = (id, name, amount, scope = "self") =>
+  makePlainCard(id, name, { drink: { scope, amount } });
+
+const makeGiveCard = (id, name, amount) =>
+  makePlainCard(id, name, { give: { amount } });
+
+const makeMixCard = (id, name, drinkAmount, giveAmount) =>
+  makePlainCard(id, name, {
+    drink: { scope: "self", amount: drinkAmount },
+    give: { amount: giveAmount }
+  });
+
+const makePenaltyCallCard = (id, name, penaltyCall) =>
+  makePlainCard(id, name, { penaltyCall });
+
+const makePenaltyCard = (id, name, amount) => Object.freeze({
+  id,
+  type: "penalty",
+  name,
+  drink: { amount }
+});
+
 export const gameData = {
   // Sosiaaliset ja Challenge-kortit
   socialCards: [
@@ -48,28 +77,28 @@ export const gameData = {
 
   // Normaalikortit
   normalDeck: [
-    "Draw a Penalty Card",
-    "Everybody takes a Penalty card",
-    "Drink 1",
-    "Drink 2",
-    "Drink 3",
-    "Drink 4",
-    "Drink 5",
-    "Drink 6",
-    "Take a Shot",
-    "Shotgun",
-    "Give 1",
-    "Give 2",
-    "Give 3",
-    "Drink 2, Give 1",
-    "Drink 3, Give 2",
-    "Drink 1, Give 1",
-    "Everybody drinks 1",
-    "Everybody drinks 2",
-    "Everybody drinks 3",
-    "Everybody takes a Shot",
-    "Everybody shotgun",
-    "Everybody take a shot + shotgun",
+    makePenaltyCallCard("penalty_draw_single", "Draw a Penalty Card", "single"),
+    makePenaltyCallCard("penalty_draw_group", "Everybody takes a Penalty card", "group"),
+    makeDrinkCard("drink_1", "Drink 1", 1),
+    makeDrinkCard("drink_2", "Drink 2", 2),
+    makeDrinkCard("drink_3", "Drink 3", 3),
+    makeDrinkCard("drink_4", "Drink 4", 4),
+    makeDrinkCard("drink_5", "Drink 5", 5),
+    makeDrinkCard("drink_6", "Drink 6", 6),
+    makeDrinkCard("shot", "Take a Shot", "Shot"),
+    makeDrinkCard("shotgun", "Shotgun", "Shotgun"),
+    makeGiveCard("give_1", "Give 1", 1),
+    makeGiveCard("give_2", "Give 2", 2),
+    makeGiveCard("give_3", "Give 3", 3),
+    makeMixCard("drink_2_give_1", "Drink 2, Give 1", 2, 1),
+    makeMixCard("drink_3_give_2", "Drink 3, Give 2", 3, 2),
+    makeMixCard("drink_1_give_1", "Drink 1, Give 1", 1, 1),
+    makeDrinkCard("everyone_drink_1", "Everybody drinks 1", 1, "all"),
+    makeDrinkCard("everyone_drink_2", "Everybody drinks 2", 2, "all"),
+    makeDrinkCard("everyone_drink_3", "Everybody drinks 3", 3, "all"),
+    makeDrinkCard("everyone_shot", "Everybody takes a Shot", "Shot", "all"),
+    makeDrinkCard("everyone_shotgun", "Everybody shotgun", "Shotgun", "all"),
+    makeDrinkCard("everyone_shot_shotgun", "Everybody take a shot + shotgun", "Shot+Shotgun", "all"),
   ],
 
   crowdChallenge: {
@@ -108,7 +137,11 @@ export const gameData = {
       { name: "Never Have I Ever", instruction: "Say 'Never have I ever...' and finish it. Anyone who has done it drinks 1, including you." },
       { name: "First Impression", instruction: "Everyone says one word about their first impression of you. Group picks the most accurate; that player gives 3." },
       { name: "The Bluff", instruction: "Make a bold claim about yourself. Anyone may challenge. If the challenger is right, you drink 3. If wrong, the challenger drinks 3. No challenge means no drinks." },
-      { name: "Most Drinks Guess", instruction: "Everyone guesses who has taken the most drinks. Check Stats. Correct guesses may each give 1." },
+      {
+        name: "Most Drinks Guess",
+        instruction: "Everyone guesses who has taken the most drinks. Check Stats. Correct guesses may each give 1.",
+        leaderboardTopic: "drinks_taken_max"
+      },
       { name: "Cringe Archive", instruction: "Everyone shares one cringe moment." },
       { name: "Room Alias", instruction: "Describe an object in the room without saying its name. First correct guess gives 2." },
       { name: "Instant Opinion", instruction: "Name a topic. Everyone instantly gives a one-word opinion. Anyone silent drinks 3." },
@@ -198,15 +231,47 @@ export const gameData = {
       },
       { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to all players.", action: ACTION_CODES.PENALTY_ALL_MANUAL },
       { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
-      { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
-      { name: "Clean Sheet Punishment", instruction: "If your Penalties are 0, draw a Penalty Card." },
-      { name: "Generous Leader", instruction: "Player(s) with the most Drinks given give 3." },
-      { name: "Quiet Hands", instruction: "Player(s) with the least Drinks given drink 2." },
-      { name: "Tank Reward", instruction: "Player(s) with the most Drinks taken give 2." },
-      { name: "Penalty Veteran Reward", instruction: "Player(s) with the most Penalties give 5." },
-      { name: "Untouched Tank", instruction: "Check the Stats page. If your Drinks taken is 0, drink 9." },
-      { name: "No-Show Giver", instruction: "If your Drinks given is 0, drink 9." },
-      { name: "Mix Master", instruction: "Player(s) with the highest Drink + Give count drink 3 and give 3." },
+      { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3.", itemRelated: true },
+      {
+        name: "Clean Sheet Punishment",
+        instruction: "If your Penalties are 0, draw a Penalty Card.",
+        leaderboardTopic: "penalties_min"
+      },
+      {
+        name: "Generous Leader",
+        instruction: "Player(s) with the most Drinks given give 3.",
+        leaderboardTopic: "drinks_given_max"
+      },
+      {
+        name: "Quiet Hands",
+        instruction: "Player(s) with the least Drinks given drink 2.",
+        leaderboardTopic: "drinks_given_min"
+      },
+      {
+        name: "Tank Reward",
+        instruction: "Player(s) with the most Drinks taken give 2.",
+        leaderboardTopic: "drinks_taken_max"
+      },
+      {
+        name: "Penalty Veteran Reward",
+        instruction: "Player(s) with the most Penalties give 5.",
+        leaderboardTopic: "penalties_max"
+      },
+      {
+        name: "Untouched Tank",
+        instruction: "Check the Stats page. If your Drinks taken is 0, drink 9.",
+        leaderboardTopic: "drinks_taken_min"
+      },
+      {
+        name: "No-Show Giver",
+        instruction: "If your Drinks given is 0, drink 9.",
+        leaderboardTopic: "drinks_given_min"
+      },
+      {
+        name: "Mix Master",
+        instruction: "Player(s) with the highest Drink + Give count drink 3 and give 3.",
+        leaderboardTopic: "mix_total_max"
+      },
 
 
 
@@ -375,12 +440,12 @@ export const gameData = {
   },
 
   penaltyDeck: [
-    "Drink 3",
-    "Drink 4",
-    "Drink 5",
-    "Drink 6",
-    "Shot",
-    "Shotgun"
+    makePenaltyCard("penalty_drink_3", "Drink 3", 3),
+    makePenaltyCard("penalty_drink_4", "Drink 4", 4),
+    makePenaltyCard("penalty_drink_5", "Drink 5", 5),
+    makePenaltyCard("penalty_drink_6", "Drink 6", 6),
+    makePenaltyCard("penalty_shot", "Shot", "Shot"),
+    makePenaltyCard("penalty_shotgun", "Shotgun", "Shotgun")
   ],
 
   itemCards: ["Shield", "Reveal Free", "Mirror", "Immunity", "Skip Turn"],

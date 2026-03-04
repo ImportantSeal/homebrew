@@ -30,7 +30,7 @@ export function createPlainCardFlow({
     const p = currentPlayer();
     const value = getCardDisplayValue(cardData);
     const txt = String(value).trim();
-    const spec = getPlainCardSpec(txt);
+    const spec = getPlainCardSpec(cardData);
     const requiresActionScreen = spec.requiresActionScreen;
 
     // Penalty card (must confirm via penalty deck click).

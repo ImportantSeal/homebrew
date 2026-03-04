@@ -4,6 +4,7 @@ import { resolveRng } from '../utils/rng.js';
 import { getPenaltyDeckEl } from '../ui/uiFacade.js';
 import { syncBackgroundScene, triggerPenaltyDangerFlash } from '../ui/backgroundScene.js';
 import { recordPenaltyTaken } from '../stats.js';
+import { getPenaltyDisplayValue, getPenaltySpec } from './penaltySchema.js';
 
 /**
  * source:
@@ -42,6 +43,7 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
 
   const rng = resolveRng(state?.rng);
   const penalty = randomFromArray(state.penaltyDeck, rng);
+  const penaltyLabel = getPenaltyDisplayValue(penalty);
 
   state.penaltyCard = penalty;
   state.penaltyShown = true;
@@ -55,22 +57,17 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
   triggerPenaltyDangerFlash();
 
   const penaltyDeckEl = getPenaltyDeckEl();
-  if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
+  if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penaltyLabel);
   recordPenaltyTaken(state, requestedIndex);
 
-  log(`${currentPlayer.name} rolled penalty card: ${penalty}`);
+  log(`${currentPlayer.name} rolled penalty card: ${penaltyLabel}`);
 
   // Route drink-like penalties through applyDrinkEvent (for Drink Buddy).
   if (typeof applyDrinkEvent !== "function") return;
 
-  const s = String(penalty || "").trim();
-  const m = s.match(/^Drink\s+(\d+)/i);
-  if (m) {
-    applyDrinkEvent(state, requestedIndex, parseInt(m[1], 10) || 1, "Penalty", log);
-  } else if (/^Shotgun$/i.test(s)) {
-    applyDrinkEvent(state, requestedIndex, "Shotgun", "Penalty: Shotgun", log);
-  } else if (/^Shot$/i.test(s)) {
-    applyDrinkEvent(state, requestedIndex, "Shot", "Penalty: Shot", log);
+  const penaltySpec = getPenaltySpec(penalty);
+  if (penaltySpec?.drink) {
+    applyDrinkEvent(state, requestedIndex, penaltySpec.drink.amount, "Penalty", log);
   }
 }
 
@@ -89,6 +86,7 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
 
   const rng = resolveRng(state?.rng);
   const penalty = randomFromArray(state.penaltyDeck, rng);
+  const penaltyLabel = getPenaltyDisplayValue(penalty);
 
   state.penaltyCard = penalty;
   state.penaltyShown = true;
@@ -102,9 +100,9 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
   triggerPenaltyDangerFlash();
 
   const penaltyDeckEl = getPenaltyDeckEl();
-  if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penalty);
+  if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penaltyLabel);
 
-  if (label) log(`${label} -> ${penalty}`);
+  if (label) log(`${label} -> ${penaltyLabel}`);
   return penalty;
 }
 
