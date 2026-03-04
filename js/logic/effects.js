@@ -1,6 +1,7 @@
 // js/logic/effects.js
 import { enablePlayerNameSelection } from './mirror.js';
 import { recordDrinkTaken } from '../stats.js';
+import { EFFECT_TYPES } from './actionEffectRegistry.js';
 import { getEffectTitle } from './effectNames.js';
 
 let activeCleanup = null;
@@ -127,15 +128,15 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
     const srcName = state.players?.[sourceIndex]?.name ?? "Someone";
     const tgtName = state.players?.[targetIndex]?.name ?? "Someone";
 
-    if (def.type === "DRINK_BUDDY") {
+    if (def.type === EFFECT_TYPES.DRINK_BUDDY) {
       log?.(`Drink Buddy: ${tgtName} drinks whenever ${srcName} drinks (${def.turns} turns).`);
-    } else if (def.type === "DITTO_MAGNET") {
+    } else if (def.type === EFFECT_TYPES.DITTO_MAGNET) {
       log?.(`Ditto Magnet: if Ditto triggers for ${tgtName}, they take a Shot (${def.turns} turns).`);
-    } else if (def.type === "KINGS_TAX") {
+    } else if (def.type === EFFECT_TYPES.KINGS_TAX) {
       log?.(`King's Tax: ${tgtName} is king for ${def.turns} turns. Anyone who interrupts them drinks 2.`);
-    } else if (def.type === "DOMINO_CURSE") {
+    } else if (def.type === EFFECT_TYPES.DOMINO_CURSE) {
       log?.(`Domino Curse: whenever ${tgtName} drinks, everyone else drinks 1 (${def.turns} turns).`);
-    } else if (def.type === "NEMESIS_MARK") {
+    } else if (def.type === EFFECT_TYPES.NEMESIS_MARK) {
       log?.(`Nemesis Mark: when ${tgtName} drinks, ${srcName} may give 1 (${def.turns} turns).`);
     } else {
       log?.(`Effect set: ${def.type} -> ${tgtName} (${def.turns} turns).`);
@@ -208,7 +209,7 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
 
   if (!skipBuddy) {
     effects
-      .filter(e => e && e.type === "DRINK_BUDDY" && e.sourceIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
+      .filter(e => e && e.type === EFFECT_TYPES.DRINK_BUDDY && e.sourceIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
       .forEach(e => {
         const tgt = state.players?.[e.targetIndex];
         if (!tgt) return;
@@ -220,7 +221,7 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
 
   if (!skipDomino) {
     effects
-      .filter(e => e && e.type === "DOMINO_CURSE" && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
+      .filter(e => e && e.type === EFFECT_TYPES.DOMINO_CURSE && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
       .forEach(() => {
         state.players?.forEach((_, idx) => {
           if (idx === playerIndex) return;
@@ -231,7 +232,7 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
 
   if (!skipNemesis) {
     effects
-      .filter(e => e && e.type === "NEMESIS_MARK" && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
+      .filter(e => e && e.type === EFFECT_TYPES.NEMESIS_MARK && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
       .forEach(e => {
         const srcName = state.players?.[e.sourceIndex]?.name ?? "Someone";
         log?.(`${srcName}: may give 1 (Nemesis Mark on ${player.name}).`);
@@ -249,7 +250,7 @@ export function onDittoActivated(state, playerIndex, log) {
 
   const effects = Array.isArray(state.effects) ? state.effects : [];
   const magnets = effects.filter(
-    e => e && e.type === "DITTO_MAGNET" && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0
+    e => e && e.type === EFFECT_TYPES.DITTO_MAGNET && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0
   );
 
   if (magnets.length === 0) return;
@@ -261,7 +262,7 @@ export function onDittoActivated(state, playerIndex, log) {
 
   // Consume Ditto Magnet(s) on trigger so the effect disappears immediately.
   state.effects = effects.filter(
-    e => !(e && e.type === "DITTO_MAGNET" && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
+    e => !(e && e.type === EFFECT_TYPES.DITTO_MAGNET && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
   );
   log?.(`Ditto Magnet ended for ${player.name}.`);
 }

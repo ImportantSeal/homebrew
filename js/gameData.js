@@ -1,3 +1,5 @@
+import { ACTION_CODES, EFFECT_TYPES } from './logic/actionEffectRegistry.js';
+
 export const gameData = {
   // Sosiaaliset ja Challenge-kortit
   socialCards: [
@@ -112,7 +114,7 @@ export const gameData = {
       { name: "Instant Opinion", instruction: "Name a topic. Everyone instantly gives a one-word opinion. Anyone silent drinks 3." },
       { name: "One's Gotta Go", instruction: "Name 4 things in one category. Everyone points to one to remove. Minority choice drinks 1." },
       { name: "Bet the Number", instruction: "Ask a numeric question. Everyone guesses once. Closest without going over gives 3. Over drinks 1. If all go over, everyone drinks 1." },
-      { name: "Chaos Referendum", instruction: "Group vote together: either everybody drinks 5 OR everybody takes a Penalty card.", action: "CHAOS_REFERENDUM_GROUP" },
+      { name: "Chaos Referendum", instruction: "Group vote together: either everybody drinks 5 OR everybody takes a Penalty card.", action: ACTION_CODES.CHAOS_REFERENDUM_GROUP },
       { name: "Song Association", instruction: "You say one word. First to sing a lyric containing that word gives 1, last to sing drinks 1." },
       { name: "Flirting Style", instruction: "Everyone describes their flirting style in 3 words. Group picks the cringiest answer; that player drinks 2." },
       { name: "Cancel Confession", instruction: "Everyone shares one reason they could get cancelled. Group votes for the most believable confession; that player gives 2 drinks." },
@@ -132,7 +134,7 @@ export const gameData = {
       { name: "Odds Give", instruction: "Roll 1-10. Odd result: you give that many. Even result: you drink that many." },
       { name: "Even Give", instruction: "Roll 1-10. Even result: you give that many. Odd result: you drink that many." },
       { name: "Mini King", instruction: "Everyone adds to the King's Cup. You drink the King's Cup." },
-      { name: "Everybody Drink", instruction: "Everybody drinks 1 and clinks glasses.", action: "EVERYBODY_DRINK_CLINK" },
+      { name: "Everybody Drink", instruction: "Everybody drinks 1 and clinks glasses.", action: ACTION_CODES.EVERYBODY_DRINK_CLINK },
       { name: "Double Social", instruction: "Everyone drinks two." },
       { name: "Youngest Drinks", instruction: "The youngest player drinks one." },
       { name: "Oldest Drinks", instruction: "The oldest player drinks one." },
@@ -153,7 +155,7 @@ export const gameData = {
       {
         name: "Notification Curse",
         instruction: "For the next 10 rounds, if your phone gets a notification, you drink 1.",
-        effect: { type: "NOTIFICATION_CURSE", turns: 10 }
+        effect: { type: EFFECT_TYPES.NOTIFICATION_CURSE, turns: 10 }
       },
       { name: "Most Recent Sip", instruction: "The person who last took a sip drinks 3." },
       { name: "Generation Gap Bill", instruction: "Find the oldest and youngest players. The oldest drinks the age difference." },
@@ -167,34 +169,34 @@ export const gameData = {
       {
         name: "Lie Mode (4 Turns)",
         instruction: "Choose one player (you may choose yourself). For the next 4 turns, they may speak only lies. If they tell the truth, they drink 2.",
-        effect: { type: "LIE_MODE", turns: 4, needsTarget: true }
+        effect: { type: EFFECT_TYPES.LIE_MODE, turns: 4, needsTarget: true }
       },
       {
         name: "Domino Curse (6 Rounds)",
         instruction: "Pick one player (you may choose yourself). For the next 6 rounds, whenever they drink, all other players drink 1.",
-        effect: { type: "DOMINO_CURSE", turns: 6, needsTarget: true }
+        effect: { type: EFFECT_TYPES.DOMINO_CURSE, turns: 6, needsTarget: true }
       },
       {
         name: "Nemesis Mark (3 Rounds)",
         instruction: "Pick one nemesis for 3 rounds. Whenever they drink, you may give 1.",
-        effect: { type: "NEMESIS_MARK", turns: 3, needsTarget: true }
+        effect: { type: EFFECT_TYPES.NEMESIS_MARK, turns: 3, needsTarget: true }
       },
       {
         name: "Forbidden Word (8 Rounds)",
         instruction: "Set one forbidden word for 8 rounds. Anyone saying it drinks 1.",
-        effect: { type: "FORBIDDEN_WORD", turns: 8 }
+        effect: { type: EFFECT_TYPES.FORBIDDEN_WORD, turns: 8 }
       },
       {
         name: "Question Master (6 Rounds)",
         instruction: "You are Question Master for 6 rounds. If someone answers your question directly, they drink 2.",
-        effect: { type: "QUESTION_MASTER", turns: 6 }
+        effect: { type: EFFECT_TYPES.QUESTION_MASTER, turns: 6 }
       },
       {
         name: "Share Penalty",
         instruction: "Reveal a Penalty card now and share that same penalty with one other player.",
-        action: "SHARE_PENALTY_LOCKED"
+        action: ACTION_CODES.SHARE_PENALTY_LOCKED
       },
-      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to all players.", action: "PENALTY_ALL_MANUAL" },
+      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to all players.", action: ACTION_CODES.PENALTY_ALL_MANUAL },
       { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
       { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3." },
       { name: "Clean Sheet Punishment", instruction: "If your Penalties are 0, draw a Penalty Card." },
@@ -212,162 +214,162 @@ export const gameData = {
         name: "Who Knows You",
         instruction:
           "The card drawer asks anyone a question about themselves. Wrong answer -> responder drinks 3. Correct answer -> card drawer drinks 3.",
-        action: "WHO_KNOWS_YOU"
+        action: ACTION_CODES.WHO_KNOWS_YOU
       },
       {
         name: "Double or Nothing (d6)",
         instruction:
           "Drink 4 first. Then roll a d6: on 4-6, give 8 drinks total; on 1-3, drink 8 more.",
-        action: "DOUBLE_OR_NOTHING_D6"
+        action: ACTION_CODES.DOUBLE_OR_NOTHING_D6
       },
 
       // ===== NEW ONE-SHOT LOGIC CARDS =====
       {
         name: "Risky Roll (d20)",
         instruction: "Roll a d20. On 1: you down your drink. On 20: everyone else downs. On 2-19: nothing happens.",
-        action: "RISKY_ROLL_D20"
+        action: ACTION_CODES.RISKY_ROLL_D20
       },
       {
         name: "The Collector",
         instruction: "If you currently have the MOST items, you drink as many as you have items.",
-        action: "COLLECTOR"
+        action: ACTION_CODES.COLLECTOR
       },
       {
         name: "The Minimalist",
         instruction: "If you have 0 items, you GIVE as many drinks as the total number of items held by other players.",
-        action: "MINIMALIST"
+        action: ACTION_CODES.MINIMALIST
       },
       {
         name: "Drink and Draw Again",
         instruction: "Drink 1. Your turn does not pass; draw new cards.",
-        action: "DRINK_AND_DRAW_AGAIN"
+        action: ACTION_CODES.DRINK_AND_DRAW_AGAIN
       },
       {
         name: "Chaos Button",
         instruction: "Choose one: everybody drinks 3 now, OR you drink 1 and draw one extra card.",
-        action: "CHAOS_BUTTON"
+        action: ACTION_CODES.CHAOS_BUTTON
       },
       {
         name: "Selfish Switch",
         instruction: "Choose one: drink 4, OR give 6 drinks total.",
-        action: "SELFISH_SWITCH"
+        action: ACTION_CODES.SELFISH_SWITCH
       },
       {
         name: "Mercy or Mayhem",
         instruction: "Choose one: everybody drinks 1, OR pick one player (including yourself) to drink 4.",
-        action: "MERCY_OR_MAYHEM"
+        action: ACTION_CODES.MERCY_OR_MAYHEM
       },
       {
         name: "Last Call Insurance",
         instruction: "Choose one: take a Shot, OR everybody drinks 2.",
-        action: "LAST_CALL_INSURANCE"
+        action: ACTION_CODES.LAST_CALL_INSURANCE
       },
       {
         name: "Penalty Insurance",
         instruction: "Choose one: draw a Penalty card now, OR drink 5 to avoid the penalty.",
-        action: "PENALTY_INSURANCE"
+        action: ACTION_CODES.PENALTY_INSURANCE
       },
       {
         name: "Deal with Devil",
         instruction: "Choose one: draw a Penalty card, then give 6 drinks total, OR drink 4.",
-        action: "DEAL_WITH_DEVIL"
+        action: ACTION_CODES.DEAL_WITH_DEVIL
       },
       {
         name: "Immunity or Suffer",
         instruction: "Choose one: gain an Immunity item and drink 5, OR skip the item and drink 2.",
-        action: "IMMUNITY_OR_SUFFER"
+        action: ACTION_CODES.IMMUNITY_OR_SUFFER
       },
       {
         name: "Item Buyout",
         instruction: "Choose one: discard 1 item and give 8 drinks total, OR keep your items and drink 3.",
-        action: "ITEM_BUYOUT"
+        action: ACTION_CODES.ITEM_BUYOUT
       },
       {
         name: "Final Offer",
         instruction: "Choose one: take a Shot and end your turn, OR drink 5 and draw one extra card.",
-        action: "FINAL_OFFER"
+        action: ACTION_CODES.FINAL_OFFER
       },
       {
         name: "Cold Exit",
         instruction: "Choose one: drink 4 and end your turn, OR give 2 and redraw cards.",
-        action: "COLD_EXIT"
+        action: ACTION_CODES.COLD_EXIT
       },
       {
         name: "All-In Tax",
         instruction: "Choose one: drink 3, OR give 3 and draw a Penalty card.",
-        action: "ALL_IN_TAX"
+        action: ACTION_CODES.ALL_IN_TAX
       },
       {
         name: "Effect Surge",
         instruction: "If any timed effect is active, everybody drinks 3.",
-        action: "IF_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3"
+        action: ACTION_CODES.IF_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3
       },
       {
         name: "Calm Table Tax",
         instruction: "If no timed effects are active, everybody drinks 3.",
-        action: "IF_NO_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3"
+        action: ACTION_CODES.IF_NO_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3
       },
       {
         name: "Mutual Damage",
         instruction: "Choose one: you and one player (including yourself) drink 3, OR everybody else drinks 1.",
-        action: "MUTUAL_DAMAGE"
+        action: ACTION_CODES.MUTUAL_DAMAGE
       },
       {
         name: "Mercy Clause",
         instruction: "Choose one: everybody drinks 1, OR pick one player (including yourself) to drink 4.",
-        action: "MERCY_CLAUSE"
+        action: ACTION_CODES.MERCY_CLAUSE
       },
       {
         name: "King's Tax",
         instruction: "Choose a temporary king for six rounds (you may choose yourself). Anyone who interrupts the king drinks 2.",
-        effect: { type: "KINGS_TAX", turns: 6, needsTarget: true }
+        effect: { type: EFFECT_TYPES.KINGS_TAX, turns: 6, needsTarget: true }
       },
       {
         name: "Delayed Reaction (3 Turns)",
         instruction: "No instant reactions for 3 turns. If you react in under 2 seconds, drink 1.",
-        effect: { type: "DELAYED_REACTION", turns: 3 }
+        effect: { type: EFFECT_TYPES.DELAYED_REACTION, turns: 3 }
       },
       {
         name: "Name Swap (4 Turns)",
         instruction: "Choose two players. For 4 turns, they use each other's names. Wrong name -> drink 1.",
-        effect: { type: "NAME_SWAP", turns: 4 }
+        effect: { type: EFFECT_TYPES.NAME_SWAP, turns: 4 }
       },
       {
         name: "Glass Down Rule (4 Turns)",
         instruction: "For 4 turns, your drink must be on the table before speaking. Break it -> drink 1.",
-        effect: { type: "GLASS_DOWN", turns: 4 }
+        effect: { type: EFFECT_TYPES.GLASS_DOWN, turns: 4 }
       },
 
       // ===== EFFECT CARDS =====
       {
         name: "Left Hand Rule",
         instruction: "For the next 6 turns, everyone drinks with their LEFT hand.",
-        effect: { type: "LEFT_HAND", turns: 6 }
+        effect: { type: EFFECT_TYPES.LEFT_HAND, turns: 6 }
       },
       {
         name: "No Names",
         instruction: "For the next 10 turns, you are not allowed to say ANY names.",
-        effect: { type: "NO_NAMES", turns: 10 }
+        effect: { type: EFFECT_TYPES.NO_NAMES, turns: 10 }
       },
       {
         name: "No Swearing",
         instruction: "For the next 10 turns, the next person who swears drinks 4.",
-        effect: { type: "NO_SWEARING", turns: 10 }
+        effect: { type: EFFECT_TYPES.NO_SWEARING, turns: 10 }
       },
       {
         name: "Hands Off Your Phone",
         instruction: "For the next 10 turns, everyone keeps their phone away. The first player who touches their own phone drinks 2.",
-        effect: { type: "NO_PHONE_TOUCH", turns: 10 }
+        effect: { type: EFFECT_TYPES.NO_PHONE_TOUCH, turns: 10 }
       },
       {
         name: "Drink Buddy (Pick a target)",
         instruction: "Pick a player (you may choose yourself). For the next 6 turns, that player drinks whenever YOU drink.",
-        effect: { type: "DRINK_BUDDY", turns: 6, needsTarget: true }
+        effect: { type: EFFECT_TYPES.DRINK_BUDDY, turns: 6, needsTarget: true }
       },
       {
         name: "Ditto Magnet (Pick a target)",
         instruction: "Pick a player (you may choose yourself). For the next 5 turns, if Ditto triggers for them, they take a Shot immediately.",
-        effect: { type: "DITTO_MAGNET", turns: 5, needsTarget: true }
+        effect: { type: EFFECT_TYPES.DITTO_MAGNET, turns: 5, needsTarget: true }
       }
     ]
   },

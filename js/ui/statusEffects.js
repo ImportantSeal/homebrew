@@ -1,6 +1,7 @@
 ﻿// js/ui/statusEffects.js
 // Renders active timed effects + player statuses in the side panel.
 import { applyPlayerColor, ensurePlayerColor, setPlayerColoredText } from '../utils/playerColors.js';
+import { EFFECT_TYPES } from '../logic/actionEffectRegistry.js';
 import { getEffectTitle } from '../logic/effectNames.js';
 
 function el(tag, className, text) {
@@ -12,22 +13,22 @@ function el(tag, className, text) {
 
 function effectIcon(type) {
   switch (type) {
-    case "LEFT_HAND": return "\u{1FAF2}";
-    case "NO_NAMES": return "\u{1F910}";
-    case "NO_SWEARING": return "\u{1F92C}";
-    case "NO_PHONE_TOUCH": return "\u{1F4F5}";
-    case "DRINK_BUDDY": return "\u{1F91D}\u{1F37B}";
-    case "DITTO_MAGNET": return "\u{1F9F2}";
-    case "KINGS_TAX": return "\u{1F451}";
-    case "LIE_MODE": return "\u{1F925}";
-    case "DELAYED_REACTION": return "\u23F1\uFE0F";
-    case "NAME_SWAP": return "\u{1F501}";
-    case "GLASS_DOWN": return "\u{1F964}";
-    case "DOMINO_CURSE": return "\u{1F9F1}";
-    case "NEMESIS_MARK": return "\u2694\uFE0F";
-    case "FORBIDDEN_WORD": return "\u{1F6AB}";
-    case "QUESTION_MASTER": return "\u2753";
-    case "NOTIFICATION_CURSE": return "\u{1F514}";
+    case EFFECT_TYPES.LEFT_HAND: return "\u{1FAF2}";
+    case EFFECT_TYPES.NO_NAMES: return "\u{1F910}";
+    case EFFECT_TYPES.NO_SWEARING: return "\u{1F92C}";
+    case EFFECT_TYPES.NO_PHONE_TOUCH: return "\u{1F4F5}";
+    case EFFECT_TYPES.DRINK_BUDDY: return "\u{1F91D}\u{1F37B}";
+    case EFFECT_TYPES.DITTO_MAGNET: return "\u{1F9F2}";
+    case EFFECT_TYPES.KINGS_TAX: return "\u{1F451}";
+    case EFFECT_TYPES.LIE_MODE: return "\u{1F925}";
+    case EFFECT_TYPES.DELAYED_REACTION: return "\u23F1\uFE0F";
+    case EFFECT_TYPES.NAME_SWAP: return "\u{1F501}";
+    case EFFECT_TYPES.GLASS_DOWN: return "\u{1F964}";
+    case EFFECT_TYPES.DOMINO_CURSE: return "\u{1F9F1}";
+    case EFFECT_TYPES.NEMESIS_MARK: return "\u2694\uFE0F";
+    case EFFECT_TYPES.FORBIDDEN_WORD: return "\u{1F6AB}";
+    case EFFECT_TYPES.QUESTION_MASTER: return "\u2753";
+    case EFFECT_TYPES.NOTIFICATION_CURSE: return "\u{1F514}";
     default: return "\u2728";
   }
 }
@@ -38,61 +39,61 @@ function effectTitle(type) {
 
 function effectDescription(state, eff) {
   switch (eff.type) {
-    case "LEFT_HAND":
+    case EFFECT_TYPES.LEFT_HAND:
       return "Everyone must drink with their LEFT hand.";
-    case "NO_NAMES": {
+    case EFFECT_TYPES.NO_NAMES: {
       const tgt = state.players?.[eff.targetIndex]?.name;
       return tgt ? `${tgt} is not allowed to say any names.` : "No names allowed.";
     }
-    case "NO_SWEARING":
+    case EFFECT_TYPES.NO_SWEARING:
       return "The next player who swears drinks. Click Remove after it triggers.";
-    case "NO_PHONE_TOUCH":
+    case EFFECT_TYPES.NO_PHONE_TOUCH:
       return "Everyone keeps their phone away. The first touch drinks 2.";
-    case "DRINK_BUDDY": {
+    case EFFECT_TYPES.DRINK_BUDDY: {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `${tgt} drinks whenever ${src} drinks.`;
     }
-    case "DITTO_MAGNET": {
+    case EFFECT_TYPES.DITTO_MAGNET: {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `If Ditto triggers for ${tgt}, they take a Shot.`;
     }
-    case "KINGS_TAX": {
+    case EFFECT_TYPES.KINGS_TAX: {
       const king = state.players?.[eff.targetIndex]?.name;
       return king
         ? `${king} is king. Anyone who interrupts them drinks 2.`
         : "A temporary king is active. Anyone interrupting them drinks 2.";
     }
-    case "LIE_MODE": {
+    case EFFECT_TYPES.LIE_MODE: {
       const tgt = state.players?.[eff.targetIndex]?.name;
       return tgt
         ? `${tgt} may speak only lies. If they tell the truth, they drink 2.`
         : "Chosen player may speak only lies. Truth means Drink 2.";
     }
-    case "DELAYED_REACTION":
+    case EFFECT_TYPES.DELAYED_REACTION:
       return "No instant reactions. Reacting in under 2 seconds means Drink 1.";
-    case "NAME_SWAP":
+    case EFFECT_TYPES.NAME_SWAP:
       return "Two chosen players swap names. Using a real name means Drink 1.";
-    case "GLASS_DOWN":
+    case EFFECT_TYPES.GLASS_DOWN:
       return "Drink must be on the table before speaking. Break it and Drink 1.";
-    case "DOMINO_CURSE": {
+    case EFFECT_TYPES.DOMINO_CURSE: {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `${tgt} is cursed. Whenever they drink, everyone else drinks 1.`;
     }
-    case "NEMESIS_MARK": {
+    case EFFECT_TYPES.NEMESIS_MARK: {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `${src} marked ${tgt}. When ${tgt} drinks, ${src} may give 1.`;
     }
-    case "FORBIDDEN_WORD":
+    case EFFECT_TYPES.FORBIDDEN_WORD:
       return "One forbidden word is active. Saying it means Drink 1.";
-    case "QUESTION_MASTER": {
+    case EFFECT_TYPES.QUESTION_MASTER: {
       const src = state.players?.[eff.sourceIndex]?.name;
       return src
         ? `${src} is Question Master. Direct answers to their questions mean Drink 2.`
         : "Question Master is active. Direct answers mean Drink 2.";
     }
-    case "NOTIFICATION_CURSE": {
+    case EFFECT_TYPES.NOTIFICATION_CURSE: {
       const src = state.players?.[eff.sourceIndex]?.name;
       return src
         ? `${src} drinks 1 whenever their phone gets a notification.`
@@ -105,55 +106,55 @@ function effectDescription(state, eff) {
 
 function effectAppliesTo(state, eff) {
   switch (eff.type) {
-    case "LEFT_HAND":
+    case EFFECT_TYPES.LEFT_HAND:
       return "Applies to: Everyone";
-    case "NO_NAMES": {
+    case EFFECT_TYPES.NO_NAMES: {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `Applies to: ${tgt}`;
     }
-    case "NO_SWEARING":
+    case EFFECT_TYPES.NO_SWEARING:
       return "Applies to: Everyone";
-    case "NO_PHONE_TOUCH":
+    case EFFECT_TYPES.NO_PHONE_TOUCH:
       return "Applies to: Everyone";
-    case "DRINK_BUDDY": {
+    case EFFECT_TYPES.DRINK_BUDDY: {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `Link: ${src} -> ${tgt}`;
     }
-    case "DITTO_MAGNET": {
+    case EFFECT_TYPES.DITTO_MAGNET: {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `Magnetized: ${tgt}`;
     }
-    case "KINGS_TAX": {
+    case EFFECT_TYPES.KINGS_TAX: {
       const king = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `King: ${king}`;
     }
-    case "LIE_MODE": {
+    case EFFECT_TYPES.LIE_MODE: {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `Target: ${tgt}`;
     }
-    case "DELAYED_REACTION":
+    case EFFECT_TYPES.DELAYED_REACTION:
       return "Applies to: Everyone";
-    case "NAME_SWAP":
+    case EFFECT_TYPES.NAME_SWAP:
       return "Applies to: Two chosen players";
-    case "GLASS_DOWN":
+    case EFFECT_TYPES.GLASS_DOWN:
       return "Applies to: Everyone";
-    case "DOMINO_CURSE": {
+    case EFFECT_TYPES.DOMINO_CURSE: {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `Cursed player: ${tgt}`;
     }
-    case "NEMESIS_MARK": {
+    case EFFECT_TYPES.NEMESIS_MARK: {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
       return `Link: ${src} -> ${tgt}`;
     }
-    case "FORBIDDEN_WORD":
+    case EFFECT_TYPES.FORBIDDEN_WORD:
       return "Applies to: Everyone";
-    case "QUESTION_MASTER": {
+    case EFFECT_TYPES.QUESTION_MASTER: {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
       return `Question Master: ${src}`;
     }
-    case "NOTIFICATION_CURSE": {
+    case EFFECT_TYPES.NOTIFICATION_CURSE: {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
       return `Applies to: ${src}`;
     }

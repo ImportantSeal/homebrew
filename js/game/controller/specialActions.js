@@ -1,4 +1,5 @@
 import { recordGiveDrinks } from '../../stats.js';
+import { ACTION_CODES } from '../../logic/actionEffectRegistry.js';
 import { queueManualPenaltyDraw, queueManualPenaltyDrawForPlayers } from './helpers.js';
 
 function inventoryCount(player) {
@@ -150,7 +151,7 @@ export function runSpecialAction(action, context) {
   const selfIndex = currentPlayerIndex;
 
   switch (action) {
-    case "WHO_KNOWS_YOU": {
+    case ACTION_CODES.WHO_KNOWS_YOU: {
       if ((state.players?.length || 0) < 2) {
         log("Who Knows You needs at least two players.");
         return;
@@ -160,27 +161,27 @@ export function runSpecialAction(action, context) {
       return;
     }
 
-    case "EVERYBODY_DRINK_CLINK": {
+    case ACTION_CODES.EVERYBODY_DRINK_CLINK: {
       applyEveryoneDrink(state, 1, "Everybody Drink", log, applyDrinkEvent);
       log("Everybody drinks 1 and clinks glasses.");
       return;
     }
 
-    case "DOUBLE_OR_NOTHING_D6": {
+    case ACTION_CODES.DOUBLE_OR_NOTHING_D6: {
       applyDrinkEvent(state, selfIndex, 4, "Double or Nothing", log);
       log(`${p.name} drinks 4 first. Roll a d6 manually: on 4-6 give 8 drinks total, on 1-3 drink 8 more.`);
       return;
     }
 
-    case "DRINK_AND_DRAW_AGAIN": {
+    case ACTION_CODES.DRINK_AND_DRAW_AGAIN: {
       applyDrinkEvent(state, selfIndex, 1, "Drink and Draw Again", log);
       log(`${p.name} keeps their turn and draws new cards.`);
       return { endTurn: false, refreshCards: true };
     }
 
-    case "CHAOS_BUTTON": {
+    case ACTION_CODES.CHAOS_BUTTON: {
       const choice = createChoiceAction({
-        key: "CHAOS_BUTTON",
+        key: ACTION_CODES.CHAOS_BUTTON,
         title: "Chaos Button",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -227,9 +228,9 @@ export function runSpecialAction(action, context) {
       };
     }
 
-    case "SELFISH_SWITCH": {
+    case ACTION_CODES.SELFISH_SWITCH: {
       const choice = createChoiceAction({
-        key: "SELFISH_SWITCH",
+        key: ACTION_CODES.SELFISH_SWITCH,
         title: "Selfish Switch",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -269,9 +270,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "MERCY_OR_MAYHEM":
-    case "MERCY_CLAUSE": {
-      const cardTitle = action === "MERCY_CLAUSE" ? "Mercy Clause" : "Mercy or Mayhem";
+    case ACTION_CODES.MERCY_OR_MAYHEM:
+    case ACTION_CODES.MERCY_CLAUSE: {
+      const cardTitle = action === ACTION_CODES.MERCY_CLAUSE ? "Mercy Clause" : "Mercy or Mayhem";
 
       const choice = createChoiceAction({
         key: action,
@@ -331,9 +332,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "LAST_CALL_INSURANCE": {
+    case ACTION_CODES.LAST_CALL_INSURANCE: {
       const choice = createChoiceAction({
-        key: "LAST_CALL_INSURANCE",
+        key: ACTION_CODES.LAST_CALL_INSURANCE,
         title: "Last Call Insurance",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -373,9 +374,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "CHAOS_REFERENDUM_GROUP": {
+    case ACTION_CODES.CHAOS_REFERENDUM_GROUP: {
       const choice = createChoiceAction({
-        key: "CHAOS_REFERENDUM_GROUP",
+        key: ACTION_CODES.CHAOS_REFERENDUM_GROUP,
         title: "Chaos Referendum",
         message: "Group vote: either everybody drinks 5 OR everybody takes a Penalty card.",
         variant: "choice",
@@ -419,9 +420,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "PENALTY_INSURANCE": {
+    case ACTION_CODES.PENALTY_INSURANCE: {
       const choice = createChoiceAction({
-        key: "PENALTY_INSURANCE",
+        key: ACTION_CODES.PENALTY_INSURANCE,
         title: "Penalty Insurance",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -465,9 +466,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "DEAL_WITH_DEVIL": {
+    case ACTION_CODES.DEAL_WITH_DEVIL: {
       const choice = createChoiceAction({
-        key: "DEAL_WITH_DEVIL",
+        key: ACTION_CODES.DEAL_WITH_DEVIL,
         title: "Deal with Devil",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -517,9 +518,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "IMMUNITY_OR_SUFFER": {
+    case ACTION_CODES.IMMUNITY_OR_SUFFER: {
       const choice = createChoiceAction({
-        key: "IMMUNITY_OR_SUFFER",
+        key: ACTION_CODES.IMMUNITY_OR_SUFFER,
         title: "Immunity or Suffer",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -574,9 +575,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "ITEM_BUYOUT": {
+    case ACTION_CODES.ITEM_BUYOUT: {
       const choice = createChoiceAction({
-        key: "ITEM_BUYOUT",
+        key: ACTION_CODES.ITEM_BUYOUT,
         title: "Item Buyout",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -636,9 +637,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "FINAL_OFFER": {
+    case ACTION_CODES.FINAL_OFFER: {
       const choice = createChoiceAction({
-        key: "FINAL_OFFER",
+        key: ACTION_CODES.FINAL_OFFER,
         title: "Final Offer",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -685,9 +686,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "COLD_EXIT": {
+    case ACTION_CODES.COLD_EXIT: {
       const choice = createChoiceAction({
-        key: "COLD_EXIT",
+        key: ACTION_CODES.COLD_EXIT,
         title: "Cold Exit",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -727,9 +728,9 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "ALL_IN_TAX": {
+    case ACTION_CODES.ALL_IN_TAX: {
       const choice = createChoiceAction({
-        key: "ALL_IN_TAX",
+        key: ACTION_CODES.ALL_IN_TAX,
         title: "All-In Tax",
         message: "Choose one option to continue.",
         variant: "choice",
@@ -779,7 +780,7 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "IF_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3": {
+    case ACTION_CODES.IF_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3: {
       const hasActiveEffects = Array.isArray(state.effects)
         && state.effects.some((effect) => (effect?.remainingTurns ?? 0) > 0);
 
@@ -793,7 +794,7 @@ export function runSpecialAction(action, context) {
       return;
     }
 
-    case "IF_NO_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3": {
+    case ACTION_CODES.IF_NO_ACTIVE_EFFECTS_EVERYBODY_DRINKS_3: {
       const hasActiveEffects = Array.isArray(state.effects)
         && state.effects.some((effect) => (effect?.remainingTurns ?? 0) > 0);
 
@@ -807,7 +808,7 @@ export function runSpecialAction(action, context) {
       return;
     }
 
-    case "MUTUAL_DAMAGE": {
+    case ACTION_CODES.MUTUAL_DAMAGE: {
       const choice = createChoiceAction({
         key: "MUTUAL_DAMAGE",
         title: "Mutual Damage",
@@ -880,12 +881,12 @@ export function runSpecialAction(action, context) {
       return { endTurn: false, choice };
     }
 
-    case "RISKY_ROLL_D20": {
+    case ACTION_CODES.RISKY_ROLL_D20: {
       log("Risky Roll (d20): roll manually now. On 1 you down your drink, on 20 everyone else downs, on 2-19 nothing happens.");
       return;
     }
 
-    case "PENALTY_ALL_MANUAL": {
+    case ACTION_CODES.PENALTY_ALL_MANUAL: {
       const allPlayers = Array.isArray(state?.players) ? state.players.map((_, idx) => idx) : [];
       queueManualPenaltyDrawForPlayers(
         state,
@@ -897,7 +898,7 @@ export function runSpecialAction(action, context) {
       return { endTurn: false };
     }
 
-    case "SHARE_PENALTY_LOCKED": {
+    case ACTION_CODES.SHARE_PENALTY_LOCKED: {
       const queued = queueManualPenaltyDraw(
         state,
         log,
@@ -916,7 +917,7 @@ export function runSpecialAction(action, context) {
       return { endTurn: false };
     }
 
-    case "COLLECTOR": {
+    case ACTION_CODES.COLLECTOR: {
       const myItems = inventoryCount(p);
       const maxItems = maxItemsAnyPlayer(state);
 
@@ -934,7 +935,7 @@ export function runSpecialAction(action, context) {
       return;
     }
 
-    case "MINIMALIST": {
+    case ACTION_CODES.MINIMALIST: {
       const myItems = inventoryCount(p);
       if (myItems !== 0) {
         log(`The Minimalist: you have ${myItems} item(s), so nothing happens.`);

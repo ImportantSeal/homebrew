@@ -1,4 +1,5 @@
 import { renderStatusEffects } from '../../ui/statusEffects.js';
+import { EFFECT_TYPES } from '../../logic/actionEffectRegistry.js';
 
 import { effectLabelForLog } from './helpers.js';
 
@@ -16,7 +17,7 @@ export function createEffectsPanelController({ state, log, playerName }) {
     const readable = label || effectLabelForLog(effect);
     const targetName = typeof effect.targetIndex === "number" ? playerName(effect.targetIndex) : null;
 
-    if (effect.type === "NO_SWEARING" || effect.type === "NO_PHONE_TOUCH") {
+    if (effect.type === EFFECT_TYPES.NO_SWEARING || effect.type === EFFECT_TYPES.NO_PHONE_TOUCH) {
       state.effects = (state.effects || []).filter(e => e && e.id !== effect.id);
       log(`${readable} closed manually.`);
       renderEffectsPanel();

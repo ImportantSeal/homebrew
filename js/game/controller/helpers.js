@@ -1,10 +1,11 @@
+import { ACTION_CODES } from '../../logic/actionEffectRegistry.js';
 import { getEffectTitle } from '../../logic/effectNames.js';
 
 const ITEM_RELATED_SPECIAL_ACTIONS = new Set([
-  "COLLECTOR",
-  "MINIMALIST",
-  "IMMUNITY_OR_SUFFER",
-  "ITEM_BUYOUT"
+  ACTION_CODES.COLLECTOR,
+  ACTION_CODES.MINIMALIST,
+  ACTION_CODES.IMMUNITY_OR_SUFFER,
+  ACTION_CODES.ITEM_BUYOUT
 ]);
 const ITEM_RELATED_TEXT = /\bitems?\b/i;
 
