@@ -1,5 +1,11 @@
 import { ACTION_CODES } from '../../logic/actionEffectRegistry.js';
 import { getEffectTitle } from '../../logic/effectNames.js';
+import {
+  getDrinkSpec,
+  getGiveSpec,
+  getPenaltyCallType,
+  getPlainCardSpec
+} from '../../logic/cardSchema.js';
 
 const ITEM_RELATED_SPECIAL_ACTIONS = new Set([
   ACTION_CODES.COLLECTOR,
@@ -10,17 +16,15 @@ const ITEM_RELATED_SPECIAL_ACTIONS = new Set([
 const ITEM_RELATED_TEXT = /\bitems?\b/i;
 
 export function isDrawPenaltyCardText(txt) {
-  return /^Draw a Penalty Card$/i.test(String(txt).trim());
+  return getPenaltyCallType(txt) === "single";
 }
 
 export function isDrawPenaltyForAllText(txt) {
-  const text = String(txt).trim();
-  return /^Everybody takes a Penalty Card$/i.test(text)
-    || /^Penalty for All$/i.test(text);
+  return getPenaltyCallType(txt) === "group";
 }
 
 export function isPenaltyCardInstructionText(txt) {
-  return isDrawPenaltyCardText(txt) || isDrawPenaltyForAllText(txt);
+  return getPenaltyCallType(txt) !== null;
 }
 
 function normalizePenaltyPlayerName(value, fallback) {
@@ -140,55 +144,18 @@ export function getObjectCardPool(state, cardData) {
 }
 
 export function parseDrinkFromText(text) {
-  const t = String(text || "").trim();
-
-  // Everybody take(s) a Shot + Shotgun
-  if (/^Everybody\s+(take|takes)\s+(a\s+)?Shot\s*\+\s*Shotgun\b/i.test(t)) {
-    return { scope: "all", amount: "Shot+Shotgun" };
-  }
-
-  // Everybody takes a Shot / Shotgun
-  const allShot = t.match(/^Everybody\s+((take|takes)\s+)?(a\s+)?(Shotgun|Shot)\b/i);
-  if (allShot) return { scope: "all", amount: allShot[4] };
-
-  // Shot + Shotgun (self)
-  if (/^(take\s+a\s+)?Shot\s*\+\s*Shotgun\b/i.test(t) || /^Shot\s*\+\s*Shotgun$/i.test(t)) {
-    return { scope: "self", amount: "Shot+Shotgun" };
-  }
-
-  // Shot / Shotgun (self)
-  if (/^(take\s+a\s+)?Shotgun\b/i.test(t) || /^Shotgun$/i.test(t)) return { scope: "self", amount: "Shotgun" };
-  if (/^(take\s+a\s+)?Shot\b/i.test(t) || /^Shot$/i.test(t)) return { scope: "self", amount: "Shot" };
-
-  // Everybody drinks N
-  const all = t.match(/^Everybody drinks\s+(\d+)\b/i);
-  if (all) return { scope: "all", amount: parseInt(all[1], 10) };
-
-  // Drink N (also matches "Drink 2, Give 1")
-  const self = t.match(/\bDrink\s+(\d+)\b/i);
-  if (self) return { scope: "self", amount: parseInt(self[1], 10) };
-
-  return null;
+  return getDrinkSpec(text);
 }
 
 export function parseGiveFromText(text) {
-  const t = String(text || "").trim();
-  const self = t.match(/\bGive\s+(\d+)\b/i);
-  if (!self) return null;
-  return { amount: parseInt(self[1], 10) };
-}
-
-function isDirectDrinkOnlyText(text) {
-  const t = String(text || "").trim();
-  if (!t) return false;
-  return Boolean(parseDrinkFromText(t) || parseGiveFromText(t));
+  return getGiveSpec(text);
 }
 
 export function shouldShowActionScreenForPlainCard(text) {
-  const t = String(text || "").trim();
-  if (!t) return false;
-  if (isPenaltyCardInstructionText(t)) return false;
-  return !isDirectDrinkOnlyText(t);
+  if (!String(text || "").trim()) return false;
+  const spec = getPlainCardSpec(text);
+  if (spec.penaltyCall) return false;
+  return spec.requiresActionScreen;
 }
 
 export function isRedrawLockedPenaltyOpen(state) {

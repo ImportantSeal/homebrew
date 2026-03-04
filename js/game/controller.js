@@ -527,7 +527,7 @@ function renderItems() {
 
 function resetCards({ keepPenaltyOpen = false } = {}) {
   setBaseBackgroundScene(state, 'normal');
-  dealTurnCards(state);
+  dealTurnCards(state, rng);
   renderCards(state, onCardClick);
   if (!keepPenaltyOpen) {
     hidePenaltyCard(state);

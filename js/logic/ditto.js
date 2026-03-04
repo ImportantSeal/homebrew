@@ -1,6 +1,7 @@
 // js/ditto/effects.js
 
 import { randomFromArray } from '../utils/random.js';
+import { resolveRng } from '../utils/rng.js';
 
 const ITEM_DITTO_TYPES = new Set(['LOSE_ONE_ITEM_ALL', 'STEAL_RANDOM_ITEM']);
 
@@ -46,6 +47,7 @@ export function getDittoEventPool(state) {
 }
 
 export function activateDitto(state, cardElement, cardIndex, log) {
+  const rng = resolveRng(state?.rng);
   state.dittoActive[cardIndex] = true;
   cardElement.dataset.value = "Ditto";
 
@@ -66,7 +68,7 @@ export function activateDitto(state, cardElement, cardIndex, log) {
 
   cardElement.dataset.dittoTime = Date.now();
   const dittoPool = getDittoEventPool(state);
-  state.dittoPending[cardIndex] = randomFromArray(dittoPool) || { type: 'DRINK_3' };
+  state.dittoPending[cardIndex] = randomFromArray(dittoPool, rng) || { type: 'DRINK_3' };
 }
 
 /**
@@ -74,6 +76,7 @@ export function activateDitto(state, cardElement, cardIndex, log) {
  * so Ditto drink effects can trigger "Drink Buddy" etc.
  */
 export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderItemsBoard, applyDrinkEvent) {
+  const rng = resolveRng(state?.rng);
   const ev = state.dittoPending?.[cardIndex];
   const currentPlayer = state.players[state.currentPlayerIndex];
   const infoTitle = "Ditto Effect";
@@ -159,14 +162,14 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
           instruction: "Pick a category and go clockwise naming items; first repeat, pause, or miss drinks."
         }
       ];
-      const selected = randomFromArray(challenges) || challenges[0];
+      const selected = randomFromArray(challenges, rng) || challenges[0];
       const challengeText = `Challenge: ${selected.title} - ${selected.instruction}`;
       logDitto(log, `Ditto challenge: ${selected.title}. ${selected.instruction}`);
       return { title: infoTitle, message: challengeText };
     }
 
     case 'PENALTY_ALL': {
-      const penalty = randomFromArray(state.penaltyDeck) || 'Drink 1';
+      const penalty = randomFromArray(state.penaltyDeck, rng) || 'Drink 1';
       let affectedCount = 0;
       let blockedByShieldCount = 0;
 

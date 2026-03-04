@@ -1,5 +1,6 @@
 import { flipCardAnimation } from '../animations.js';
 import { randomFromArray } from '../utils/random.js';
+import { resolveRng } from '../utils/rng.js';
 import { getPenaltyDeckEl } from '../ui/uiFacade.js';
 import { syncBackgroundScene, triggerPenaltyDangerFlash } from '../ui/backgroundScene.js';
 import { recordPenaltyTaken } from '../stats.js';
@@ -39,7 +40,8 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
     return;
   }
 
-  const penalty = randomFromArray(state.penaltyDeck);
+  const rng = resolveRng(state?.rng);
+  const penalty = randomFromArray(state.penaltyDeck, rng);
 
   state.penaltyCard = penalty;
   state.penaltyShown = true;
@@ -85,7 +87,8 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
     hidePenaltyCard(state);
   }
 
-  const penalty = randomFromArray(state.penaltyDeck);
+  const rng = resolveRng(state?.rng);
+  const penalty = randomFromArray(state.penaltyDeck, rng);
 
   state.penaltyCard = penalty;
   state.penaltyShown = true;

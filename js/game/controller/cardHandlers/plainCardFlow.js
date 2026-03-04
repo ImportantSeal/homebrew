@@ -1,17 +1,15 @@
 import { getCardDisplayValue } from '../../../utils/cardDisplay.js';
+import { getPlainCardSpec } from '../../../logic/cardSchema.js';
 import {
-  isDrawPenaltyCardText,
-  isDrawPenaltyForAllText,
   queueManualPenaltyDraw,
-  queueManualPenaltyDrawForPlayers,
-  parseDrinkFromText,
-  parseGiveFromText,
-  shouldShowActionScreenForPlainCard
+  queueManualPenaltyDrawForPlayers
 } from '../helpers.js';
 import { recordGiveDrinks } from '../../../stats.js';
+import { resolveRng } from '../../../utils/rng.js';
 
 export function createPlainCardFlow({
   state,
+  rng,
   log,
   currentPlayer,
   nextPlayer,
@@ -32,10 +30,11 @@ export function createPlainCardFlow({
     const p = currentPlayer();
     const value = getCardDisplayValue(cardData);
     const txt = String(value).trim();
-    const requiresActionScreen = shouldShowActionScreenForPlainCard(txt);
+    const spec = getPlainCardSpec(txt);
+    const requiresActionScreen = spec.requiresActionScreen;
 
     // Penalty card (must confirm via penalty deck click).
-    if (isDrawPenaltyCardText(txt)) {
+    if (spec.penaltyCall === "single") {
       flashElement(cardEl, undefined, undefined, triggerEvent);
       queueManualPenaltyDraw(
         state,
@@ -49,7 +48,7 @@ export function createPlainCardFlow({
     }
 
     // Everybody penalty card (manual queue through penalty deck).
-    if (isDrawPenaltyForAllText(txt)) {
+    if (spec.penaltyCall === "group") {
       flashElement(cardEl, undefined, undefined, triggerEvent);
 
       const allPlayers = Array.isArray(state.players)
@@ -85,7 +84,8 @@ export function createPlainCardFlow({
     }
 
     // Ditto activation chance.
-    if (Math.random() < 0.08) {
+    const activeRng = resolveRng(rng ?? state?.rng);
+    if (activeRng.nextFloat() < 0.08) {
       const idx = parseInt(cardEl.dataset.index || "0", 10);
       activateDitto(state, cardEl, idx, log);
 
@@ -99,8 +99,8 @@ export function createPlainCardFlow({
     }
 
     // Drink event hook (for Drink Buddy logging).
-    const drink = parseDrinkFromText(txt);
-    const give = parseGiveFromText(txt);
+    const drink = spec.drink;
+    const give = spec.give;
     if (drink) {
       if (drink.scope === "all") {
         let everyoneAction = "";

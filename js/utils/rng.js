@@ -24,3 +24,8 @@ export const systemRng = {
     return Math.random();
   }
 };
+
+export function resolveRng(rng) {
+  if (rng && typeof rng.nextFloat === "function") return rng;
+  return systemRng;
+}

@@ -116,6 +116,7 @@ export function createCardHandlers({
 
   const { handlePlainCard } = createPlainCardFlow({
     state,
+    rng,
     log,
     currentPlayer,
     nextPlayer,

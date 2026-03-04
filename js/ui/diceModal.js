@@ -3,6 +3,7 @@ import { addHistoryEntry } from '../cardHistory.js';
 import { state } from '../state.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 import { bindTap } from '../utils/tap.js';
+import { resolveRng } from '../utils/rng.js';
 
 const DICEBOX_VERSION = "1.1.4";
 const DICEBOX_ORIGIN = `https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@${DICEBOX_VERSION}/dist/`;
@@ -37,8 +38,9 @@ function clampInt(n, min, max, fallback) {
   return Math.max(min, Math.min(max, x));
 }
 
-function randomDieValues(sides, qty) {
-  return Array.from({ length: qty }, () => Math.floor(Math.random() * sides) + 1);
+function randomDieValues(sides, qty, rng) {
+  const activeRng = resolveRng(rng);
+  return Array.from({ length: qty }, () => Math.floor(activeRng.nextFloat() * sides) + 1);
 }
 
 function formatSignedInt(value) {
@@ -433,12 +435,12 @@ export function initDiceModal() {
       if (values.length !== qty) {
         console.warn(`Dice parse mismatch (${baseNotation}); using fallback.`);
         usedFallback = true;
-        values = randomDieValues(sides, qty);
+        values = randomDieValues(sides, qty, state?.rng);
       }
     } catch (err) {
       console.error(err);
       usedFallback = true;
-      values = randomDieValues(sides, qty);
+      values = randomDieValues(sides, qty, state?.rng);
     } finally {
       if (isModalOpen && localToken === rollToken) {
         if (rollBtn) rollBtn.disabled = false;

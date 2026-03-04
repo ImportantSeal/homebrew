@@ -1,6 +1,7 @@
 import { flipCardAnimation } from '../animations.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
 import { bindTap } from '../utils/tap.js';
+import { getPlainCardKind } from '../logic/cardSchema.js';
 
 const CARD_TILT_MAX_DEG = 4;
 let cardMotionState = null;
@@ -159,24 +160,11 @@ export function computeKind(state, cardData) {
   }
 
   const value = String(getCardDisplayValue(cardData) ?? "").trim();
-  const isShot = /\bShotgun\b/i.test(value) || /\bShot\b/i.test(value) || /takes a shot/i.test(value);
 
   // Items
   if (state.itemCards && state.itemCards.includes(value)) return 'item';
 
-  // Penalty call
-  if (/^Draw a Penalty Card$/i.test(value) || /^Everybody takes a Penalty Card$/i.test(value) || /^Penalty for All$/i.test(value)) {
-    return 'penaltycall';
-  }
-
-  // Mix drink/give
-  const hasDrink = isShot || /(Everybody drinks\b|^Drink\b)/i.test(value) || /\bDrink\b/i.test(value);
-  const hasGive = /\bGive\b/i.test(value) || /^Give\b/i.test(value);
-  if (hasDrink && hasGive) return 'mix';
-  if (hasGive) return 'give';
-  if (hasDrink) return 'drink';
-
-  return 'normal';
+  return getPlainCardKind(value);
 }
 
 /**

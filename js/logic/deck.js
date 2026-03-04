@@ -1,5 +1,6 @@
 // homebrew/js/logic/deck.js
 import { randomFromArray } from '../utils/random.js';
+import { resolveRng } from '../utils/rng.js';
 
 // Helps reduce "this feels broken" moments:
 // - Avoids dealing exact same "card" twice in the SAME 3-card turn (best-effort).
@@ -12,7 +13,8 @@ function cardKey(card) {
   return `str:${String(card)}`;
 }
 
-export function dealTurnCards(state) {
+export function dealTurnCards(state, rng = null) {
+  const activeRng = resolveRng(rng ?? state?.rng);
   state.currentCards = [];
   state.dittoPending = [null, null, null];
 
@@ -21,14 +23,14 @@ export function dealTurnCards(state) {
 
     // Try a few times to avoid duplicates inside the same 3-card deal
     for (let attempt = 0; attempt < 10; attempt++) {
-      card = pickBaseCard(state);
+      card = pickBaseCard(state, activeRng);
 
       // Item override chance:
       // - higher than before so items are seen in normal-length games
       // - all items have equal probability (no Immunity bias)
-      const r = Math.random();
+      const r = activeRng.nextFloat();
       if (state.includeItems && r < ITEM_OVERRIDE_CHANCE) {
-        card = randomFromArray(state.itemCards);
+        card = randomFromArray(state.itemCards, activeRng);
       }
 
       const k = cardKey(card);
@@ -39,22 +41,22 @@ export function dealTurnCards(state) {
     state.currentCards.push(card);
   }
 
-  state.hiddenIndex = Math.floor(Math.random() * 3);
+  state.hiddenIndex = Math.floor(activeRng.nextFloat() * 3);
   state.revealed = [true, true, true];
   state.revealed[state.hiddenIndex] = false;
   state.dittoActive = [false, false, false];
 }
 
-function pickBaseCard(state) {
-  const cardTypeChance = Math.random();
+function pickBaseCard(state, rng) {
+  const cardTypeChance = rng.nextFloat();
   if (cardTypeChance < 0.3) { 
    
-    return randomFromArray(state.socialCards);
+    return randomFromArray(state.socialCards, rng);
   } else if (cardTypeChance < 0.4) {  
     return state.crowdChallenge;
   } else if (cardTypeChance < 0.6) { 
     return state.special;
   } else { 
-    return randomFromArray(state.normalDeck);
+    return randomFromArray(state.normalDeck, rng);
   }
 }
