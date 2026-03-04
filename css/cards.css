@@ -1,0 +1,545 @@
+/* ===== Cards: Row ===== */
+.card-container {
+  width: 100%;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: var(--cards-gap);
+  margin-bottom: 0.9rem;
+}
+
+/* ===== Cards: Surface ===== */
+.card,
+.penalty-deck {
+  width: clamp(
+    var(--card-min-width),
+    calc((100% - (2 * var(--cards-gap))) / 3),
+    var(--card-max-width)
+  );
+  aspect-ratio: var(--card-aspect);
+  height: auto;
+
+  border-radius: 1rem;
+  border: 1px solid var(--card-border);
+  box-shadow: var(--elevation-raised);
+  overflow: hidden;
+
+  position: relative;
+  perspective: 1000px;
+
+  contain: layout;
+  will-change: transform;
+  transform: translateZ(0);
+  isolation: isolate;
+
+  cursor: pointer;
+
+  transition:
+    transform 150ms ease,
+    box-shadow 200ms ease,
+    border-color 200ms ease,
+    filter 200ms ease;
+
+  /* per-kind defaults */
+  --front-bg: var(--card-face);
+  --front-text: var(--card-text);
+  --badge: "";
+  --badge-bg: rgba(10,14,28,0.65);
+  --badge-fg: rgba(255,255,255,0.92);
+  --strip: rgba(11,16,32,0.10);
+  --hover-ring: rgba(53,224,199,0.30);
+  --impact-color: rgba(255, 231, 158, 0.9);
+  --impact-duration: 460ms;
+}
+
+.card,
+.penalty-deck {
+  --card-lift-y: 0px;
+  --card-scale: 1;
+  --card-tilt-x: 0deg;
+  --card-tilt-y: 0deg;
+  --card-shine-x: 50%;
+  --card-shine-y: 50%;
+  --card-shine-opacity: 0;
+  --card-depth-shadow-x: 0px;
+  --card-depth-shadow-y: 0px;
+
+  transform:
+    perspective(1100px)
+    translateY(var(--card-lift-y))
+    scale(var(--card-scale))
+    rotateX(var(--card-tilt-x))
+    rotateY(var(--card-tilt-y));
+  transform-style: preserve-3d;
+}
+
+.card::after,
+.penalty-deck::after {
+  content: "";
+  position: absolute;
+  inset: -38%;
+  pointer-events: none;
+  z-index: 3;
+  opacity: var(--card-shine-opacity);
+  mix-blend-mode: screen;
+  background:
+    radial-gradient(
+      circle at var(--card-shine-x) var(--card-shine-y),
+      rgba(255,255,255,0.42) 0%,
+      rgba(255,255,255,0.18) 18%,
+      rgba(255,255,255,0.04) 34%,
+      transparent 58%
+    );
+  transition: opacity 140ms ease;
+}
+
+.card:not(:hover)::after,
+.penalty-deck:not(:hover)::after {
+  transition-duration: 0ms;
+}
+
+.card-impact-flash {
+  border-color: var(--impact-color);
+  box-shadow:
+    calc(var(--card-depth-shadow-x) * 0.5)
+    calc(10px + var(--card-depth-shadow-y))
+    22px rgba(5, 9, 24, 0.34),
+    var(--elevation-active),
+    0 0 0 3px var(--impact-color),
+    0 0 1.1rem var(--impact-color);
+}
+
+.card-impact-burst {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  border-radius: inherit;
+  overflow: hidden;
+  contain: paint;
+}
+
+.card-impact-burst::before,
+.card-impact-burst::after {
+  content: "";
+  position: absolute;
+  left: var(--impact-origin-x, 50%);
+  top: var(--impact-origin-y, 50%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.card-impact-burst::before {
+  width: clamp(0.55rem, 20%, 1rem);
+  aspect-ratio: 1;
+  border-radius: 999px;
+  border: 2px solid var(--impact-color);
+  box-shadow: 0 0 0 0 var(--impact-color);
+  opacity: 0;
+  animation: card-impact-ripple var(--impact-duration) cubic-bezier(0.18, 0.8, 0.24, 1) both;
+}
+
+.card-impact-burst::after {
+  width: clamp(0.7rem, 24%, 1.25rem);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, var(--impact-color) 42%, transparent 72%);
+  mix-blend-mode: screen;
+  filter: blur(0px);
+  opacity: 0;
+  animation: card-impact-glow var(--impact-duration) cubic-bezier(0.16, 0.86, 0.24, 1) both;
+}
+
+@keyframes card-impact-ripple {
+  0% {
+    opacity: 0.95;
+    transform: translate(-50%, -50%) scale(0.2);
+    box-shadow: 0 0 0 0 var(--impact-color);
+  }
+  46% {
+    opacity: 0.62;
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(10);
+    box-shadow: 0 0 0 0.45rem transparent;
+  }
+}
+
+@keyframes card-impact-glow {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.2);
+    filter: blur(0px);
+  }
+  26% {
+    opacity: 0.98;
+    transform: translate(-50%, -50%) scale(2.7);
+    filter: blur(0.3px);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(6.8);
+    filter: blur(8px);
+  }
+}
+
+.card.card--dealing {
+  animation: card-deal-in 360ms cubic-bezier(0.16, 0.9, 0.24, 1);
+  animation-fill-mode: backwards;
+  animation-delay: var(--deal-delay, 0ms);
+}
+
+@keyframes card-deal-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.965);
+    filter: saturate(0.84);
+  }
+  65% {
+    opacity: 1;
+    transform: translateY(-1px) scale(1.012);
+    filter: saturate(1.06);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: none;
+  }
+}
+
+.penalty-deck {
+  appearance: none;
+  background: transparent;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  width: min(100%, var(--card-max-width));
+  border: 1px solid rgba(255,255,255,0.14);
+  box-shadow: var(--elevation-raised);
+  --hover-ring: rgba(255, 98, 98, 0.28);
+}
+
+.penalty-deck::before {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 112, 112, 0.54);
+  box-shadow: 0 0 0 0 rgba(255, 112, 112, 0);
+  opacity: 0;
+  transform: scale(1);
+  pointer-events: none;
+  z-index: 2;
+}
+
+body[data-scene="penalty"] .penalty-deck {
+  border-color: rgba(255, 148, 148, 0.46);
+  animation: penalty-deck-beat 1280ms cubic-bezier(0.22, 0.76, 0.24, 1) infinite;
+}
+
+body[data-scene="penalty"] .penalty-deck::before {
+  animation: penalty-deck-heartbeat 1280ms cubic-bezier(0.2, 0.86, 0.26, 1) infinite;
+}
+
+@keyframes penalty-deck-beat {
+  0%, 100% {
+    filter: saturate(1);
+  }
+  14% {
+    filter: saturate(1.2) brightness(1.12);
+  }
+  28% {
+    filter: saturate(1.06) brightness(1.05);
+  }
+  44% {
+    filter: saturate(1.18) brightness(1.1);
+  }
+  62% {
+    filter: saturate(1.02) brightness(1.02);
+  }
+}
+
+@keyframes penalty-deck-heartbeat {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 112, 112, 0);
+  }
+  10% {
+    opacity: 0.84;
+  }
+  18% {
+    opacity: 0.66;
+    transform: scale(1.038);
+    box-shadow: 0 0 0 0.32rem rgba(255, 112, 112, 0.28);
+  }
+  30% {
+    opacity: 0;
+    transform: scale(1.084);
+    box-shadow: 0 0 0 0.7rem rgba(255, 112, 112, 0);
+  }
+  42% {
+    opacity: 0.58;
+  }
+  50% {
+    opacity: 0.42;
+    transform: scale(1.026);
+    box-shadow: 0 0 0 0.22rem rgba(255, 142, 142, 0.24);
+  }
+  64% {
+    opacity: 0;
+    transform: scale(1.072);
+    box-shadow: 0 0 0 0.64rem rgba(255, 142, 142, 0);
+  }
+}
+
+.card:focus-visible,
+.penalty-deck:focus-visible {
+  outline: none;
+  box-shadow:
+    var(--elevation-active),
+    0 0 0 3px var(--hover-ring);
+}
+
+/* ===== Cards: 3D Flip ===== */
+.card__inner {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform var(--flip-ms) ease;
+}
+
+.card.show-front .card__inner,
+.penalty-deck.show-front .card__inner {
+  transform: rotateY(180deg);
+}
+
+.card__face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  backface-visibility: hidden;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem;
+  text-align: center;
+}
+
+/* ===== Cards: Faces ===== */
+.card__back {
+  transform: rotateY(0deg);
+  background-image: url('../images/cardback.png');
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(10, 14, 28, 0.75);
+}
+
+.card .card__front {
+  transform: rotateY(180deg);
+  background: var(--front-bg);
+  color: var(--front-text);
+  font-weight: 900;
+  font-size: calc(clamp(0.92rem, 1.05vw, 1.32rem) * var(--card-front-font-scale, 1));
+  line-height: 1.15;
+  word-break: normal;
+  overflow-wrap: break-word;
+  hyphens: none;
+  position: relative;
+  padding: 1.45rem 0.55rem 0.8rem;
+}
+
+.card .card__front[data-can-expand="true"] {
+  padding-bottom: 1.7rem;
+}
+
+.card .card__front .card-front-content {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  gap: 0.35rem;
+}
+
+.card .card__front .card-front-text {
+  max-width: 100%;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: calc(2 * 1.15em);
+  text-wrap: balance;
+}
+
+.card .card__front[data-compact-text="true"] .card-front-text {
+  letter-spacing: 0;
+}
+
+.card .card__front .card-open-detail {
+  position: absolute;
+  right: 0.4rem;
+  bottom: 0.42rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 999px;
+  background:
+    linear-gradient(145deg, rgba(53,224,199,0.2), rgba(168,85,247,0.18)),
+    rgba(10, 14, 28, 0.68);
+  color: rgba(248,252,255,0.96);
+  font-size: 0.62rem;
+  font-family: var(--font-display);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  padding: 0.24rem 0.52rem;
+  cursor: pointer;
+  transition: transform 0.14s ease, filter 0.18s ease, border-color 0.18s ease;
+  touch-action: manipulation;
+}
+
+.card .card__front .card-open-detail:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  border-color: rgba(255,255,255,0.28);
+}
+
+/* ===== Cards: Badge & Strip ===== */
+.card.show-front .card__front::before {
+  content: var(--badge);
+  position: absolute;
+  top: 0.55rem;
+  left: 0.55rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: var(--badge-bg);
+  color: var(--badge-fg);
+  border: 1px solid rgba(255,255,255,0.16);
+  box-shadow: var(--elevation-surface);
+}
+
+.card.show-front .card__front::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 0.45rem;
+  background: var(--strip);
+}
+
+/* ===== Cards: Penalty Front ===== */
+.penalty-deck .card__front {
+  transform: rotateY(180deg);
+  background:
+    radial-gradient(120px 90px at 35% 25%, rgba(255, 59, 59, 0.25), transparent 60%),
+    radial-gradient(140px 120px at 70% 70%, rgba(255, 176, 32, 0.14), transparent 60%),
+    linear-gradient(145deg, rgba(255,59,59,0.12), rgba(10, 14, 28, 0.78));
+  color: rgba(255,255,255,0.92);
+  font-weight: 900;
+  font-size: clamp(1.05rem, 1.1vw, 1.35rem);
+}
+.penalty-label { pointer-events: none; }
+
+/* ===== Cards: Media ===== */
+.card img,
+.penalty-deck img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* ===== Cards: Kind Styling ===== */
+.card[data-kind="normal"] {
+  --badge: "NORMAL";
+  --strip: linear-gradient(90deg, rgba(11,16,32,0.10), rgba(11,16,32,0.02));
+  --hover-ring: rgba(255,255,255,0.22);
+}
+.card[data-kind="drink"] {
+  --badge: "DRINK";
+  --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(53,224,199,0.22), transparent 60%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,18,48,0.92));
+  --front-text: rgba(255,255,255,0.93);
+  --strip: linear-gradient(90deg, rgba(53,224,199,0.70), rgba(53,224,199,0.10));
+  --hover-ring: rgba(53,224,199,0.35);
+}
+.card[data-kind="give"] {
+  --badge: "GIVE";
+  --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(72,222,128,0.22), transparent 60%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,32,20,0.88));
+  --front-text: rgba(255,255,255,0.93);
+  --strip: linear-gradient(90deg, rgba(72,222,128,0.72), rgba(72,222,128,0.10));
+  --hover-ring: rgba(72,222,128,0.33);
+}
+.card[data-kind="mix"] {
+  --badge: "MIX";
+  --front-bg: radial-gradient(180px 140px at 30% 25%, rgba(255,176,32,0.20), transparent 60%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(44,24,10,0.90));
+  --front-text: rgba(255,255,255,0.93);
+  --strip: linear-gradient(90deg, rgba(255,176,32,0.80), rgba(255,176,32,0.12));
+  --hover-ring: rgba(255,176,32,0.32);
+}
+.card[data-kind="penaltycall"] {
+  --badge: "PENALTY";
+  --front-bg: radial-gradient(200px 150px at 30% 25%, rgba(255,79,216,0.18), transparent 62%),
+             radial-gradient(180px 140px at 70% 70%, rgba(255,59,59,0.22), transparent 62%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(40,10,12,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(255,59,59,0.85), rgba(255,59,59,0.12));
+  --hover-ring: rgba(255,59,59,0.32);
+}
+.card[data-kind="item"] {
+  --badge: "ITEM";
+  --front-bg: radial-gradient(200px 160px at 30% 25%, rgba(168,85,247,0.20), transparent 62%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(24,10,44,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(168,85,247,0.85), rgba(168,85,247,0.12));
+  --hover-ring: rgba(168,85,247,0.32);
+}
+.card[data-kind="social"] {
+  --badge: "SOCIAL";
+  --front-bg: radial-gradient(200px 160px at 30% 25%, rgba(53,224,199,0.20), transparent 62%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(10,44,40,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(53,224,199,0.85), rgba(53,224,199,0.12));
+  --hover-ring: rgba(53,224,199,0.34);
+}
+.card[data-kind="crowd"] {
+  --badge: "CROWD";
+  --front-bg: radial-gradient(220px 170px at 30% 25%, rgba(255,79,216,0.18), transparent 62%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(44,10,34,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(255,79,216,0.85), rgba(255,79,216,0.12));
+  --hover-ring: rgba(255,79,216,0.32);
+}
+.card[data-kind="special"] {
+  --badge: "SPECIAL";
+  --front-bg: radial-gradient(220px 170px at 30% 25%, rgba(168,85,247,0.20), transparent 62%),
+             radial-gradient(220px 170px at 75% 70%, rgba(53,224,199,0.14), transparent 65%),
+             linear-gradient(145deg, rgba(7,10,20,0.92), rgba(18,10,40,0.90));
+  --front-text: rgba(255,255,255,0.94);
+  --strip: linear-gradient(90deg, rgba(168,85,247,0.85), rgba(53,224,199,0.55));
+  --hover-ring: rgba(168,85,247,0.30);
+}
+.card[data-kind="ditto"] {
+  --badge: "DITTO";
+  --hover-ring: rgba(168,85,247,0.30);
+  --strip: linear-gradient(90deg, rgba(168,85,247,0.80), rgba(255,79,216,0.20));
+}
+.card[data-kind="ditto"] .card__front {
+  background: url('../images/ditto.png') center/cover no-repeat;
+  color: #0b1020;
+}
