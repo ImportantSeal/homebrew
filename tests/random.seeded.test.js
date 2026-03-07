@@ -25,3 +25,20 @@ test('seeded RNG yields deterministic sequences for random helpers', () => {
   const seqB = Array.from({ length: 8 }, () => bagB.next());
   assert.deepEqual(seqA, seqB);
 });
+
+test('random helpers clamp malformed rng values to safe index bounds', () => {
+  const highRng = { nextFloat: () => 1 };
+  assert.equal(randomFromArray(['a', 'b', 'c'], highRng), 'c');
+  assert.deepEqual(shuffle([1, 2, 3], highRng), [1, 2, 3]);
+
+  const bag = createBag(['x', 'y'], highRng);
+  const draws = Array.from({ length: 6 }, () => bag.next());
+  for (const draw of draws) {
+    assert.ok(draw === 'x' || draw === 'y');
+  }
+});
+
+test('random helpers fall back to system rng when rng object is missing', () => {
+  const pick = randomFromArray(['only'], null);
+  assert.equal(pick, 'only');
+});

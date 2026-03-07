@@ -1,15 +1,32 @@
 // homebrew/js/utils/random.js
-import { systemRng } from './rng.js';
+import { resolveRng, systemRng } from './rng.js';
+
+function normalizeNextFloat(value) {
+  if (!Number.isFinite(value)) return 0;
+  if (value <= 0) return 0;
+  if (value >= 1) return 1 - Number.EPSILON;
+  return value;
+}
+
+function randomIndex(length, rng = systemRng) {
+  if (!Number.isInteger(length) || length <= 0) return -1;
+  const activeRng = resolveRng(rng);
+  return Math.floor(normalizeNextFloat(activeRng.nextFloat()) * length);
+}
 
 export function randomFromArray(arr, rng = systemRng) {
-  return arr[Math.floor(rng.nextFloat() * arr.length)];
+  if (!Array.isArray(arr) || arr.length === 0) return undefined;
+  const idx = randomIndex(arr.length, rng);
+  if (idx < 0) return undefined;
+  return arr[idx];
 }
 
 // Fisher–Yates shuffle (returns a NEW shuffled copy)
 export function shuffle(arr, rng = systemRng) {
-  const a = arr.slice();
+  const activeRng = resolveRng(rng);
+  const a = (Array.isArray(arr) ? arr : []).slice();
   for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(rng.nextFloat() * (i + 1));
+    const j = randomIndex(i + 1, activeRng);
     [a[i], a[j]] = [a[j], a[i]];
   }
   return a;
@@ -22,19 +39,20 @@ export function shuffle(arr, rng = systemRng) {
  * - Avoids immediate repeats across bag boundaries when possible.
  */
 export function createBag(items, rng = systemRng) {
-  const source = items.slice();
-  let bag = shuffle(source, rng);
+  const activeRng = resolveRng(rng);
+  const source = (Array.isArray(items) ? items : []).slice();
+  let bag = shuffle(source, activeRng);
   let last = null;
 
   function refill() {
-    bag = shuffle(source, rng);
-
+    bag = shuffle(source, activeRng);
+	
     // Avoid immediate repeat across refill boundary if possible
     if (bag.length > 1 && last != null) {
       const lastName = getComparableKey(last);
       if (getComparableKey(bag[bag.length - 1]) === lastName) {
         // swap last element with some other element
-        const swapIndex = Math.floor(rng.nextFloat() * (bag.length - 1));
+        const swapIndex = randomIndex(bag.length - 1, activeRng);
         const tmp = bag[bag.length - 1];
         bag[bag.length - 1] = bag[swapIndex];
         bag[swapIndex] = tmp;
@@ -64,7 +82,7 @@ export function createBag(items, rng = systemRng) {
   }
 
   function reset() {
-    bag = shuffle(source, rng);
+    bag = shuffle(source, activeRng);
     last = null;
   }
 
