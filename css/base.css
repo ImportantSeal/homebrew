@@ -345,7 +345,6 @@ body::before {
 .rules-button:focus-visible,
 .effect-remove:focus-visible,
 .status-chip:focus-visible,
-.card .card__front .card-open-detail:focus-visible,
 .card-action__button:focus-visible {
   outline: none;
   box-shadow: var(--ring);

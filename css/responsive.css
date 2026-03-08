@@ -404,18 +404,6 @@
     padding: 1.3rem 0.35rem 0.55rem;
   }
 
-  .card .card__front[data-can-expand="true"] {
-    padding-bottom: 1.55rem;
-  }
-
-  .card .card__front .card-open-detail {
-    right: 0.3rem;
-    bottom: 0.3rem;
-    font-size: 0.54rem;
-    padding: 0.2rem 0.42rem;
-    letter-spacing: 0.07em;
-  }
-
   .card.show-front .card__front::before {
     top: 0.32rem;
     left: 0.32rem;
@@ -455,18 +443,6 @@
     font-size: calc(clamp(0.56rem, 3.6vw, 0.78rem) * var(--card-front-font-scale, 1));
     line-height: 1.02;
     padding: 1.1rem 0.25rem 0.5rem;
-  }
-
-  .card .card__front[data-can-expand="true"] {
-    padding-bottom: 1.45rem;
-  }
-
-  .card .card__front .card-open-detail {
-    right: 0.22rem;
-    bottom: 0.22rem;
-    font-size: 0.5rem;
-    padding: 0.18rem 0.36rem;
-    letter-spacing: 0.06em;
   }
 
   .card.show-front .card__front::before {

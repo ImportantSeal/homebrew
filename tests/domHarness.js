@@ -212,6 +212,17 @@ class FakeNode extends FakeEventTarget {
     this.parentNode?.removeChild(this);
   }
 
+  replaceChildren(...nodes) {
+    this.childNodes = [];
+    nodes.forEach((node) => {
+      if (typeof node === 'string') {
+        this.appendChild(this.ownerDocument?.createTextNode(node) || new FakeTextNode(node, this.ownerDocument));
+      } else if (node) {
+        this.appendChild(node);
+      }
+    });
+  }
+
   get textContent() {
     return this.childNodes.map((child) => child.textContent).join('');
   }

@@ -1,7 +1,4 @@
-import { showCardActionModal } from './ui/cardActionModal.js';
-import { bindTap } from './utils/tap.js';
-
-const CARD_DETAIL_MIN_LENGTH = 30;
+const CARD_COMPACT_TEXT_MIN_LENGTH = 30;
 
 function normalizeCardText(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
@@ -17,51 +14,15 @@ function resolveCardFrontScale(text) {
   return 1;
 }
 
-function shouldShowCardDetailButton(text) {
-  return text.length >= CARD_DETAIL_MIN_LENGTH;
+function shouldUseCompactText(text) {
+  return text.length >= CARD_COMPACT_TEXT_MIN_LENGTH;
 }
 
-function openCardDetailModal(text) {
-  const safeText = normalizeCardText(text);
-  if (!safeText) return;
-
-  showCardActionModal({
-    title: 'Card',
-    message: safeText,
-    fallbackMessage: safeText,
-    variant: 'normal',
-    closeLabel: 'Close'
-  });
-}
-
-function buildCardDetailButton(text) {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.className = 'card-open-detail';
-  button.textContent = 'Open';
-  button.setAttribute('aria-label', 'Open full card text');
-
-  bindTap(button, (event) => {
-    event?.preventDefault?.();
-    event?.stopPropagation?.();
-    openCardDetailModal(text);
-  });
-
-  button.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar') {
-      event.stopPropagation();
-    }
-  });
-
-  return button;
-}
-
-function setFrontContent(frontEl, finalText, cardElement = null) {
+function setFrontContent(frontEl, finalText) {
   // safer & cleaner than innerHTML injections
   frontEl.replaceChildren();
   frontEl.style.removeProperty('--card-front-font-scale');
   frontEl.dataset.compactText = 'false';
-  frontEl.dataset.canExpand = 'false';
 
   const safeText = normalizeCardText(finalText);
 
@@ -74,7 +35,7 @@ function setFrontContent(frontEl, finalText, cardElement = null) {
   }
 
   frontEl.style.setProperty('--card-front-font-scale', String(resolveCardFrontScale(safeText)));
-  frontEl.dataset.compactText = shouldShowCardDetailButton(safeText) ? 'true' : 'false';
+  frontEl.dataset.compactText = shouldUseCompactText(safeText) ? 'true' : 'false';
 
   const content = document.createElement('div');
   content.className = 'card-front-content';
@@ -83,11 +44,6 @@ function setFrontContent(frontEl, finalText, cardElement = null) {
   text.className = 'card-front-text';
   text.textContent = safeText;
   content.appendChild(text);
-
-  if (cardElement?.classList?.contains('card') && shouldShowCardDetailButton(safeText)) {
-    content.appendChild(buildCardDetailButton(safeText));
-    frontEl.dataset.canExpand = 'true';
-  }
 
   frontEl.appendChild(content);
 }
@@ -117,7 +73,7 @@ export function flipCardAnimation(cardElement, finalText) {
 
   // Back -> Front
   if (!isFront) {
-    setFrontContent(front, finalText, cardElement);
+    setFrontContent(front, finalText);
     requestAnimationFrame(() => {
       if (cardElement._flipToken !== token) return;
       cardElement.classList.add('show-front');
@@ -131,7 +87,7 @@ export function flipCardAnimation(cardElement, finalText) {
 
   setTimeout(() => {
     if (cardElement._flipToken !== token) return;
-    setFrontContent(front, finalText, cardElement);
+    setFrontContent(front, finalText);
     cardElement.classList.add('show-front');
     cardElement.dataset.value = finalText;
   }, 230);

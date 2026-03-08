@@ -357,10 +357,6 @@ body[data-scene="penalty"] .penalty-deck::before {
   padding: 1.45rem 0.55rem 0.8rem;
 }
 
-.card .card__front[data-can-expand="true"] {
-  padding-bottom: 1.7rem;
-}
-
 .card .card__front .card-front-content {
   width: 100%;
   display: grid;
@@ -381,34 +377,6 @@ body[data-scene="penalty"] .penalty-deck::before {
 
 .card .card__front[data-compact-text="true"] .card-front-text {
   letter-spacing: 0;
-}
-
-.card .card__front .card-open-detail {
-  position: absolute;
-  right: 0.4rem;
-  bottom: 0.42rem;
-  border: 1px solid rgba(255,255,255,0.2);
-  border-radius: 999px;
-  background:
-    linear-gradient(145deg, rgba(53,224,199,0.2), rgba(168,85,247,0.18)),
-    rgba(10, 14, 28, 0.68);
-  color: rgba(248,252,255,0.96);
-  font-size: 0.62rem;
-  font-family: var(--font-display);
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  line-height: 1;
-  padding: 0.24rem 0.52rem;
-  cursor: pointer;
-  transition: transform 0.14s ease, filter 0.18s ease, border-color 0.18s ease;
-  touch-action: manipulation;
-}
-
-.card .card__front .card-open-detail:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.06);
-  border-color: rgba(255,255,255,0.28);
 }
 
 /* ===== Cards: Badge & Strip ===== */
