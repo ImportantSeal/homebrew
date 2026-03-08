@@ -2,7 +2,7 @@
 
 import { createInitialState, resetStateForNewGame } from '../state.js';
 import { addHistoryEntry, clearHistoryEntries } from '../cardHistory.js';
-import { resetStats, removePlayerStats } from '../stats.js';
+import { resetStats } from '../stats.js';
 
 import { createBag } from '../utils/random.js';
 import { systemRng } from '../utils/rng.js';
@@ -11,15 +11,10 @@ import { ensurePlayerColors } from '../utils/playerColors.js';
 import { dealTurnCards } from '../logic/deck.js';
 import { hidePenaltyCard } from '../logic/penalty.js';
 import { tickEffects, cancelTargetedEffectSelection } from '../logic/effects.js';
-import { resetMirrorState } from '../logic/mirror.js';
-import { useItem } from '../logic/items.js';
 import { enableLeaveGuard } from '../navigationGuard.js';
 
-import { flipCardAnimation } from '../animations.js';
-import { getCardDisplayValue } from '../utils/cardDisplay.js';
-import { getCardElements, renderCards, setCardKind } from '../ui/cards.js';
+import { renderCards } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
-import { renderItemsBoard } from '../ui/itemsBoard.js';
 import { showCardActionModal } from '../ui/cardActionModal.js';
 import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundScene.js';
 
@@ -35,16 +30,14 @@ import {
 
 import { createEffectsPanelController } from './controller/effectsPanel.js';
 import { createCardHandlers } from './controller/cardHandlers.js';
+import { createItemsController } from './controller/itemsController.js';
+import { createPlayerRemovalController } from './controller/playerRemoval.js';
 
 const TIMING = {
   PENALTY_UNLOCK_MS: 350,
   MYSTERY_REVEAL_UNLOCK_MS: 700,
   DITTO_DOUBLECLICK_GUARD_MS: 1000,
   REDRAW_REFRESH_MS: 1000
-};
-
-const PLAYER_REMOVAL = {
-  MIN_PLAYERS: 2
 };
 
 export function createGameController({ initialState = createInitialState() } = {}) {
@@ -98,182 +91,6 @@ function renderTurnHeader() {
 function isPenaltyFlowActive() {
   if (state.penaltyShown) return true;
   return state.penaltySource === "card_pending" || state.penaltySource === "group_pending";
-}
-
-function remapPlayerIndexAfterRemoval(index, removedIndex) {
-  if (!Number.isInteger(index)) return index;
-  if (index === removedIndex) return null;
-  return index > removedIndex ? index - 1 : index;
-}
-
-function normalizeStateAfterPlayerRemoval(removedIndex) {
-  let removedEffects = 0;
-
-  if (Array.isArray(state.effects)) {
-    state.effects = state.effects
-      .map((effect) => {
-        if (!effect || typeof effect !== 'object') return null;
-
-        const hasSource = Number.isInteger(effect.sourceIndex);
-        const hasTarget = Number.isInteger(effect.targetIndex);
-        const nextSource = remapPlayerIndexAfterRemoval(effect.sourceIndex, removedIndex);
-        const nextTarget = remapPlayerIndexAfterRemoval(effect.targetIndex, removedIndex);
-
-        if ((hasSource && nextSource === null) || (hasTarget && nextTarget === null)) {
-          removedEffects += 1;
-          return null;
-        }
-
-        if (hasSource) effect.sourceIndex = nextSource;
-        if (hasTarget) effect.targetIndex = nextTarget;
-        return effect;
-      })
-      .filter(Boolean);
-  }
-
-  if (state.effectSelection?.active) {
-    cancelTargetedEffectSelection(state);
-  } else if (state.effectSelection?.pending) {
-    const nextSource = remapPlayerIndexAfterRemoval(state.effectSelection.pending.sourceIndex, removedIndex);
-    if (nextSource === null) {
-      state.effectSelection = { active: false, pending: null, cleanup: null, ui: null };
-    } else {
-      state.effectSelection.pending.sourceIndex = nextSource;
-    }
-  }
-
-  if (state.mirror && typeof state.mirror === 'object') {
-    const nextSource = remapPlayerIndexAfterRemoval(state.mirror.sourceIndex, removedIndex);
-    if (nextSource === null) {
-      resetMirrorState(state);
-    } else {
-      state.mirror.sourceIndex = nextSource;
-    }
-  }
-
-  const nextPenaltyRollPlayerIndex = remapPlayerIndexAfterRemoval(state.penaltyRollPlayerIndex, removedIndex);
-  state.penaltyRollPlayerIndex = Number.isInteger(nextPenaltyRollPlayerIndex)
-    ? nextPenaltyRollPlayerIndex
-    : null;
-
-  if (state.penaltyGroup && typeof state.penaltyGroup === 'object') {
-    const group = state.penaltyGroup;
-
-    if (Array.isArray(group.queue)) {
-      const playerCount = state.players?.length || 0;
-      const rawCursor = Number.isInteger(group.cursor) && group.cursor >= 0 ? group.cursor : 0;
-      let remappedCursor = rawCursor;
-      const remappedQueue = [];
-
-      group.queue.forEach((queueIndex, position) => {
-        const remappedIndex = remapPlayerIndexAfterRemoval(queueIndex, removedIndex);
-        if (remappedIndex === null) {
-          if (position < rawCursor) remappedCursor -= 1;
-          return;
-        }
-
-        if (Number.isInteger(remappedIndex) && remappedIndex >= 0 && remappedIndex < playerCount) {
-          remappedQueue.push(remappedIndex);
-        }
-      });
-
-      group.queue = remappedQueue;
-      group.cursor = Math.max(0, Math.min(remappedCursor, remappedQueue.length));
-    }
-
-    const remappedOrigin = remapPlayerIndexAfterRemoval(group.originPlayerIndex, removedIndex);
-    group.originPlayerIndex = Number.isInteger(remappedOrigin)
-      ? remappedOrigin
-      : state.currentPlayerIndex;
-
-    if (!Array.isArray(group.queue) || group.queue.length === 0) {
-      state.penaltyGroup = null;
-      if (state.penaltySource === "group_pending") {
-        state.penaltySource = null;
-        state.penaltyHintShown = false;
-      }
-    }
-  }
-
-  return removedEffects;
-}
-
-function removePlayerFromGame(targetIndex) {
-  const playerCount = state.players.length;
-  if (playerCount <= PLAYER_REMOVAL.MIN_PLAYERS) {
-    log(`At least ${PLAYER_REMOVAL.MIN_PLAYERS} players must remain.`);
-    return false;
-  }
-
-  const targetPlayer = state.players[targetIndex];
-  if (!targetPlayer) return false;
-
-  const wasCurrentPlayer = targetIndex === state.currentPlayerIndex;
-  const removedName = targetPlayer.name || playerName(targetIndex);
-  state.players.splice(targetIndex, 1);
-  removePlayerStats(state, targetIndex);
-
-  if (wasCurrentPlayer) {
-    if (state.currentPlayerIndex >= state.players.length) {
-      state.currentPlayerIndex = 0;
-    }
-  } else if (targetIndex < state.currentPlayerIndex) {
-    state.currentPlayerIndex = Math.max(0, state.currentPlayerIndex - 1);
-  }
-
-  const removedEffects = normalizeStateAfterPlayerRemoval(targetIndex);
-  ensurePlayerColors(state.players);
-
-  log(`${removedName} was removed from the game.`);
-  if (removedEffects > 0) {
-    log(`${removedEffects} effect${removedEffects === 1 ? '' : 's'} ended because of player removal.`);
-  }
-
-  if (wasCurrentPlayer) {
-    updateTurn();
-  } else {
-    renderTurnHeader();
-    renderItems();
-    renderEffectsPanel();
-    requestAnimationFrame(syncPenaltyDeckSizeToCards);
-  }
-
-  return true;
-}
-
-function onTurnOrderPlayerRemoveClick(removeBtn, event) {
-  if (event?.preventDefault) event.preventDefault();
-  if (event?.stopPropagation) event.stopPropagation();
-  if (event?.stopImmediatePropagation) event.stopImmediatePropagation();
-
-  if (state.choiceSelection?.active) {
-    log("Resolve the current card choice before removing a player.");
-    return;
-  }
-
-  if (state.effectSelection?.active) {
-    log("Pick a target player first (effect selection is active).");
-    return;
-  }
-
-  if (isPenaltyFlowActive()) {
-    log("Resolve the current penalty before removing a player.");
-    return;
-  }
-
-  if (state.players.length <= PLAYER_REMOVAL.MIN_PLAYERS) {
-    log(`At least ${PLAYER_REMOVAL.MIN_PLAYERS} players are required to continue.`);
-    return;
-  }
-
-  const targetIndex = Number(removeBtn?.dataset?.index);
-  if (!Number.isInteger(targetIndex)) return;
-  const target = state.players?.[targetIndex];
-  if (!target) return;
-
-  const confirmed = window.confirm(`Remove ${target.name} from the game?`);
-  if (!confirmed) return;
-  removePlayerFromGame(targetIndex);
 }
 
 function lockUI() {
@@ -341,6 +158,26 @@ const { renderEffectsPanel } = createEffectsPanelController({
   state,
   log,
   playerName
+});
+
+const { renderItems } = createItemsController({
+  state,
+  log,
+  renderTurnHeader,
+  renderEffectsPanel,
+  updateTurn
+});
+
+const { onTurnOrderPlayerRemoveClick } = createPlayerRemovalController({
+  state,
+  log,
+  playerName,
+  renderTurnHeader,
+  renderItems,
+  renderEffectsPanel,
+  updateTurn,
+  syncPenaltyDeckSizeToCards,
+  isPenaltyFlowActive
 });
 
 const rng = {
@@ -474,51 +311,6 @@ function updateItemsPanelVisibility() {
     itemsBoard.style.display = showItems ? "" : "none";
     if (!showItems) itemsBoard.innerHTML = "";
   }
-}
-
-function renderItems() {
-  if (!state.includeItems) return;
-
-  renderItemsBoard(state, (pIndex, iIndex, itemName) => {
-    if (state.choiceSelection?.active) {
-      log("Resolve the current card choice first.");
-      return;
-    }
-
-    if (state.effectSelection?.active) {
-      log("Pick a target player first (effect selection is active).");
-      return;
-    }
-
-    const isImmunity = String(itemName || "").trim() === "Immunity";
-    const isCurrentPlayersItem = pIndex === state.currentPlayerIndex;
-
-    if (!isCurrentPlayersItem && !isImmunity) {
-      log("Only the active player can use items. Immunity can be used anytime.");
-      return;
-    }
-
-    useItem(
-      state,
-      pIndex,
-      iIndex,
-      log,
-      renderTurnHeader,
-      renderItems,
-      updateTurn,
-      {
-        revealHiddenCard: (stateObj, index) => {
-          const cards = getCardElements();
-          const cardEl = cards[index];
-          if (!cardEl) return;
-          setCardKind(stateObj, cardEl, stateObj.currentCards[index], false);
-          flipCardAnimation(cardEl, getCardDisplayValue(stateObj.currentCards[index]));
-        }
-      }
-    );
-
-    renderEffectsPanel();
-  });
 }
 
 function resetCards({ keepPenaltyOpen = false } = {}) {
