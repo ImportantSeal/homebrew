@@ -1,8 +1,10 @@
-import { state } from './state.js';
-import { startGame } from './game.js';
 import { applyPlayerColor, ensurePlayerColor, ensurePlayerColors } from './utils/playerColors.js';
 
-export function initSetup() {
+export function initSetup({ state, startGame } = {}) {
+  if (!state || typeof startGame !== 'function') {
+    throw new Error('initSetup requires state and startGame.');
+  }
+
   const MIN_PLAYERS = 2;
 
   const setupContainer = document.getElementById('setup-container');

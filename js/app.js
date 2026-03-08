@@ -1,4 +1,5 @@
 import { gameData } from './gameData.js';
+import { gameController } from './game.js';
 import { validateGameDataActionEffectCodes } from './logic/actionEffectRegistry.js';
 import { initSetup } from './setup.js';
 import { initRulesModal } from './ui/rulesModal.js';
@@ -7,10 +8,12 @@ import { initCardActionModal } from './ui/cardActionModal.js';
 import { initStatsModal } from './ui/statsModal.js';
 
 document.addEventListener('DOMContentLoaded', () => {
+  const { state, startGame } = gameController;
+
   validateGameDataActionEffectCodes(gameData);
-  initSetup();
+  initSetup({ state, startGame });
   initRulesModal();
-  initDiceModal();
+  initDiceModal({ state });
   initCardActionModal();
-  initStatsModal();
+  initStatsModal({ state });
 });

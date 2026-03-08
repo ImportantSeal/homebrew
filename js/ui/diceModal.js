@@ -1,6 +1,5 @@
 // js/ui/diceModal.js
 import { addHistoryEntry } from '../cardHistory.js';
-import { state } from '../state.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 import { bindTap } from '../utils/tap.js';
 import { resolveRng } from '../utils/rng.js';
@@ -81,7 +80,7 @@ function parseDieResults(dieResults, sides) {
     .filter((v) => v !== null);
 }
 
-function currentPlayerName() {
+function currentPlayerName(state) {
   const p = state.players?.[state.currentPlayerIndex];
   return p?.name || "Someone";
 }
@@ -255,7 +254,9 @@ function scheduleResize() {
   });
 }
 
-export function initDiceModal() {
+export function initDiceModal({ state } = {}) {
+  if (!state || typeof state !== 'object') return;
+
   const toggleBtn = document.getElementById('dice-toggle');
   const modal = document.getElementById('dice-modal');
   if (!toggleBtn || !modal) return;
@@ -309,7 +310,7 @@ export function initDiceModal() {
           : "3D dice warming up. If fallback appears, roll once more.";
       }
       if (dice3dDisabled && !dice3dWarningLogged) {
-        addHistoryEntry("Dice warning: 3D dice unavailable, using fallback rolls.");
+        addHistoryEntry(state, "Dice warning: 3D dice unavailable, using fallback rolls.");
         dice3dWarningLogged = true;
       }
     }
@@ -460,7 +461,7 @@ export function initDiceModal() {
       : ` [${baseSum}${formatSignedInt(safeModifier)}=${sum}]`;
     const fallbackLabel = usedFallback ? " [fallback]" : "";
 
-    addHistoryEntry(`Dice: ${currentPlayerName()} rolled ${notation}: ${sum}${detail}${breakdown}${fallbackLabel}`);
+    addHistoryEntry(state, `Dice: ${currentPlayerName(state)} rolled ${notation}: ${sum}${detail}${breakdown}${fallbackLabel}`);
 
     if (resultEl) {
       resultEl.textContent = `${notation} -> ${sum}${detail}${breakdown}${fallbackLabel}`;

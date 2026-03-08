@@ -5,7 +5,8 @@ function createEffectSelectionState() {
   return {
     active: false,
     pending: null,
-    cleanup: null
+    cleanup: null,
+    ui: null
   };
 }
 
@@ -98,8 +99,6 @@ export function createInitialState() {
     mirror: createMirrorState()
   };
 }
-
-export const state = createInitialState();
 
 export function resetStateForNewGame(stateObj, options = {}) {
   if (!stateObj || typeof stateObj !== 'object') return createInitialState();

@@ -1,4 +1,3 @@
-import { state } from './state.js';
 import { ensurePlayerColors, setPlayerColoredText } from './utils/playerColors.js';
 import {
   buildStatsLeaderboardMessage,
@@ -30,7 +29,7 @@ function normalizeKind(kind) {
   return HISTORY_CARD_KINDS.has(normalized) ? normalized : null;
 }
 
-function createHistoryEntryElement(text, index, kind, options = {}) {
+function createHistoryEntryElement(state, text, index, kind, options = {}) {
   const entry = document.createElement('article');
   entry.className = 'history-entry is-latest';
   entry.dataset.rawText = text;
@@ -60,7 +59,7 @@ function createHistoryEntryElement(text, index, kind, options = {}) {
     btn.addEventListener('click', () => {
       const leaderboardText = buildStatsLeaderboardMessage(state, leaderboardTopic);
       if (!leaderboardText) return;
-      addHistoryEntry(leaderboardText, { kind: 'special' });
+      addHistoryEntry(state, leaderboardText, { kind: 'special' });
     });
 
     actions.appendChild(btn);
@@ -70,7 +69,9 @@ function createHistoryEntryElement(text, index, kind, options = {}) {
   return entry;
 }
 
-export function addHistoryEntry(message, options = {}) {
+export function addHistoryEntry(state, message, options = {}) {
+  if (!state || typeof state !== 'object') return null;
+
   const historyContainer = document.getElementById('card-history');
   const text = normalizeMessage(message);
   const kind = normalizeKind(options && typeof options === 'object' ? options.kind : null);
@@ -96,7 +97,7 @@ export function addHistoryEntry(message, options = {}) {
   const latest = historyContainer.querySelector('.history-entry.is-latest');
   if (latest) latest.classList.remove('is-latest');
 
-  const entry = createHistoryEntryElement(text, state.historyEntryCount, kind, { leaderboardTopic });
+  const entry = createHistoryEntryElement(state, text, state.historyEntryCount, kind, { leaderboardTopic });
   historyContainer.appendChild(entry);
 
   while (historyContainer.childElementCount > MAX_HISTORY_ENTRIES) {
@@ -115,10 +116,6 @@ export function addHistoryEntry(message, options = {}) {
 }
 
 export function getLastHistoryEntry() {
-  if (Array.isArray(state.cardHistory) && state.cardHistory.length > 0) {
-    return state.cardHistory[state.cardHistory.length - 1];
-  }
-
   const historyContainer = document.getElementById('card-history');
   const last = historyContainer?.lastElementChild;
   const raw = typeof last?.dataset?.rawText === 'string'
@@ -131,9 +128,12 @@ export function getLastHistoryEntry() {
   return text || null;
 }
 
-export function clearHistoryEntries() {
-  state.cardHistory = [];
-  state.historyEntryCount = 0;
+export function clearHistoryEntries(state) {
+  if (state && typeof state === 'object') {
+    state.cardHistory = [];
+    state.historyEntryCount = 0;
+  }
+
   const historyContainer = document.getElementById('card-history');
   if (historyContainer) historyContainer.innerHTML = "";
 }

@@ -77,7 +77,7 @@ test('resetStateForNewGame recreates fresh runtime state for a new game', () => 
   assert.deepEqual(state.dittoPending, [null, null, null]);
   assert.deepEqual(state.dittoActive, [false, false, false]);
   assert.deepEqual(state.effects, []);
-  assert.deepEqual(state.effectSelection, { active: false, pending: null, cleanup: null });
+  assert.deepEqual(state.effectSelection, { active: false, pending: null, cleanup: null, ui: null });
   assert.deepEqual(state.choiceSelection, { active: false, pending: null });
   assert.deepEqual(state.currentCards, []);
   assert.deepEqual(state.revealed, [true, true, true]);

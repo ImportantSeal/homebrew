@@ -1,1 +1,1 @@
-export { startGame } from './game/controller.js';
+export { createGameController, gameController, startGame } from './game/controller.js';

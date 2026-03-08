@@ -10,12 +10,15 @@ export function useItem(
   updateTurn,
   ui = {}
 ) {
-  const player = state.players[playerIndex];
-  const item = player.inventory[itemIndex];
+  const player = state?.players?.[playerIndex];
+  const inventory = Array.isArray(player?.inventory) ? player.inventory : null;
+  if (!player || !inventory) return;
+
+  const item = inventory[itemIndex];
   if (!item) return;
 
   // Poista käytetty item (sama kuin ennen)
-  player.inventory.splice(itemIndex, 1);
+  inventory.splice(itemIndex, 1);
   updateTurnOrder();
   renderItemsBoard();
 

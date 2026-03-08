@@ -151,3 +151,39 @@ test('useItem Mirror resets mirror state', () => {
   assert.deepEqual(state.mirror, createMirrorState());
   assert.ok(logs.some((line) => line.includes('used Mirror')));
 });
+
+test('useItem ignores invalid player and item indices', () => {
+  const { state, logs, counts } = createHarness({
+    players: [{ name: 'A', inventory: ['Shield'] }]
+  });
+
+  assert.doesNotThrow(() => {
+    useItem(
+      state,
+      5,
+      0,
+      (line) => logs.push(String(line)),
+      () => { counts.updateTurnOrder += 1; },
+      () => { counts.renderItemsBoard += 1; },
+      () => { counts.updateTurn += 1; }
+    );
+  });
+
+  assert.doesNotThrow(() => {
+    useItem(
+      state,
+      0,
+      7,
+      (line) => logs.push(String(line)),
+      () => { counts.updateTurnOrder += 1; },
+      () => { counts.renderItemsBoard += 1; },
+      () => { counts.updateTurn += 1; }
+    );
+  });
+
+  assert.deepEqual(state.players[0].inventory, ['Shield']);
+  assert.equal(counts.updateTurnOrder, 0);
+  assert.equal(counts.renderItemsBoard, 0);
+  assert.equal(counts.updateTurn, 0);
+  assert.deepEqual(logs, []);
+});

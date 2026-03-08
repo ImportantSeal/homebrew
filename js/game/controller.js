@@ -1,6 +1,6 @@
 // homebrew/js/game/controller.js
 
-import { state, resetStateForNewGame } from '../state.js';
+import { createInitialState, resetStateForNewGame } from '../state.js';
 import { addHistoryEntry, clearHistoryEntries } from '../cardHistory.js';
 import { resetStats, removePlayerStats } from '../stats.js';
 
@@ -47,7 +47,11 @@ const PLAYER_REMOVAL = {
   MIN_PLAYERS: 2
 };
 
-let penaltyDeckSizeSyncBound = false;
+export function createGameController({ initialState = createInitialState() } = {}) {
+  const state = initialState && typeof initialState === 'object'
+    ? initialState
+    : createInitialState();
+  let penaltyDeckSizeSyncBound = false;
 
 function resolveHistoryLogKind(options = {}) {
   if (options && typeof options === 'object' && typeof options.kind === 'string') {
@@ -71,7 +75,7 @@ function log(message, options = {}) {
   } else {
     delete safeOptions.kind;
   }
-  return addHistoryEntry(message, safeOptions);
+  return addHistoryEntry(state, message, safeOptions);
 }
 
 function currentPlayer() {
@@ -132,7 +136,7 @@ function normalizeStateAfterPlayerRemoval(removedIndex) {
   } else if (state.effectSelection?.pending) {
     const nextSource = remapPlayerIndexAfterRemoval(state.effectSelection.pending.sourceIndex, removedIndex);
     if (nextSource === null) {
-      state.effectSelection = { active: false, pending: null, cleanup: null };
+      state.effectSelection = { active: false, pending: null, cleanup: null, ui: null };
     } else {
       state.effectSelection.pending.sourceIndex = nextSource;
     }
@@ -339,7 +343,9 @@ const { renderEffectsPanel } = createEffectsPanelController({
   playerName
 });
 
-const rng = state.rng ?? systemRng;
+const rng = {
+  nextFloat: () => (state.rng ?? systemRng).nextFloat()
+};
 
 const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } = createCardHandlers({
   state,
@@ -360,12 +366,12 @@ const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } 
   openActionScreen
 });
 
-export function startGame() {
+function startGame() {
   cancelTargetedEffectSelection(state);
   resetStateForNewGame(state);
   enableLeaveGuard();
   ensurePlayerColors(state.players);
-  clearHistoryEntries();
+  clearHistoryEntries(state);
   resetStats(state);
 
   initGameView();
@@ -525,3 +531,12 @@ function resetCards({ keepPenaltyOpen = false } = {}) {
   renderEffectsPanel();
   requestAnimationFrame(syncPenaltyDeckSizeToCards);
 }
+
+  return {
+    state,
+    startGame
+  };
+}
+
+export const gameController = createGameController();
+export const startGame = () => gameController.startGame();

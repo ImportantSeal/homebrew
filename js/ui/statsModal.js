@@ -1,4 +1,3 @@
-import { state } from '../state.js';
 import { CARD_KIND_LABELS, CARD_KIND_ORDER, STATS_UPDATED_EVENT, getStatsSnapshot } from '../stats.js';
 import { bindTap } from '../utils/tap.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
@@ -149,7 +148,7 @@ function joinKindLabels(labels = []) {
   return labels.filter(Boolean).join(', ');
 }
 
-function createSummary(snapshot) {
+function createSummary(state, snapshot) {
   const summary = document.createElement('section');
   summary.className = 'stats-summary';
 
@@ -209,7 +208,7 @@ function createSummary(snapshot) {
   return summary;
 }
 
-function createPlayerCard(entry, playerIndex = 0) {
+function createPlayerCard(state, entry, playerIndex = 0) {
   const card = document.createElement('article');
   card.className = 'stats-player';
 
@@ -280,7 +279,7 @@ function createPlayerCard(entry, playerIndex = 0) {
   return card;
 }
 
-function renderStats() {
+function renderStats(state) {
   const { board, empty } = refs();
   if (!board || !empty) return;
 
@@ -294,23 +293,23 @@ function renderStats() {
   }
 
   empty.hidden = true;
-  board.appendChild(createSummary(snapshot));
+  board.appendChild(createSummary(state, snapshot));
   const playersHeading = document.createElement('h3');
   playersHeading.className = 'stats-board__section-title';
   playersHeading.textContent = 'Players';
   board.appendChild(playersHeading);
   snapshot.forEach((entry, index) => {
-    board.appendChild(createPlayerCard(entry, index));
+    board.appendChild(createPlayerCard(state, entry, index));
   });
 }
 
-function openModal() {
+function openModal(state) {
   const { modal, panel, toggleBtn } = refs();
   if (!modal) return;
 
   returnFocusEl = document.activeElement instanceof HTMLElement ? document.activeElement : null;
   setModalOpen(modal, toggleBtn, true);
-  renderStats();
+  renderStats(state);
   panel?.focus?.();
 }
 
@@ -326,13 +325,16 @@ function closeModal(restoreFocus = true) {
   returnFocusEl = null;
 }
 
-export function refreshStatsModal() {
+export function refreshStatsModal(state) {
+  if (!state || typeof state !== 'object') return;
+
   const { modal } = refs();
   if (!isModalOpen(modal)) return;
-  renderStats();
+  renderStats(state);
 }
 
-export function initStatsModal() {
+export function initStatsModal({ state } = {}) {
+  if (!state || typeof state !== 'object') return;
   if (initialized) return;
 
   const { modal, toggleBtn } = refs();
@@ -342,7 +344,7 @@ export function initStatsModal() {
     if (isModalOpen(modal)) {
       closeModal(true);
     } else {
-      openModal();
+      openModal(state);
     }
   });
 
@@ -360,7 +362,7 @@ export function initStatsModal() {
   });
 
   document.addEventListener(STATS_UPDATED_EVENT, () => {
-    refreshStatsModal();
+    refreshStatsModal(state);
   });
 
   initialized = true;
