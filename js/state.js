@@ -16,6 +16,22 @@ function createChoiceSelectionState() {
   };
 }
 
+function createPlayerState(player = {}, index = 0) {
+  const normalizedName = typeof player?.name === 'string' ? player.name.trim() : '';
+  const normalizedColor = typeof player?.color === 'string' ? player.color.trim() : '';
+
+  const nextPlayer = {
+    name: normalizedName || `Player ${index + 1}`,
+    inventory: []
+  };
+
+  if (normalizedColor) {
+    nextPlayer.color = normalizedColor;
+  }
+
+  return nextPlayer;
+}
+
 export function createInitialState() {
   return {
     players: [],
@@ -84,3 +100,32 @@ export function createInitialState() {
 }
 
 export const state = createInitialState();
+
+export function resetStateForNewGame(stateObj, options = {}) {
+  if (!stateObj || typeof stateObj !== 'object') return createInitialState();
+
+  const hasOwn = (key) => Object.prototype.hasOwnProperty.call(options, key);
+  const freshState = createInitialState();
+  const sourcePlayers = hasOwn('players') ? options.players : stateObj.players;
+  const includeItems = hasOwn('includeItems') ? options.includeItems : stateObj.includeItems;
+  const rng = hasOwn('rng') ? options.rng : stateObj.rng;
+
+  const players = Array.isArray(sourcePlayers)
+    ? sourcePlayers.map((player, index) => createPlayerState(player, index))
+    : [];
+
+  Object.keys(stateObj).forEach((key) => {
+    delete stateObj[key];
+  });
+
+  Object.assign(stateObj, freshState, {
+    players,
+    includeItems: Boolean(includeItems)
+  });
+
+  if (rng !== undefined) {
+    stateObj.rng = rng;
+  }
+
+  return stateObj;
+}

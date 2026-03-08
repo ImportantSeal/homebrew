@@ -1,6 +1,6 @@
 // homebrew/js/game/controller.js
 
-import { state } from '../state.js';
+import { state, resetStateForNewGame } from '../state.js';
 import { addHistoryEntry, clearHistoryEntries } from '../cardHistory.js';
 import { resetStats, removePlayerStats } from '../stats.js';
 
@@ -362,30 +362,9 @@ const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } 
 
 export function startGame() {
   cancelTargetedEffectSelection(state);
+  resetStateForNewGame(state);
   enableLeaveGuard();
   ensurePlayerColors(state.players);
-
-  // runtime flags
-  state.uiLocked = false;
-  state.historyLogKind = null;
-  state.backgroundScene = 'normal';
-  state.penaltyConfirmArmed = false;
-  state.penaltySource = null;
-  state.penaltyHintShown = false;
-  state.penaltyRollPlayerIndex = null;
-  state.penaltyGroup = null;
-  state.sharePenalty = null;
-
-  state.dittoPending = [null, null, null];
-  state.dittoActive = [false, false, false];
-
-  // reset effects for a fresh game
-  state.effects = [];
-  state.effectSelection = { active: false, pending: null, cleanup: null };
-  state.choiceSelection = { active: false, pending: null };
-  resetMirrorState(state);
-
-  if (!state.bags) state.bags = {};
   clearHistoryEntries();
   resetStats(state);
 
