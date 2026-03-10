@@ -173,7 +173,7 @@ body::after {
   filter: saturate(var(--scene-sat));
   mix-blend-mode: screen;
   animation: var(--scene-ambient-animation);
-  transition: opacity 420ms ease, transform 900ms cubic-bezier(0.2, 0.9, 0.3, 1), filter 420ms ease;
+  transition: opacity 420ms ease, transform 900ms cubic-bezier(0.2, 0.9, 0.3, 1);
 }
 
 body.scene-surge::after {
@@ -199,17 +199,14 @@ body.scene-surge.scene-danger-flash::after {
   0% {
     opacity: var(--scene-opacity);
     transform: translate3d(0, 0, 0) scale(var(--scene-scale));
-    filter: saturate(var(--scene-sat));
   }
   42% {
     opacity: calc(var(--scene-opacity) + 0.28);
     transform: translate3d(0, 0, 0) scale(calc(var(--scene-scale) + 0.11));
-    filter: saturate(calc(var(--scene-sat) + 0.58));
   }
   100% {
     opacity: var(--scene-opacity);
     transform: translate3d(0, 0, 0) scale(var(--scene-scale));
-    filter: saturate(var(--scene-sat));
   }
 }
 
@@ -217,52 +214,42 @@ body.scene-surge.scene-danger-flash::after {
   0% {
     opacity: var(--scene-opacity);
     transform: translate3d(0, 0, 0) scale(var(--scene-scale));
-    filter: saturate(var(--scene-sat));
   }
   22% {
     opacity: calc(var(--scene-opacity) + 0.38);
     transform: translate3d(0, 0, 0) scale(calc(var(--scene-scale) + 0.065));
-    filter: saturate(calc(var(--scene-sat) + 0.82)) brightness(1.22);
   }
   58% {
     opacity: calc(var(--scene-opacity) + 0.08);
     transform: translate3d(0, 0, 0) scale(calc(var(--scene-scale) + 0.024));
-    filter: saturate(calc(var(--scene-sat) + 0.36)) brightness(1.08);
   }
   100% {
     opacity: var(--scene-opacity);
     transform: translate3d(0, 0, 0) scale(var(--scene-scale));
-    filter: saturate(var(--scene-sat));
   }
 }
 
 @keyframes scene-ambient-ditto {
   0% {
     transform: translate3d(-0.7%, -0.4%, 0) scale(var(--scene-scale));
-    filter: saturate(calc(var(--scene-sat) + 0.05));
   }
   50% {
     transform: translate3d(0.6%, 0.5%, 0) scale(calc(var(--scene-scale) + 0.03));
-    filter: saturate(calc(var(--scene-sat) + 0.22));
   }
   100% {
     transform: translate3d(-0.4%, 0.2%, 0) scale(var(--scene-scale));
-    filter: saturate(calc(var(--scene-sat) + 0.08));
   }
 }
 
 @keyframes scene-ambient-penalty {
   0% {
     transform: translate3d(0, 0, 0) scale(var(--scene-scale));
-    filter: saturate(var(--scene-sat));
   }
   40% {
     transform: translate3d(0, 0, 0) scale(calc(var(--scene-scale) + 0.035));
-    filter: saturate(calc(var(--scene-sat) + 0.24));
   }
   100% {
     transform: translate3d(0, 0, 0) scale(var(--scene-scale));
-    filter: saturate(var(--scene-sat));
   }
 }
 

@@ -127,17 +127,14 @@
   0% {
     opacity: 0;
     transform: translateY(6px) scale(0.92);
-    filter: brightness(0.9);
   }
   65% {
     opacity: 1;
     transform: translateY(-1px) scale(1.03);
-    filter: brightness(1.08);
   }
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: brightness(1);
   }
 }
 
@@ -467,16 +464,16 @@
 
 @keyframes turn-player-turn-enter {
   0% {
+    opacity: 0.88;
     transform: translateY(0) scale(0.94);
-    filter: brightness(0.88);
   }
   62% {
+    opacity: 1;
     transform: translateY(-1px) scale(1.04);
-    filter: brightness(1.12);
   }
   100% {
+    opacity: 1;
     transform: translateY(0) scale(1);
-    filter: brightness(1);
   }
 }
 
@@ -502,19 +499,16 @@
 
 @keyframes turn-indicator-pulse {
   0% {
+    opacity: 1;
     transform: translateY(0) scale(1);
-    border-color: rgba(255,255,255,0.14);
   }
   40% {
+    opacity: 0.96;
     transform: translateY(-1px) scale(1.012);
-    border-color: rgba(53,224,199,0.44);
-    box-shadow:
-      var(--elevation-raised),
-      0 0 0 3px rgba(53,224,199,0.14);
   }
   100% {
+    opacity: 1;
     transform: translateY(0) scale(1);
-    border-color: rgba(255,255,255,0.14);
   }
 }
 

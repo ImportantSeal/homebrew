@@ -1,4 +1,7 @@
+import { isReducedEffectsEnabled } from './ui/effectsProfile.js';
+
 const CARD_COMPACT_TEXT_MIN_LENGTH = 30;
+const DEFAULT_FLIP_DURATION_MS = 460;
 
 function normalizeCardText(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
@@ -50,6 +53,9 @@ function setFrontContent(frontEl, finalText) {
 
 export function flipCardAnimation(cardElement, finalText) {
   const front = cardElement.querySelector?.('.card__front');
+  const inner = cardElement.querySelector?.('.card__inner');
+  const flipDurationMs = resolveFlipDurationMs(cardElement);
+  markAnimating(inner || cardElement, 'transform', flipDurationMs);
 
   // Fallback
   if (!front) {
@@ -90,7 +96,7 @@ export function flipCardAnimation(cardElement, finalText) {
     setFrontContent(front, finalText);
     cardElement.classList.add('show-front');
     cardElement.dataset.value = finalText;
-  }, 230);
+  }, Math.max(120, Math.round(flipDurationMs * 0.5)));
 }
 
 const DEFAULT_IMPACT_DURATION_MS = 460;
@@ -156,6 +162,63 @@ function shouldReduceMotion() {
   return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
+function shouldReduceEffects() {
+  return shouldReduceMotion() || isReducedEffectsEnabled();
+}
+
+function parseDurationMs(rawValue, fallbackMs) {
+  if (typeof rawValue !== 'string') return fallbackMs;
+  const value = rawValue.trim().toLowerCase();
+  if (!value) return fallbackMs;
+
+  const numeric = Number.parseFloat(value);
+  if (!Number.isFinite(numeric)) return fallbackMs;
+
+  if (value.endsWith('ms')) return Math.max(0, Math.round(numeric));
+  if (value.endsWith('s')) return Math.max(0, Math.round(numeric * 1000));
+  return fallbackMs;
+}
+
+function resolveFlipDurationMs(cardElement) {
+  if (typeof window === 'undefined' || typeof window.getComputedStyle !== 'function') {
+    return DEFAULT_FLIP_DURATION_MS;
+  }
+  const computed = window.getComputedStyle(cardElement);
+  const durationValue = computed?.getPropertyValue('--flip-ms');
+  return parseDurationMs(durationValue, DEFAULT_FLIP_DURATION_MS);
+}
+
+function markAnimating(element, properties = 'transform, opacity', durationMs = DEFAULT_FLIP_DURATION_MS) {
+  if (!element?.style) return;
+
+  element.style.willChange = properties;
+
+  if (typeof element._willChangeTimeout === 'number') {
+    cancelScheduledTimeout(element._willChangeTimeout);
+  }
+
+  const safeDuration = Math.max(120, Math.round(durationMs));
+  element._willChangeTimeout = scheduleTimeout(() => {
+    element.style.removeProperty('will-change');
+    element._willChangeTimeout = null;
+  }, safeDuration + 80);
+}
+
+function scheduleTimeout(callback, delayMs) {
+  if (typeof window !== 'undefined' && typeof window.setTimeout === 'function') {
+    return window.setTimeout(callback, delayMs);
+  }
+  return setTimeout(callback, delayMs);
+}
+
+function cancelScheduledTimeout(timeoutId) {
+  if (typeof window !== 'undefined' && typeof window.clearTimeout === 'function') {
+    window.clearTimeout(timeoutId);
+    return;
+  }
+  clearTimeout(timeoutId);
+}
+
 export function flashElement(
   element,
   flashColor = "",
@@ -169,6 +232,7 @@ export function flashElement(
     : DEFAULT_IMPACT_DURATION_MS;
   const impactColor = resolveImpactColor(element, flashColor);
   const { x, y } = resolveImpactOrigin(element, triggerEvent);
+  markAnimating(element, 'transform, opacity', safeDuration);
 
   element.style.setProperty('--impact-color', impactColor);
   element.style.setProperty('--impact-duration', `${safeDuration}ms`);
@@ -176,7 +240,7 @@ export function flashElement(
   void element.offsetWidth;
   element.classList.add(IMPACT_FLASH_CLASS);
 
-  if (!shouldReduceMotion()) {
+  if (!shouldReduceEffects()) {
     const burst = document.createElement('span');
     burst.className = IMPACT_BURST_CLASS;
     burst.style.setProperty('--impact-origin-x', `${x.toFixed(2)}%`);
@@ -185,16 +249,16 @@ export function flashElement(
     burst.style.setProperty('--impact-color', impactColor);
     element.appendChild(burst);
 
-    window.setTimeout(() => {
+    scheduleTimeout(() => {
       burst.remove();
     }, safeDuration + 140);
   }
 
   if (typeof element._impactFlashTimeout === 'number') {
-    window.clearTimeout(element._impactFlashTimeout);
+    cancelScheduledTimeout(element._impactFlashTimeout);
   }
 
-  element._impactFlashTimeout = window.setTimeout(() => {
+  element._impactFlashTimeout = scheduleTimeout(() => {
     element.classList.remove(IMPACT_FLASH_CLASS);
   }, safeDuration);
 }

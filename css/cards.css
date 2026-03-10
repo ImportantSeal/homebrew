@@ -29,7 +29,6 @@
   perspective: 1000px;
 
   contain: layout;
-  will-change: transform;
   transform: translateZ(0);
   isolation: isolate;
 
@@ -72,6 +71,11 @@
     rotateX(var(--card-tilt-x))
     rotateY(var(--card-tilt-y));
   transform-style: preserve-3d;
+}
+
+.card.card--animating,
+.penalty-deck.penalty-deck--animating {
+  will-change: transform, opacity;
 }
 
 .card::after,
@@ -135,7 +139,6 @@
   aspect-ratio: 1;
   border-radius: 999px;
   border: 2px solid var(--impact-color);
-  box-shadow: 0 0 0 0 var(--impact-color);
   opacity: 0;
   animation: card-impact-ripple var(--impact-duration) cubic-bezier(0.18, 0.8, 0.24, 1) both;
 }
@@ -146,7 +149,6 @@
   border-radius: 50%;
   background: radial-gradient(circle, rgba(255,255,255,0.95) 0%, var(--impact-color) 42%, transparent 72%);
   mix-blend-mode: screen;
-  filter: blur(0px);
   opacity: 0;
   animation: card-impact-glow var(--impact-duration) cubic-bezier(0.16, 0.86, 0.24, 1) both;
 }
@@ -155,7 +157,6 @@
   0% {
     opacity: 0.95;
     transform: translate(-50%, -50%) scale(0.2);
-    box-shadow: 0 0 0 0 var(--impact-color);
   }
   46% {
     opacity: 0.62;
@@ -163,25 +164,21 @@
   100% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(10);
-    box-shadow: 0 0 0 0.45rem transparent;
   }
 }
 
 @keyframes card-impact-glow {
   0% {
-    opacity: 0;
+    opacity: 0.15;
     transform: translate(-50%, -50%) scale(0.2);
-    filter: blur(0px);
   }
   26% {
     opacity: 0.98;
     transform: translate(-50%, -50%) scale(2.7);
-    filter: blur(0.3px);
   }
   100% {
     opacity: 0;
     transform: translate(-50%, -50%) scale(6.8);
-    filter: blur(8px);
   }
 }
 
@@ -195,17 +192,14 @@
   0% {
     opacity: 0;
     transform: translateY(10px) scale(0.965);
-    filter: saturate(0.84);
   }
   65% {
     opacity: 1;
     transform: translateY(-1px) scale(1.012);
-    filter: saturate(1.06);
   }
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: none;
   }
 }
 
@@ -245,19 +239,19 @@ body[data-scene="penalty"] .penalty-deck::before {
 
 @keyframes penalty-deck-beat {
   0%, 100% {
-    filter: saturate(1);
+    opacity: 1;
   }
   14% {
-    filter: saturate(1.2) brightness(1.12);
+    opacity: 0.96;
   }
   28% {
-    filter: saturate(1.06) brightness(1.05);
+    opacity: 1;
   }
   44% {
-    filter: saturate(1.18) brightness(1.1);
+    opacity: 0.95;
   }
   62% {
-    filter: saturate(1.02) brightness(1.02);
+    opacity: 0.99;
   }
 }
 
@@ -266,7 +260,6 @@ body[data-scene="penalty"] .penalty-deck::before {
   100% {
     opacity: 0;
     transform: scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 112, 112, 0);
   }
   10% {
     opacity: 0.84;
@@ -274,12 +267,10 @@ body[data-scene="penalty"] .penalty-deck::before {
   18% {
     opacity: 0.66;
     transform: scale(1.038);
-    box-shadow: 0 0 0 0.32rem rgba(255, 112, 112, 0.28);
   }
   30% {
     opacity: 0;
     transform: scale(1.084);
-    box-shadow: 0 0 0 0.7rem rgba(255, 112, 112, 0);
   }
   42% {
     opacity: 0.58;
@@ -287,12 +278,10 @@ body[data-scene="penalty"] .penalty-deck::before {
   50% {
     opacity: 0.42;
     transform: scale(1.026);
-    box-shadow: 0 0 0 0.22rem rgba(255, 142, 142, 0.24);
   }
   64% {
     opacity: 0;
     transform: scale(1.072);
-    box-shadow: 0 0 0 0.64rem rgba(255, 142, 142, 0);
   }
 }
 

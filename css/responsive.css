@@ -551,6 +551,85 @@
   }
 }
 
+/* ===== Responsive: Reduced Effects Profile ===== */
+body[data-reduced-effects="true"]::after {
+  animation: none !important;
+  filter: none;
+}
+
+body[data-reduced-effects="true"]::before {
+  animation: none !important;
+  opacity: calc(var(--noise-opacity) * 0.5);
+}
+
+body[data-reduced-effects="true"] .container,
+body[data-reduced-effects="true"] .modal__header {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body[data-reduced-effects="true"] .card,
+body[data-reduced-effects="true"] .penalty-deck {
+  transition:
+    transform 130ms ease,
+    opacity 130ms ease,
+    border-color 130ms ease;
+}
+
+body[data-reduced-effects="true"] .card::after,
+body[data-reduced-effects="true"] .penalty-deck::after,
+body[data-reduced-effects="true"] .card-impact-burst {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+body[data-reduced-effects="true"] .card-impact-flash {
+  box-shadow:
+    var(--elevation-active),
+    0 0 0 2px var(--impact-color);
+}
+
+body[data-reduced-effects="true"] .modal--card-action[data-variant="penalty"].is-open .modal__backdrop {
+  animation-duration: 220ms;
+}
+
+body[data-reduced-effects="true"] .modal--card-action[data-variant="penalty"].is-open .modal__panel {
+  animation-duration: 320ms;
+}
+
+body[data-reduced-effects="true"] .modal--card-action[data-variant="penalty"].is-open .card-action__message {
+  animation-duration: 320ms;
+}
+
+body[data-reduced-effects="true"] .history-entry.is-latest {
+  animation-duration: 180ms;
+}
+
+body[data-reduced-effects="true"] #player-list li.player-list-item--added,
+body[data-reduced-effects="true"] .turn-player-name.turn-player-name--turn-enter,
+body[data-reduced-effects="true"] .turn-indicator--pulse {
+  animation-duration: 220ms;
+}
+
+body[data-reduced-effects="true"] .penalty-deck {
+  animation-name: penalty-deck-beat-lite !important;
+}
+
+body[data-reduced-effects="true"] .penalty-deck::before {
+  animation-name: penalty-deck-heartbeat-lite !important;
+}
+
+@keyframes penalty-deck-beat-lite {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  35% { opacity: 0.95; transform: scale(1.015); }
+}
+
+@keyframes penalty-deck-heartbeat-lite {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  18% { opacity: 0.56; transform: scale(1.03); }
+  32% { opacity: 0; transform: scale(1.07); }
+}
+
 /* ===== Responsive: Reduced Motion ===== */
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }

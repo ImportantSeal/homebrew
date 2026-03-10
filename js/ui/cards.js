@@ -2,9 +2,15 @@ import { flipCardAnimation } from '../animations.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
 import { bindTap } from '../utils/tap.js';
 import { getPlainCardKind } from '../logic/cardSchema.js';
+import { isReducedEffectsEnabled } from './effectsProfile.js';
 
 const CARD_TILT_MAX_DEG = 4;
 let cardMotionState = null;
+
+function setCardAnimating(cardEl, enabled) {
+  if (!cardEl?.classList) return;
+  cardEl.classList.toggle('card--animating', Boolean(enabled));
+}
 
 function isActivationKey(event) {
   return event.key === 'Enter' || event.key === ' ' || event.key === 'Spacebar';
@@ -90,15 +96,18 @@ function bindCardDepthMotion(cardEl) {
       cancelAnimationFrame(rafId);
       rafId = 0;
     }
+    setCardAnimating(cardEl, false);
     resetCardDepth(cardEl);
   };
 
   const flushDepth = () => {
     rafId = 0;
     if (!motionState.enabled) {
+      setCardAnimating(cardEl, false);
       resetCardDepth(cardEl);
       return;
     }
+    setCardAnimating(cardEl, true);
     applyCardDepthFromPointer(cardEl, pointerX, pointerY);
   };
 
@@ -114,9 +123,11 @@ function bindCardDepthMotion(cardEl) {
 
   const onPointerEnter = (event) => {
     if (!motionState.enabled || !supportsPointer(event)) {
+      setCardAnimating(cardEl, false);
       resetCardDepth(cardEl);
       return;
     }
+    setCardAnimating(cardEl, true);
     scheduleDepth(event);
   };
 
@@ -187,6 +198,7 @@ export function renderCards(state, onSelectCard) {
   cards.forEach((cardEl) => {
     if (!cardEl) return;
     cardEl.classList.remove('card--dealing');
+    setCardAnimating(cardEl, false);
     cardEl.style.removeProperty('--deal-delay');
     bindCardDepthMotion(cardEl);
     resetCardDepth(cardEl);
@@ -206,6 +218,12 @@ export function renderCards(state, onSelectCard) {
 
     cardEl.style.setProperty('--deal-delay', `${i * 55}ms`);
     cardEl.classList.add('card--dealing');
+    if (!isReducedEffectsEnabled()) {
+      setCardAnimating(cardEl, true);
+      const clearAnimating = () => setCardAnimating(cardEl, false);
+      cardEl.addEventListener('animationend', clearAnimating, { once: true });
+      cardEl.addEventListener('animationcancel', clearAnimating, { once: true });
+    }
     cardEl.classList.remove('card-impact-flash');
     cardEl.querySelectorAll('.card-impact-burst').forEach((burstEl) => burstEl.remove());
 

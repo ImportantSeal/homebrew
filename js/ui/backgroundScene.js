@@ -19,6 +19,11 @@ const DANGER_FLASH_DURATION_MS = 430;
 let surgeTimeoutId = null;
 let dangerFlashTimeoutId = null;
 
+function isReducedEffectsEnabled() {
+  if (typeof document === 'undefined' || !document.body?.dataset) return false;
+  return document.body.dataset.reducedEffects === 'true';
+}
+
 function normalizeScene(scene) {
   const normalized = String(scene || '').trim().toLowerCase();
   if (normalized === 'penalty') return 'penalty';
@@ -33,6 +38,7 @@ function resolveBaseScene(scene) {
 
 function applySceneSurge() {
   if (typeof document === 'undefined') return;
+  if (isReducedEffectsEnabled()) return;
 
   const body = document.body;
   if (!body?.classList) return;
@@ -50,6 +56,7 @@ function applySceneSurge() {
 
 function applyDangerFlash() {
   if (typeof document === 'undefined') return;
+  if (isReducedEffectsEnabled()) return;
 
   const body = document.body;
   if (!body?.classList) return;
@@ -67,7 +74,14 @@ function applyDangerFlash() {
 
 export function applyBackgroundScene(scene = 'normal') {
   if (typeof document === 'undefined' || !document.body?.dataset) return;
-  document.body.dataset.scene = normalizeScene(scene);
+  const normalized = normalizeScene(scene);
+  document.body.dataset.scene = normalized;
+
+  const penaltyDeck = document.getElementById('penalty-deck');
+  if (penaltyDeck?.classList) {
+    const shouldAnimatePenaltyDeck = normalized === 'penalty' && !isReducedEffectsEnabled();
+    penaltyDeck.classList.toggle('penalty-deck--animating', shouldAnimatePenaltyDeck);
+  }
 }
 
 export function resolveBackgroundScene(state) {

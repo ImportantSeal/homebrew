@@ -127,17 +127,14 @@
   0% {
     opacity: 0;
     transform: translateY(8px) scale(0.985);
-    filter: brightness(0.92);
   }
   65% {
     opacity: 1;
     transform: translateY(-1px) scale(1.01);
-    filter: brightness(1.06);
   }
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: none;
   }
 }
 

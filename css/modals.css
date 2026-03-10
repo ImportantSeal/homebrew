@@ -146,17 +146,14 @@
   0% {
     opacity: 0;
     transform: translateY(2.1rem) scale(0.9);
-    filter: saturate(0.74) blur(1.1px);
   }
   62% {
     opacity: 1;
     transform: translateY(-0.2rem) scale(1.016);
-    filter: saturate(1.18);
   }
   100% {
     opacity: 1;
     transform: translateY(0) scale(1);
-    filter: none;
   }
 }
 

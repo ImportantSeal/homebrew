@@ -44,6 +44,7 @@ export function createInitialState() {
     uiLocked: false,
     historyLogKind: null,
     backgroundScene: 'normal',
+    reducedEffects: false,
 
     // Penalty deck: 1st click reveals, 2nd click confirms (+ ends turn unless reset manually)
     penaltyConfirmArmed: false,
@@ -107,6 +108,7 @@ export function resetStateForNewGame(stateObj, options = {}) {
   const freshState = createInitialState();
   const sourcePlayers = hasOwn('players') ? options.players : stateObj.players;
   const includeItems = hasOwn('includeItems') ? options.includeItems : stateObj.includeItems;
+  const reducedEffects = hasOwn('reducedEffects') ? options.reducedEffects : stateObj.reducedEffects;
   const rng = hasOwn('rng') ? options.rng : stateObj.rng;
 
   const players = Array.isArray(sourcePlayers)
@@ -119,7 +121,8 @@ export function resetStateForNewGame(stateObj, options = {}) {
 
   Object.assign(stateObj, freshState, {
     players,
-    includeItems: Boolean(includeItems)
+    includeItems: Boolean(includeItems),
+    reducedEffects: Boolean(reducedEffects)
   });
 
   if (rng !== undefined) {
