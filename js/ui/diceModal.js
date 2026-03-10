@@ -2,257 +2,33 @@
 import { addHistoryEntry } from '../cardHistory.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 import { bindTap } from '../utils/tap.js';
-import { resolveRng } from '../utils/rng.js';
-
-const DICEBOX_VERSION = "1.1.4";
-const DICEBOX_ORIGIN = `https://cdn.jsdelivr.net/npm/@3d-dice/dice-box@${DICEBOX_VERSION}/dist/`;
-const DICEBOX_ASSET_PATH = "assets/";
-const MIN_TRAY_PX = 80;
-const TRAY_LAYOUT_WAIT_FRAMES = 45;
-const RECENT_LAYOUT_CHANGE_MS = 700;
-const DICE_SCALE_MIN = 6.2;
-const DICE_SCALE_MAX = 9.8;
-const DICE_SCALE_FALLBACK = 7.2;
-const DICEBOX_IMPORT_TIMEOUT_MS = 6000;
-const DICEBOX_INIT_TIMEOUT_MS = 6000;
-const DICEBOX_ROLL_TIMEOUT_MS = 7000;
-const DICEBOX_INIT_RETRY_LIMIT = 2;
-
-let diceBox = null;
-let diceBoxInitPromise = null;
-let currentDiceScale = null;
+import {
+  clampInt,
+  currentPlayerName,
+  formatNotation,
+  formatSignedInt,
+  parseDieResults,
+  randomDieValues
+} from './diceModalHelpers.js';
+import {
+  DICEBOX_ROLL_TIMEOUT_MS,
+  withTimeout,
+  markLayoutChange,
+  getDiceBox,
+  stabilizeDiceBox,
+  resetDiceBoxInstance,
+  setDiceModalOpen,
+  isDiceModalOpen,
+  hideDiceBox,
+  scheduleResize,
+  handleViewportChange,
+  diceAvailabilityMessage,
+  fallbackMessage,
+  shouldLogDiceUnavailableWarning
+} from './diceModalRuntime.js';
 
 // Roll cancellation pattern (can't cancel physics, but we can cancel UI updates safely)
 let rollToken = 0;
-let isModalOpen = false;
-let pendingSoftReset = false;
-let lastLayoutChangeAt = 0;
-let dice3dDisabled = false;
-let dice3dWarningLogged = false;
-let diceInitFailureCount = 0;
-
-function clampInt(n, min, max, fallback) {
-  const x = Number.parseInt(String(n), 10);
-  if (Number.isNaN(x)) return fallback;
-  return Math.max(min, Math.min(max, x));
-}
-
-function randomDieValues(sides, qty, rng) {
-  const activeRng = resolveRng(rng);
-  return Array.from({ length: qty }, () => Math.floor(activeRng.nextFloat() * sides) + 1);
-}
-
-function formatSignedInt(value) {
-  const n = Number(value) || 0;
-  if (n > 0) return `+${n}`;
-  return String(n);
-}
-
-function formatNotation(qty, sides, modifier = 0) {
-  const mod = Number(modifier) || 0;
-  const base = `${qty}d${sides}`;
-  if (mod === 0) return base;
-  return `${base}${formatSignedInt(mod)}`;
-}
-
-function extractRollArray(dieResults) {
-  if (Array.isArray(dieResults)) return dieResults;
-  if (Array.isArray(dieResults?.rolls)) return dieResults.rolls;
-  if (Array.isArray(dieResults?.results)) return dieResults.results;
-  if (Array.isArray(dieResults?.dice)) return dieResults.dice;
-  return [];
-}
-
-function parseDieResults(dieResults, sides) {
-  const rolls = extractRollArray(dieResults);
-
-  return rolls
-    .map((r) => {
-      const raw = r && (r.value ?? r.result ?? r.roll ?? r.face);
-      const numericRaw = (raw && typeof raw === "object") ? (raw.value ?? raw.result ?? raw.roll) : raw;
-      const value = Number(numericRaw);
-      if (!Number.isInteger(value)) return null;
-      // Many dice libs encode d10 "10" as 0.
-      if (sides === 10 && value === 0) return 10;
-      if (value < 1 || value > sides) return null;
-      return value;
-    })
-    .filter((v) => v !== null);
-}
-
-function currentPlayerName(state) {
-  const p = state.players?.[state.currentPlayerIndex];
-  return p?.name || "Someone";
-}
-
-function runBoxMethod(box, name) {
-  const fn = box?.[name];
-  if (typeof fn !== "function") return false;
-  try {
-    fn.call(box);
-    return true;
-  } catch (err) {
-    console.warn(`DiceBox.${name} failed`, err);
-    return false;
-  }
-}
-
-function softResetBox(box) {
-  // clear() has thrown in some runtime combinations; hide() is enough here.
-  runBoxMethod(box, "hide");
-}
-
-function nextFrame() {
-  return new Promise((resolve) => requestAnimationFrame(resolve));
-}
-
-function withTimeout(promise, ms, label) {
-  let timer = null;
-  return Promise.race([
-    Promise.resolve(promise),
-    new Promise((_, reject) => {
-      timer = setTimeout(() => {
-        reject(new Error(`Timeout while ${label}`));
-      }, ms);
-    })
-  ]).finally(() => {
-    if (timer !== null) clearTimeout(timer);
-  });
-}
-
-function markLayoutChange(needsSoftReset = true) {
-  lastLayoutChangeAt = Date.now();
-  if (needsSoftReset) pendingSoftReset = true;
-}
-
-function computeDiceScale() {
-  const tray = document.getElementById('dice-box');
-  if (!tray) return DICE_SCALE_FALLBACK;
-
-  const rect = tray.getBoundingClientRect();
-  const width = rect?.width ?? 0;
-  const height = rect?.height ?? 0;
-
-  if (width < MIN_TRAY_PX || height < MIN_TRAY_PX) return DICE_SCALE_FALLBACK;
-
-  // Keep larger screens from over-scaling the throw area and clipping low on Y-axis.
-  const pointerCoarse = window.matchMedia?.("(pointer: coarse)")?.matches === true;
-  const mobileBoost = pointerCoarse ? 1.2 : 1;
-  const targetScale = (Math.min(width, height) / 52) * mobileBoost;
-  return Math.max(DICE_SCALE_MIN, Math.min(DICE_SCALE_MAX, targetScale));
-}
-
-function shouldRecreateForScale() {
-  if (!diceBox) return false;
-  if (currentDiceScale == null) return false;
-
-  const nextScale = computeDiceScale();
-  return Math.abs(nextScale - currentDiceScale) >= 0.25;
-}
-
-async function waitForTrayLayout(maxFrames = TRAY_LAYOUT_WAIT_FRAMES) {
-  const tray = document.getElementById('dice-box');
-  if (!tray) return false;
-
-  for (let i = 0; i < maxFrames; i++) {
-    const rect = tray.getBoundingClientRect();
-    if (rect.width >= MIN_TRAY_PX && rect.height >= MIN_TRAY_PX) return true;
-    await new Promise(requestAnimationFrame);
-  }
-
-  return false;
-}
-
-async function getDiceBox() {
-  if (dice3dDisabled) return null;
-
-  await waitForTrayLayout();
-
-  if (shouldRecreateForScale()) {
-    resetDiceBoxInstance();
-  }
-
-  if (diceBox) return diceBox;
-
-  if (!diceBoxInitPromise) {
-    diceBoxInitPromise = (async () => {
-      const mod = await withTimeout(
-        import(`${DICEBOX_ORIGIN}dice-box.es.min.js`),
-        DICEBOX_IMPORT_TIMEOUT_MS,
-        "loading 3D dice module"
-      );
-      const DiceBox = mod.default;
-
-      // Offscreen worker rendering can fail on some fullscreen/GPU setups.
-      const scale = computeDiceScale();
-      diceBox = new DiceBox({
-        container: "#dice-box",
-        assetPath: DICEBOX_ASSET_PATH,
-        origin: DICEBOX_ORIGIN,
-        offscreen: false,
-        theme: "default",
-        scale
-      });
-      currentDiceScale = scale;
-
-      await withTimeout(diceBox.init(), DICEBOX_INIT_TIMEOUT_MS, "initializing 3D dice");
-      diceInitFailureCount = 0;
-      return diceBox;
-    })().catch((err) => {
-      diceBox = null;
-      diceBoxInitPromise = null;
-      currentDiceScale = null;
-      diceInitFailureCount += 1;
-      if (diceInitFailureCount > DICEBOX_INIT_RETRY_LIMIT) {
-        dice3dDisabled = true;
-      }
-      throw err;
-    });
-  }
-
-  return diceBoxInitPromise;
-}
-
-function resetDiceBoxInstance() {
-  softResetBox(diceBox);
-
-  diceBox = null;
-  diceBoxInitPromise = null;
-  currentDiceScale = null;
-  markLayoutChange(true);
-}
-
-async function stabilizeDiceBox(box, forceReset = false) {
-  await waitForTrayLayout(20);
-  if (!isModalOpen) return false;
-
-  const recentLayoutChange = (Date.now() - lastLayoutChangeAt) < RECENT_LAYOUT_CHANGE_MS;
-  const shouldReset = forceReset || pendingSoftReset || recentLayoutChange;
-
-  if (shouldReset) {
-    softResetBox(box);
-    await nextFrame();
-    if (!isModalOpen) return false;
-  }
-
-  runBoxMethod(box, "show");
-  runBoxMethod(box, "resize");
-  await nextFrame();
-  if (!isModalOpen) return false;
-  runBoxMethod(box, "resize");
-
-  if (shouldReset) pendingSoftReset = false;
-  return true;
-}
-
-function scheduleResize() {
-  if (!isModalOpen || !diceBox) return;
-
-  requestAnimationFrame(() => {
-    if (!isModalOpen || !diceBox) return;
-    runBoxMethod(diceBox, "resize");
-  });
-}
 
 export function initDiceModal({ state } = {}) {
   if (!state || typeof state !== 'object') return;
@@ -274,18 +50,18 @@ export function initDiceModal({ state } = {}) {
 
   function setRollingUI(on) {
     if (rollBtn) rollBtn.disabled = on;
-    if (resultEl && on) resultEl.textContent = "Rolling...";
+    if (resultEl && on) resultEl.textContent = 'Rolling...';
   }
 
   function resetDiceUI() {
     if (rollBtn) rollBtn.disabled = false;
-    if (resultEl) resultEl.textContent = "-";
+    if (resultEl) resultEl.textContent = '-';
   }
 
   const open = async () => {
-    if (isModalOpen) return;
+    if (isDiceModalOpen()) return;
 
-    isModalOpen = true;
+    setDiceModalOpen(true);
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     toggleBtn.setAttribute('aria-expanded', 'true');
@@ -296,22 +72,19 @@ export function initDiceModal({ state } = {}) {
 
     try {
       const box = await getDiceBox();
-      if (!isModalOpen) return;
+      if (!isDiceModalOpen()) return;
       if (box) {
         await stabilizeDiceBox(box);
       } else if (resultEl) {
-        resultEl.textContent = "3D dice unavailable. Rolling uses fallback.";
+        resultEl.textContent = fallbackMessage();
       }
     } catch (err) {
       console.error(err);
       if (resultEl) {
-        resultEl.textContent = dice3dDisabled
-          ? "3D dice unavailable. Rolling uses fallback."
-          : "3D dice warming up. If fallback appears, roll once more.";
+        resultEl.textContent = diceAvailabilityMessage();
       }
-      if (dice3dDisabled && !dice3dWarningLogged) {
-        addHistoryEntry(state, "Dice warning: 3D dice unavailable, using fallback rolls.");
-        dice3dWarningLogged = true;
+      if (shouldLogDiceUnavailableWarning()) {
+        addHistoryEntry(state, 'Dice warning: 3D dice unavailable, using fallback rolls.');
       }
     }
 
@@ -319,12 +92,12 @@ export function initDiceModal({ state } = {}) {
   };
 
   const close = () => {
-    if (!isModalOpen) return;
+    if (!isDiceModalOpen()) return;
 
     // Invalidate any in-flight roll so it can't overwrite UI later.
     rollToken++;
 
-    isModalOpen = false;
+    setDiceModalOpen(false);
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     toggleBtn.setAttribute('aria-expanded', 'false');
@@ -332,15 +105,11 @@ export function initDiceModal({ state } = {}) {
     toggleBtn.focus();
 
     resetDiceUI();
-
-    if (diceBox) {
-      softResetBox(diceBox);
-    }
+    hideDiceBox();
   };
 
   bindTap(toggleBtn, () => {
-    const openNow = modal.classList.contains('is-open');
-    if (openNow) close();
+    if (isDiceModalOpen()) close();
     else open();
   });
 
@@ -359,18 +128,10 @@ export function initDiceModal({ state } = {}) {
     }
   });
 
-  const handleViewportChange = () => {
-    // Fullscreen and 4K viewport transitions can produce transient init failures.
-    // Allow retries after a viewport change instead of staying permanently disabled.
-    dice3dDisabled = false;
-    markLayoutChange(true);
-    scheduleResize();
-  };
-
   window.addEventListener('resize', handleViewportChange);
   document.addEventListener('fullscreenchange', handleViewportChange);
 
-  if (trayEl && typeof ResizeObserver !== "undefined") {
+  if (trayEl && typeof ResizeObserver !== 'undefined') {
     const observer = new ResizeObserver(() => {
       markLayoutChange(false);
       scheduleResize();
@@ -380,7 +141,7 @@ export function initDiceModal({ state } = {}) {
 
   async function performRoll(sides, qty, modifier = 0) {
     const localToken = ++rollToken;
-    if (!isModalOpen) return;
+    if (!isDiceModalOpen()) return;
 
     setRollingUI(true);
 
@@ -392,20 +153,20 @@ export function initDiceModal({ state } = {}) {
 
     try {
       const box = await getDiceBox();
-      if (!isModalOpen || localToken !== rollToken) return;
+      if (!isDiceModalOpen() || localToken !== rollToken) return;
 
       const ready = box ? await stabilizeDiceBox(box) : false;
-      if (ready && box && isModalOpen && localToken === rollToken) {
+      if (ready && box && isDiceModalOpen() && localToken === rollToken) {
         try {
-          if (typeof box.roll !== "function") {
-            throw new Error("DiceBox.roll is not available");
+          if (typeof box.roll !== 'function') {
+            throw new Error('DiceBox.roll is not available');
           }
           const dieResults = await withTimeout(
             box.roll(baseNotation),
             DICEBOX_ROLL_TIMEOUT_MS,
             `rolling ${baseNotation}`
           );
-          if (!isModalOpen || localToken !== rollToken) return;
+          if (!isDiceModalOpen() || localToken !== rollToken) return;
           values = parseDieResults(dieResults, sides);
         } catch (err) {
           console.warn(`Dice roll failed (${baseNotation}); using fallback.`, err);
@@ -414,17 +175,17 @@ export function initDiceModal({ state } = {}) {
         if (values.length !== qty) {
           resetDiceBoxInstance();
           const retryBox = await getDiceBox();
-          if (!isModalOpen || localToken !== rollToken) return;
+          if (!isDiceModalOpen() || localToken !== rollToken) return;
 
           const retryReady = retryBox ? await stabilizeDiceBox(retryBox, true) : false;
-          if (retryReady && retryBox && isModalOpen && localToken === rollToken) {
+          if (retryReady && retryBox && isDiceModalOpen() && localToken === rollToken) {
             try {
               const retryResults = await withTimeout(
                 retryBox.roll(baseNotation),
                 DICEBOX_ROLL_TIMEOUT_MS,
                 `rolling ${baseNotation} (retry)`
               );
-              if (!isModalOpen || localToken !== rollToken) return;
+              if (!isDiceModalOpen() || localToken !== rollToken) return;
               values = parseDieResults(retryResults, sides);
             } catch (err) {
               console.warn(`Dice roll retry failed (${baseNotation}); using fallback.`, err);
@@ -443,23 +204,23 @@ export function initDiceModal({ state } = {}) {
       usedFallback = true;
       values = randomDieValues(sides, qty, state?.rng);
     } finally {
-      if (isModalOpen && localToken === rollToken) {
+      if (isDiceModalOpen() && localToken === rollToken) {
         if (rollBtn) rollBtn.disabled = false;
-        if (resultEl && resultEl.textContent === "Rolling...") {
-          resultEl.textContent = "-";
+        if (resultEl && resultEl.textContent === 'Rolling...') {
+          resultEl.textContent = '-';
         }
       }
     }
 
-    if (!isModalOpen || localToken !== rollToken) return;
+    if (!isDiceModalOpen() || localToken !== rollToken) return;
 
     const baseSum = values.reduce((a, b) => a + b, 0);
     const sum = baseSum + safeModifier;
-    const detail = values.length ? ` (${values.join(", ")})` : "";
+    const detail = values.length ? ` (${values.join(', ')})` : '';
     const breakdown = safeModifier === 0
-      ? ""
+      ? ''
       : ` [${baseSum}${formatSignedInt(safeModifier)}=${sum}]`;
-    const fallbackLabel = usedFallback ? " [fallback]" : "";
+    const fallbackLabel = usedFallback ? ' [fallback]' : '';
 
     addHistoryEntry(state, `Dice: ${currentPlayerName(state)} rolled ${notation}: ${sum}${detail}${breakdown}${fallbackLabel}`);
 
@@ -472,7 +233,7 @@ export function initDiceModal({ state } = {}) {
   bindTap(rollBtn, async (e) => {
     e.stopPropagation();
 
-    if (!isModalOpen) return;
+    if (!isDiceModalOpen()) return;
 
     const sides = clampInt(sidesSelect?.value, 2, 100, 20);
     const qty = clampInt(qtyInput?.value, 1, 20, 1);
@@ -487,7 +248,7 @@ export function initDiceModal({ state } = {}) {
     bindTap(btn, async (e) => {
       e.stopPropagation();
 
-      if (!isModalOpen) return;
+      if (!isDiceModalOpen()) return;
 
       const sides = clampInt(btn.dataset.sides, 2, 100, 20);
       const qty = clampInt(btn.dataset.qty, 1, 20, 1);
