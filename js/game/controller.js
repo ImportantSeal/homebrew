@@ -26,11 +26,15 @@ import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundSce
 import {
   showGameContainer,
   setTurnIndicatorText,
+  getCardContainerEl,
+  getPrimaryCardEl,
   bindRedrawClick,
   bindPenaltyRefreshClick,
   bindPenaltyDeckClick,
   bindTurnOrderPlayerClick,
-  bindTurnOrderRemoveClick
+  bindTurnOrderRemoveClick,
+  getPenaltyDeckEl,
+  setItemsPanelVisibility
 } from '../ui/uiFacade.js';
 
 import { createEffectsPanelController } from './controller/effectsPanel.js';
@@ -121,8 +125,8 @@ function openActionScreen(title, message = "", options = {}) {
 }
 
 function syncPenaltyDeckSizeToCards() {
-  const penaltyDeckEl = document.getElementById("penalty-deck");
-  const cardEl = document.getElementById("card0");
+  const penaltyDeckEl = getPenaltyDeckEl();
+  const cardEl = getPrimaryCardEl();
   if (!penaltyDeckEl || !cardEl) return;
 
   const cardRect = cardEl.getBoundingClientRect();
@@ -150,7 +154,7 @@ function bindPenaltyDeckSizeSync() {
   window.addEventListener("resize", sync);
 
   if (typeof ResizeObserver !== "undefined") {
-    const cardContainer = document.querySelector(".card-container");
+    const cardContainer = getCardContainerEl();
     if (cardContainer) {
       const observer = new ResizeObserver(sync);
       observer.observe(cardContainer);
@@ -306,15 +310,7 @@ function updateTurn() {
 }
 
 function updateItemsPanelVisibility() {
-  const itemsTitle = document.getElementById("items-title");
-  const itemsBoard = document.getElementById("items-board");
-  const showItems = Boolean(state.includeItems);
-
-  if (itemsTitle) itemsTitle.style.display = showItems ? "" : "none";
-  if (itemsBoard) {
-    itemsBoard.style.display = showItems ? "" : "none";
-    if (!showItems) itemsBoard.innerHTML = "";
-  }
+  setItemsPanelVisibility(state.includeItems);
 }
 
 function resetCards({ keepPenaltyOpen = false } = {}) {

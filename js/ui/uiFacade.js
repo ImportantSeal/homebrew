@@ -43,6 +43,26 @@ export function getPenaltyDeckEl() {
   return getEl('penalty-deck');
 }
 
+export function getPrimaryCardEl() {
+  return getEl('card0');
+}
+
+export function getCardContainerEl() {
+  return document.querySelector('.card-container');
+}
+
+export function setItemsPanelVisibility(showItems) {
+  const isVisible = Boolean(showItems);
+  const itemsTitle = getEl('items-title');
+  const itemsBoard = getEl('items-board');
+
+  if (itemsTitle) itemsTitle.style.display = isVisible ? '' : 'none';
+  if (!itemsBoard) return;
+
+  itemsBoard.style.display = isVisible ? '' : 'none';
+  if (!isVisible) itemsBoard.innerHTML = '';
+}
+
 export function bindRedrawClick(handler) {
   const btn = getEl('redraw-button');
   if (!btn) return;
