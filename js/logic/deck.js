@@ -49,14 +49,14 @@ export function dealTurnCards(state, rng = null) {
 
 function pickBaseCard(state, rng) {
   const cardTypeChance = rng.nextFloat();
-  if (cardTypeChance < 0.3) { 
-   
+  if (cardTypeChance < 0.3) {
+
     return randomFromArray(state.socialCards, rng);
-  } else if (cardTypeChance < 0.4) {  
+  } else if (cardTypeChance < 0.4) {
     return state.crowdChallenge;
-  } else if (cardTypeChance < 0.6) { 
+  } else if (cardTypeChance < 0.6) {
     return state.special;
-  } else { 
+  } else {
     return randomFromArray(state.normalDeck, rng);
   }
 }

@@ -46,7 +46,7 @@ export function createBag(items, rng = systemRng) {
 
   function refill() {
     bag = shuffle(source, activeRng);
-	
+
     // Avoid immediate repeat across refill boundary if possible
     if (bag.length > 1 && last != null) {
       const lastName = getComparableKey(last);

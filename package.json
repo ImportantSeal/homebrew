@@ -2,6 +2,10 @@
   "name": "homebrew",
   "private": true,
   "scripts": {
-    "test": "node --experimental-default-type=module --test"
+    "lint": "node lint.mjs",
+    "typecheck": "node --experimental-default-type=module typecheck.mjs",
+    "build:verify": "node build-verify.mjs",
+    "test": "node --experimental-default-type=module run-tests.mjs",
+    "qa": "npm run lint && npm run typecheck && npm run build:verify && npm test"
   }
 }

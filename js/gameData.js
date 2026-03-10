@@ -153,8 +153,8 @@ export const gameData = {
       { name: "Cancel Confession", instruction: "Everyone shares one reason they could get cancelled. Group votes for the most believable confession; that player gives 2 drinks." },
 
 
-      
-      
+
+
 
     ]
   },
