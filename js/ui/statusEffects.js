@@ -3,6 +3,7 @@
 import { applyPlayerColor, ensurePlayerColor, setPlayerColoredText } from '../utils/playerColors.js';
 import { EFFECT_TYPES } from '../logic/actionEffectRegistry.js';
 import { getEffectTitle } from '../logic/effectNames.js';
+import { isEffectSelectionActive } from '../logic/flowMachine.js';
 
 function el(tag, className, text) {
   const n = document.createElement(tag);
@@ -245,7 +246,7 @@ export function renderStatusEffects(state, options = {}) {
 
   const effects = Array.isArray(state.effects) ? state.effects.filter(e => (e?.remainingTurns ?? 0) > 0) : [];
 
-  const hasPendingPick = !!state.effectSelection?.active;
+  const hasPendingPick = isEffectSelectionActive(state);
 
   // --- Active Effects section ---
   if (effects.length > 0 || hasPendingPick) {

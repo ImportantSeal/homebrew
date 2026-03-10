@@ -5,6 +5,12 @@ import { getPenaltyDeckEl } from '../ui/uiFacade.js';
 import { syncBackgroundScene, triggerPenaltyDangerFlash } from '../ui/backgroundScene.js';
 import { recordPenaltyTaken } from '../stats.js';
 import { getPenaltyDisplayValue, getPenaltySpec } from './penaltySchema.js';
+import {
+  FLOW_TRANSITIONS,
+  PENALTY_SOURCES,
+  transitionFlow,
+  isPenaltySource
+} from './flowMachine.js';
 
 /**
  * source:
@@ -14,10 +20,10 @@ import { getPenaltyDisplayValue, getPenaltySpec } from './penaltySchema.js';
  *  - "redraw" = info/preview penalty (should NOT end turn on confirm)
  *  - "redraw_hold" = redraw penalty that stays open until card-action modal closes
  */
-export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, options = {}) {
+export function rollPenaltyCard(state, log, source = PENALTY_SOURCES.DECK, applyDrinkEvent, options = {}) {
   if (state.penaltyShown) return;
 
-  const hasPendingPenaltyTarget = source === "card" && Number.isInteger(state.penaltyRollPlayerIndex);
+  const hasPendingPenaltyTarget = source === PENALTY_SOURCES.CARD && Number.isInteger(state.penaltyRollPlayerIndex);
   const defaultIndex = hasPendingPenaltyTarget
     ? state.penaltyRollPlayerIndex
     : state.currentPlayerIndex;
@@ -34,9 +40,10 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
     log(`${currentPlayer.name}'s Shield protected against the penalty!`);
     delete currentPlayer.shield;
 
-    state.penaltyConfirmArmed = false;
-    state.penaltySource = null;
-    state.penaltyRollPlayerIndex = null;
+    const clearAction = source === PENALTY_SOURCES.CARD || source === PENALTY_SOURCES.GROUP
+      ? FLOW_TRANSITIONS.CLEAR_PENDING_PENALTY
+      : FLOW_TRANSITIONS.HIDE_PENALTY;
+    transitionFlow(state, clearAction);
     syncBackgroundScene(state);
     return;
   }
@@ -45,12 +52,22 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
   const penalty = randomFromArray(state.penaltyDeck, rng);
   const penaltyLabel = getPenaltyDisplayValue(penalty);
 
+  const showActionBySource = Object.freeze({
+    [PENALTY_SOURCES.DECK]: FLOW_TRANSITIONS.SHOW_DECK_PENALTY,
+    [PENALTY_SOURCES.CARD]: FLOW_TRANSITIONS.SHOW_CARD_PENALTY,
+    [PENALTY_SOURCES.GROUP]: FLOW_TRANSITIONS.SHOW_GROUP_PENALTY,
+    [PENALTY_SOURCES.REDRAW]: FLOW_TRANSITIONS.SHOW_REDRAW_PENALTY,
+    [PENALTY_SOURCES.REDRAW_HOLD]: FLOW_TRANSITIONS.SHOW_REDRAW_HOLD_PENALTY
+  });
+  const transition = transitionFlow(state, showActionBySource[source] || FLOW_TRANSITIONS.SHOW_DECK_PENALTY, {
+    rollPlayerIndex: requestedIndex
+  });
+  if (!transition.ok) {
+    return;
+  }
+
   state.penaltyCard = penalty;
-  state.penaltyShown = true;
-  state.penaltyConfirmArmed = true;
-  state.penaltySource = source;
-  state.penaltyRollPlayerIndex = requestedIndex;
-  if (source === "card" && state.sharePenalty?.active) {
+  if (source === PENALTY_SOURCES.CARD && state.sharePenalty?.active) {
     state.sharePenalty.penalty = penalty;
   }
   syncBackgroundScene(state);
@@ -77,7 +94,7 @@ export function rollPenaltyCard(state, log, source = "deck", applyDrinkEvent, op
  */
 export function showPenaltyPreview(state, log, label = "Penalty") {
   // If we are forcing a confirm from a real "Draw a Penalty Card", don't override it.
-  if (state.penaltyShown && state.penaltySource === "card") return;
+  if (state.penaltyShown && isPenaltySource(state, PENALTY_SOURCES.CARD)) return;
 
   // Close any existing preview/deck penalty first (clean UI).
   if (state.penaltyShown) {
@@ -88,14 +105,12 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
   const penalty = randomFromArray(state.penaltyDeck, rng);
   const penaltyLabel = getPenaltyDisplayValue(penalty);
 
-  state.penaltyCard = penalty;
-  state.penaltyShown = true;
-  state.penaltyConfirmArmed = true;
+  const transition = transitionFlow(state, FLOW_TRANSITIONS.SHOW_REDRAW_PENALTY, {
+    rollPlayerIndex: null
+  });
+  if (!transition.ok) return null;
 
-  // IMPORTANT: mark as "redraw" so penalty-deck click won't advance turn.
-  state.penaltySource = "redraw";
-  state.penaltyHintShown = false;
-  state.penaltyRollPlayerIndex = null;
+  state.penaltyCard = penalty;
   syncBackgroundScene(state);
   triggerPenaltyDangerFlash();
 
@@ -107,12 +122,7 @@ export function showPenaltyPreview(state, log, label = "Penalty") {
 }
 
 export function hidePenaltyCard(state) {
-  state.penaltyShown = false;
-  state.penaltyCard = null;
-  state.penaltyConfirmArmed = false;
-  state.penaltySource = null;
-  state.penaltyHintShown = false;
-  state.penaltyRollPlayerIndex = null;
+  transitionFlow(state, FLOW_TRANSITIONS.HIDE_PENALTY);
   syncBackgroundScene(state);
 
   const penaltyDeckEl = getPenaltyDeckEl();

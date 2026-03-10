@@ -31,6 +31,12 @@ import { createPenaltyFlow } from './cardHandlers/penaltyFlow.js';
 import { createObjectCardFlow } from './cardHandlers/objectCardFlow.js';
 import { createPlainCardFlow } from './cardHandlers/plainCardFlow.js';
 import { isChoiceSelectionActive, isGroupPenaltyPending } from './cardHandlers/guards.js';
+import {
+  isCardPenaltyPending,
+  isEffectSelectionActive,
+  isPenaltyConfirmRequired,
+  isRedrawHoldPenaltyOpen
+} from '../../logic/flowMachine.js';
 
 function baseSceneForKind(kind) {
   return kind === 'ditto' ? 'ditto' : 'normal';
@@ -145,14 +151,15 @@ export function createCardHandlers({
     }
 
     // Block card clicks while an effect is waiting for target pick.
-    if (state.effectSelection?.active) {
+    if (isEffectSelectionActive(state)) {
       log("Pick the target player in the turn order first.");
       return;
     }
 
-    if (state.penaltySource === "card_pending" || isGroupPenaltyPending(state)) {
+    const cardPenaltyPending = isCardPenaltyPending(state);
+    if (cardPenaltyPending || isGroupPenaltyPending(state)) {
       if (!state.penaltyHintShown) {
-        log(state.penaltySource === "card_pending"
+        log(cardPenaltyPending
           ? "Roll the Penalty Deck to continue."
           : "Group penalty is active. Roll the Penalty Deck to continue.");
         state.penaltyHintShown = true;
@@ -165,7 +172,7 @@ export function createCardHandlers({
     // If penalty is open, handle it first.
     if (state.penaltyShown) {
       // If penalty came from selecting the penalty card, confirm via penalty deck click.
-      if (state.penaltySource === "card" || state.penaltySource === "group") {
+      if (isPenaltyConfirmRequired(state)) {
         if (!state.penaltyHintShown) {
           log("Penalty is waiting: click the Penalty Deck to confirm.");
           state.penaltyHintShown = true;
@@ -174,7 +181,7 @@ export function createCardHandlers({
         return;
       }
 
-      if (state.penaltySource === "redraw_hold") {
+      if (isRedrawHoldPenaltyOpen(state)) {
         if (!state.penaltyHintShown) {
           log("Close the Redraw penalty window first.");
           state.penaltyHintShown = true;

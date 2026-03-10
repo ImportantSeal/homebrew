@@ -28,6 +28,8 @@ test('resetStateForNewGame recreates fresh runtime state for a new game', () => 
   state.currentPlayerIndex = 1;
   state.bags = previousBags;
   state.uiLocked = true;
+  state.flow.phase = 'penalty_pending_card';
+  state.flow.lastTransition = { action: 'TEST', ok: false, from: 'idle', to: 'idle', reason: 'x', at: 1 };
   state.historyLogKind = 'special';
   state.backgroundScene = 'penalty';
   state.penaltyConfirmArmed = true;
@@ -66,6 +68,8 @@ test('resetStateForNewGame recreates fresh runtime state for a new game', () => 
   assert.notEqual(state.bags, previousBags);
   assert.deepEqual(state.bags, {});
   assert.equal(state.uiLocked, false);
+  assert.equal(state.flow.phase, 'idle');
+  assert.equal(state.flow.lastTransition, null);
   assert.equal(state.historyLogKind, null);
   assert.equal(state.backgroundScene, 'normal');
   assert.equal(state.penaltyConfirmArmed, false);

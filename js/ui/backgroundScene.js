@@ -1,12 +1,4 @@
-const PENALTY_SCENE_SOURCES = new Set([
-  'deck',
-  'card',
-  'card_pending',
-  'group',
-  'group_pending',
-  'redraw',
-  'redraw_hold'
-]);
+import { isPenaltyFlowActive } from '../logic/flowMachine.js';
 
 const BASE_SCENES = new Set([
   'normal',
@@ -87,8 +79,7 @@ export function applyBackgroundScene(scene = 'normal') {
 export function resolveBackgroundScene(state) {
   if (!state || typeof state !== 'object') return 'normal';
 
-  const source = String(state.penaltySource || '').trim();
-  if (state.penaltyShown || PENALTY_SCENE_SOURCES.has(source)) {
+  if (isPenaltyFlowActive(state)) {
     return 'penalty';
   }
 

@@ -1,5 +1,6 @@
 import { runSpecialChoiceAction } from '../specialActions.js';
 import { isChoiceSelectionActive, clearChoiceSelection } from './guards.js';
+import { FLOW_TRANSITIONS, transitionFlow } from '../../../logic/flowMachine.js';
 
 export function createChoiceFlow({
   state,
@@ -21,10 +22,13 @@ export function createChoiceFlow({
       return false;
     }
 
-    state.choiceSelection = {
-      active: true,
-      pending: choice
-    };
+    const transition = transitionFlow(state, FLOW_TRANSITIONS.START_CHOICE, {
+      pendingChoice: choice
+    });
+    if (!transition.ok) {
+      log("Card choice setup failed.");
+      return false;
+    }
 
     const title = String(choice.title || fallbackTitle || "Choose One").trim() || "Choose One";
     const message = String(choice.message || fallbackMessage || "Choose one option to continue.").trim()

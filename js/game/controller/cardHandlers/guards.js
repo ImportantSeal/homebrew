@@ -1,9 +1,17 @@
+import {
+  FLOW_TRANSITIONS,
+  transitionFlow,
+  isChoiceSelectionActive as isChoiceFlowActive,
+  isCardPenaltyPending,
+  isGroupPenaltyPending as isGroupPenaltyPendingFlow
+} from '../../../logic/flowMachine.js';
+
 export function isChoiceSelectionActive(state) {
-  return Boolean(state.choiceSelection?.active && state.choiceSelection?.pending);
+  return isChoiceFlowActive(state);
 }
 
 export function clearChoiceSelection(state) {
-  state.choiceSelection = { active: false, pending: null };
+  transitionFlow(state, FLOW_TRANSITIONS.CLEAR_CHOICE);
 }
 
 export function clearSharePenaltyState(state) {
@@ -11,16 +19,18 @@ export function clearSharePenaltyState(state) {
 }
 
 export function isGroupPenaltyPending(state) {
-  return state.penaltySource === "group_pending" && !!state.penaltyGroup?.active;
+  return isGroupPenaltyPendingFlow(state);
 }
 
 export function guardPendingPenaltyRoll(state, log) {
-  if (state.penaltySource !== "card_pending" && !isGroupPenaltyPending(state)) {
+  const cardPending = isCardPenaltyPending(state);
+  const groupPending = isGroupPenaltyPendingFlow(state);
+  if (!cardPending && !groupPending) {
     return false;
   }
 
   if (!state.penaltyHintShown) {
-    log(state.penaltySource === "card_pending"
+    log(cardPending
       ? "Roll the Penalty Deck to continue."
       : "Group penalty is active. Roll the Penalty Deck to continue.");
     state.penaltyHintShown = true;

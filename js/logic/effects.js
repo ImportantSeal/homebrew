@@ -3,6 +3,7 @@ import { recordDrinkTaken } from '../stats.js';
 import { EFFECT_TYPES } from './actionEffectRegistry.js';
 import { getEffectTitle } from './effectNames.js';
 import { systemRng } from '../utils/rng.js';
+import { FLOW_TRANSITIONS, transitionFlow } from './flowMachine.js';
 
 const NOOP_EFFECT_UI = Object.freeze({
   setPickMode: () => {},
@@ -92,7 +93,10 @@ export function cancelTargetedEffectSelection(state) {
   }
 
   clearPickMode(state);
-  setEffectSelectionState(state);
+  const transition = transitionFlow(state, FLOW_TRANSITIONS.CLEAR_EFFECT);
+  if (!transition.ok) {
+    setEffectSelectionState(state);
+  }
 }
 
 /**
@@ -109,20 +113,27 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
   if (!hasValidTarget) {
     const effectName = getEffectTitle(def?.type, def?.type || "Effect");
     log?.(`${effectName} needs at least one player. Effect was skipped.`);
-    setEffectSelectionState(state);
+    const clearTransition = transitionFlow(state, FLOW_TRANSITIONS.CLEAR_EFFECT);
+    if (!clearTransition.ok) {
+      setEffectSelectionState(state);
+    }
     onDone?.(null);
     return null;
   }
 
-  setEffectSelectionState(state, {
-    active: true,
-    pending: {
+  const startTransition = transitionFlow(state, FLOW_TRANSITIONS.START_EFFECT, {
+    pendingEffect: {
       type: def.type,
       turns: def.turns,
       sourceIndex
     },
     ui: selectionUi
   });
+  if (!startTransition.ok) {
+    log?.("Effect selection could not be started.");
+    onDone?.(null);
+    return null;
+  }
 
   // Visual hint: highlight player names while picking
   selectionUi.setPickMode('effect-target');
@@ -144,7 +155,10 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
 
     // Exit pick mode
     clearPickMode(state);
-    setEffectSelectionState(state);
+    const clearTransition = transitionFlow(state, FLOW_TRANSITIONS.CLEAR_EFFECT);
+    if (!clearTransition.ok) {
+      setEffectSelectionState(state);
+    }
 
     const srcName = state.players?.[sourceIndex]?.name ?? "Someone";
     const tgtName = state.players?.[targetIndex]?.name ?? "Someone";

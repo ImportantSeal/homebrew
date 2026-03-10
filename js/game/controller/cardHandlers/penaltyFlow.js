@@ -7,6 +7,15 @@ import {
 import { isRedrawLockedPenaltyOpen } from '../helpers.js';
 import { recordPenaltyTaken } from '../../../stats.js';
 import { getPenaltyDisplayValue, getPenaltySpec } from '../../../logic/penaltySchema.js';
+import {
+  FLOW_TRANSITIONS,
+  PENALTY_SOURCES,
+  transitionFlow,
+  isCardPenaltyPending,
+  isEffectSelectionActive,
+  isPenaltyConfirmRequired,
+  isPenaltySource
+} from '../../../logic/flowMachine.js';
 
 export function createPenaltyFlow({
   state,
@@ -77,15 +86,19 @@ export function createPenaltyFlow({
       return false;
     }
 
-    state.choiceSelection = {
-      active: true,
-      pending: {
+    const startChoice = transitionFlow(state, FLOW_TRANSITIONS.START_CHOICE, {
+      pendingChoice: {
         type: "share_penalty_target",
         penalty: penaltyCard ?? share.penalty,
         penaltyLabel: resolvedPenalty,
         sourcePlayerIndex
       }
-    };
+    });
+    if (!startChoice.ok) {
+      clearSharePenaltyState(state);
+      log("Share Penalty target selection could not be started.");
+      return false;
+    }
 
     openActionScreen(
       "Share Penalty",
@@ -167,8 +180,10 @@ export function createPenaltyFlow({
     const group = state.penaltyGroup;
     if (!group?.active || !Array.isArray(group.queue)) {
       state.penaltyGroup = null;
-      state.penaltySource = null;
-      state.penaltyHintShown = false;
+      const clearPending = transitionFlow(state, FLOW_TRANSITIONS.CLEAR_PENDING_PENALTY);
+      if (!clearPending.ok) {
+        transitionFlow(state, FLOW_TRANSITIONS.HIDE_PENALTY);
+      }
       syncBackgroundScene(state);
       return true;
     }
@@ -176,8 +191,11 @@ export function createPenaltyFlow({
     group.cursor = (Number.isInteger(group.cursor) ? group.cursor : 0) + 1;
     const nextTargetIndex = currentGroupPenaltyTargetIndex();
     if (Number.isInteger(nextTargetIndex)) {
-      state.penaltySource = "group_pending";
-      state.penaltyHintShown = false;
+      transitionFlow(state, FLOW_TRANSITIONS.QUEUE_GROUP_PENALTY, {
+        queue: group.queue,
+        cursor: group.cursor,
+        originPlayerIndex: group.originPlayerIndex
+      });
       if (announceNext) {
         const nextName = playerName(nextTargetIndex);
         log(`Group penalty: ${nextName} rolls next. Click the Penalty Deck to continue.`);
@@ -187,8 +205,10 @@ export function createPenaltyFlow({
     }
 
     state.penaltyGroup = null;
-    state.penaltySource = null;
-    state.penaltyHintShown = false;
+    const clearPending = transitionFlow(state, FLOW_TRANSITIONS.CLEAR_PENDING_PENALTY);
+    if (!clearPending.ok) {
+      transitionFlow(state, FLOW_TRANSITIONS.HIDE_PENALTY);
+    }
     if (Number.isInteger(group.originPlayerIndex)
       && group.originPlayerIndex >= 0
       && group.originPlayerIndex < (state.players?.length || 0)) {
@@ -209,7 +229,7 @@ export function createPenaltyFlow({
         continue;
       }
 
-      rollPenaltyCard(state, log, "group", applyDrinkEvent, { targetPlayerIndex: targetIndex });
+      rollPenaltyCard(state, log, PENALTY_SOURCES.GROUP, applyDrinkEvent, { targetPlayerIndex: targetIndex });
       if (state.penaltyShown) {
         return { done: false, shown: true };
       }
@@ -223,7 +243,7 @@ export function createPenaltyFlow({
   }
 
   function redrawGame() {
-    rollPenaltyCard(state, log, "redraw_hold");
+    rollPenaltyCard(state, log, PENALTY_SOURCES.REDRAW_HOLD);
 
     if (isRedrawLockedPenaltyOpen(state)) {
       const penaltyText = getPenaltyDisplayValue(state.penaltyCard);
@@ -254,7 +274,7 @@ export function createPenaltyFlow({
       return;
     }
 
-    if (state.effectSelection?.active) {
+    if (isEffectSelectionActive(state)) {
       log("Pick a target player first (effect selection is active).");
       return;
     }
@@ -268,9 +288,10 @@ export function createPenaltyFlow({
       return;
     }
 
-    if (state.penaltySource === "card_pending" || isGroupPenaltyPending(state)) {
+    const cardPending = isCardPenaltyPending(state);
+    if (cardPending || isGroupPenaltyPending(state)) {
       if (!state.penaltyHintShown) {
-        log(state.penaltySource === "card_pending"
+        log(cardPending
           ? "Roll the Penalty Deck to continue."
           : "Group penalty is active. Roll the Penalty Deck to continue.");
         state.penaltyHintShown = true;
@@ -290,7 +311,7 @@ export function createPenaltyFlow({
       return;
     }
 
-    if (state.effectSelection?.active) {
+    if (isEffectSelectionActive(state)) {
       log("Pick a target player first (effect selection is active).");
       return;
     }
@@ -306,9 +327,9 @@ export function createPenaltyFlow({
     }
 
     // Pending object-card flow that requires a manual penalty deck flip.
-    if (!state.penaltyShown && state.penaltySource === "card_pending") {
+    if (!state.penaltyShown && isCardPenaltyPending(state)) {
       lockUI();
-      rollPenaltyCard(state, log, "card", applyDrinkEvent);
+      rollPenaltyCard(state, log, PENALTY_SOURCES.CARD, applyDrinkEvent);
 
       // Shield blocked -> no penalty shown, continue turn flow.
       if (!state.penaltyShown) {
@@ -351,14 +372,16 @@ export function createPenaltyFlow({
     if (state.penaltyShown && state.penaltyConfirmArmed) {
       lockUI();
 
-      const source = state.penaltySource;
-      const sharePenaltyActive = source === "card" && state.sharePenalty?.active;
+      const sourceIsCard = isPenaltySource(state, PENALTY_SOURCES.CARD);
+      const sourceIsGroup = isPenaltySource(state, PENALTY_SOURCES.GROUP);
+      const sourceIsRedraw = isPenaltySource(state, PENALTY_SOURCES.REDRAW);
+      const sharePenaltyActive = sourceIsCard && state.sharePenalty?.active;
       const sharePenaltyCard = sharePenaltyActive
         ? (state.sharePenalty?.penalty ?? state.penaltyCard)
         : null;
       hidePenaltyCard(state);
 
-      if (source === "group") {
+      if (sourceIsGroup) {
         const done = advanceGroupPenaltyQueue({ announceNext: false });
         if (done) {
           nextPlayer();
@@ -394,7 +417,7 @@ export function createPenaltyFlow({
       }
 
       // "redraw" = preview/info penalty, does not end turn.
-      if (source !== "redraw") {
+      if (!sourceIsRedraw) {
         nextPlayer();
       }
 
@@ -406,7 +429,7 @@ export function createPenaltyFlow({
     // Otherwise reveal penalty deck normally.
     if (!state.penaltyShown) {
       lockUI();
-      rollPenaltyCard(state, log, "deck", applyDrinkEvent);
+      rollPenaltyCard(state, log, PENALTY_SOURCES.DECK, applyDrinkEvent);
 
       unlockAfter(timing.PENALTY_UNLOCK_MS);
       renderEffectsPanel();
@@ -423,7 +446,7 @@ export function createPenaltyFlow({
       return;
     }
 
-    if (state.effectSelection?.active) {
+    if (isEffectSelectionActive(state)) {
       log("Pick a target player first (effect selection is active).");
       return;
     }
@@ -439,7 +462,7 @@ export function createPenaltyFlow({
     }
 
     // Preserve mandatory confirm flow for "Draw a Penalty Card" and group queue penalties.
-    if (state.penaltySource === "card" || state.penaltySource === "group") {
+    if (isPenaltyConfirmRequired(state)) {
       if (!state.penaltyHintShown) {
         log("Penalty is waiting: click the Penalty Deck to confirm.");
         state.penaltyHintShown = true;

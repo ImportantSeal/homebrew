@@ -2,6 +2,13 @@ import { removePlayerStats } from '../../stats.js';
 import { cancelTargetedEffectSelection } from '../../logic/effects.js';
 import { resetMirrorState } from '../../logic/mirror.js';
 import { ensurePlayerColors } from '../../utils/playerColors.js';
+import {
+  FLOW_TRANSITIONS,
+  transitionFlow,
+  isChoiceSelectionActive,
+  isEffectSelectionActive,
+  isGroupPenaltyPending
+} from '../../logic/flowMachine.js';
 
 function remapPlayerIndexAfterRemoval(index, removedIndex) {
   if (!Number.isInteger(index)) return index;
@@ -34,12 +41,15 @@ function normalizeStateAfterPlayerRemoval(state, removedIndex) {
       .filter(Boolean);
   }
 
-  if (state.effectSelection?.active) {
+  if (isEffectSelectionActive(state)) {
     cancelTargetedEffectSelection(state);
   } else if (state.effectSelection?.pending) {
     const nextSource = remapPlayerIndexAfterRemoval(state.effectSelection.pending.sourceIndex, removedIndex);
     if (nextSource === null) {
-      state.effectSelection = { active: false, pending: null, cleanup: null, ui: null };
+      const clearEffect = transitionFlow(state, FLOW_TRANSITIONS.CLEAR_EFFECT);
+      if (!clearEffect.ok) {
+        state.effectSelection = { active: false, pending: null, cleanup: null, ui: null };
+      }
     } else {
       state.effectSelection.pending.sourceIndex = nextSource;
     }
@@ -91,9 +101,8 @@ function normalizeStateAfterPlayerRemoval(state, removedIndex) {
 
     if (!Array.isArray(group.queue) || group.queue.length === 0) {
       state.penaltyGroup = null;
-      if (state.penaltySource === "group_pending") {
-        state.penaltySource = null;
-        state.penaltyHintShown = false;
+      if (isGroupPenaltyPending(state)) {
+        transitionFlow(state, FLOW_TRANSITIONS.CLEAR_PENDING_PENALTY);
       }
     }
   }
@@ -161,12 +170,12 @@ export function createPlayerRemovalController({
     if (event?.stopPropagation) event.stopPropagation();
     if (event?.stopImmediatePropagation) event.stopImmediatePropagation();
 
-    if (state.choiceSelection?.active) {
+    if (isChoiceSelectionActive(state)) {
       log("Resolve the current card choice before removing a player.");
       return;
     }
 
-    if (state.effectSelection?.active) {
+    if (isEffectSelectionActive(state)) {
       log("Pick a target player first (effect selection is active).");
       return;
     }

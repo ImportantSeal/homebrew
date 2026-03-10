@@ -11,6 +11,11 @@ import { ensurePlayerColors } from '../utils/playerColors.js';
 import { dealTurnCards } from '../logic/deck.js';
 import { hidePenaltyCard } from '../logic/penalty.js';
 import { tickEffects, cancelTargetedEffectSelection } from '../logic/effects.js';
+import {
+  isChoiceSelectionActive,
+  isEffectSelectionActive,
+  isPenaltyFlowActive as isUnifiedPenaltyFlowActive
+} from '../logic/flowMachine.js';
 import { enableLeaveGuard } from '../navigationGuard.js';
 
 import { renderCards } from '../ui/cards.js';
@@ -89,8 +94,7 @@ function renderTurnHeader() {
 }
 
 function isPenaltyFlowActive() {
-  if (state.penaltyShown) return true;
-  return state.penaltySource === "card_pending" || state.penaltySource === "group_pending";
+  return isUnifiedPenaltyFlowActive(state);
 }
 
 function lockUI() {
@@ -238,8 +242,8 @@ function onTurnOrderPlayerClick(playerBtn) {
 
   if (state.uiLocked) return;
   if (isPenaltyFlowActive()) return;
-  if (state.choiceSelection?.active) return;
-  if (state.effectSelection?.active) return;
+  if (isChoiceSelectionActive(state)) return;
+  if (isEffectSelectionActive(state)) return;
 
   jumpToPlayerTurn(rawIndex);
 }

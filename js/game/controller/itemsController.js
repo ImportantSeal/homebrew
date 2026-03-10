@@ -3,6 +3,10 @@ import { useItem } from '../../logic/items.js';
 import { getCardDisplayValue } from '../../utils/cardDisplay.js';
 import { getCardElements, setCardKind } from '../../ui/cards.js';
 import { renderItemsBoard } from '../../ui/itemsBoard.js';
+import {
+  isChoiceSelectionActive,
+  isEffectSelectionActive
+} from '../../logic/flowMachine.js';
 
 function revealHiddenCard(state, index) {
   const cards = getCardElements();
@@ -24,12 +28,12 @@ export function createItemsController({
     if (!state.includeItems) return;
 
     renderItemsBoard(state, (playerIndex, itemIndex, itemName) => {
-      if (state.choiceSelection?.active) {
+      if (isChoiceSelectionActive(state)) {
         log("Resolve the current card choice first.");
         return;
       }
 
-      if (state.effectSelection?.active) {
+      if (isEffectSelectionActive(state)) {
         log("Pick a target player first (effect selection is active).");
         return;
       }

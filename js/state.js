@@ -1,5 +1,6 @@
 import { gameData } from './gameData.js';
 import { createMirrorState } from './logic/mirror.js';
+import { createFlowState } from './logic/flowMachine.js';
 
 function createEffectSelectionState() {
   return {
@@ -42,6 +43,7 @@ export function createInitialState() {
 
     // UI / flow guards
     uiLocked: false,
+    flow: createFlowState(),
     historyLogKind: null,
     backgroundScene: 'normal',
     reducedEffects: false,

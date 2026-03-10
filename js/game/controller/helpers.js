@@ -6,6 +6,11 @@ import {
   getPenaltyCallType,
   getPlainCardSpec
 } from '../../logic/cardSchema.js';
+import {
+  FLOW_TRANSITIONS,
+  transitionFlow,
+  isRedrawHoldPenaltyOpen
+} from '../../logic/flowMachine.js';
 
 const ITEM_RELATED_SPECIAL_ACTIONS = new Set([
   ACTION_CODES.COLLECTOR,
@@ -45,10 +50,13 @@ export function queueManualPenaltyDraw(
   const targetPlayerIndex = Number.isInteger(state.currentPlayerIndex)
     ? state.currentPlayerIndex
     : null;
-
-  state.penaltySource = "card_pending";
-  state.penaltyRollPlayerIndex = targetPlayerIndex;
-  state.penaltyHintShown = false;
+  const transition = transitionFlow(state, FLOW_TRANSITIONS.QUEUE_CARD_PENALTY, {
+    targetPlayerIndex
+  });
+  if (!transition.ok) {
+    log?.("Resolve the current flow first.");
+    return false;
+  }
   log?.(prompt);
   return true;
 }
@@ -74,16 +82,17 @@ export function queueManualPenaltyDrawForPlayers(
     log?.("No valid players available for group penalty.");
     return false;
   }
-
-  state.penaltyGroup = {
-    active: true,
+  const transition = transitionFlow(state, FLOW_TRANSITIONS.QUEUE_GROUP_PENALTY, {
     queue,
     cursor: 0,
-    originPlayerIndex: Number.isInteger(originPlayerIndex) ? originPlayerIndex : state.currentPlayerIndex
-  };
-  state.penaltyRollPlayerIndex = null;
-  state.penaltySource = "group_pending";
-  state.penaltyHintShown = false;
+    originPlayerIndex: Number.isInteger(originPlayerIndex)
+      ? originPlayerIndex
+      : state.currentPlayerIndex
+  });
+  if (!transition.ok) {
+    log?.("Resolve the current flow first.");
+    return false;
+  }
 
   const firstPlayerIndex = queue[0];
   const firstPlayerName = normalizePenaltyPlayerName(
@@ -160,7 +169,7 @@ export function shouldShowActionScreenForPlainCard(text) {
 }
 
 export function isRedrawLockedPenaltyOpen(state) {
-  return state.penaltyShown && state.penaltySource === "redraw_hold";
+  return isRedrawHoldPenaltyOpen(state);
 }
 
 export function effectLabelForLog(effect, fallback = "Effect") {
