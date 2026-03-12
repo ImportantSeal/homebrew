@@ -5,6 +5,8 @@ import { getPlainCardKind } from '../logic/cardSchema.js';
 import { isReducedEffectsEnabled } from './effectsProfile.js';
 
 const CARD_TILT_MAX_DEG = 4;
+const CARD_DEAL_DURATION_MS = 360;
+const CARD_DEAL_STAGGER_MS = 55;
 let cardMotionState = null;
 
 function setCardAnimating(cardEl, enabled) {
@@ -152,6 +154,127 @@ function bindCardDepthMotion(cardEl) {
   };
 }
 
+function getCardFrontElement(cardEl) {
+  if (!cardEl) return null;
+  if (cardEl._frontElement) return cardEl._frontElement;
+  cardEl._frontElement = cardEl.querySelector('.card__front');
+  return cardEl._frontElement;
+}
+
+function getCardIndex(cardEl) {
+  const rawIndex = Number.parseInt(cardEl?.dataset?.index ?? '', 10);
+  return Number.isInteger(rawIndex) ? rawIndex : -1;
+}
+
+function triggerCardSelection(cardEl, event) {
+  const index = getCardIndex(cardEl);
+  if (index < 0) return;
+  if (typeof cardEl?._onSelectCard !== 'function') return;
+  cardEl._onSelectCard(index, event);
+}
+
+function bindCardSelection(cardEl) {
+  if (!cardEl || cardEl._selectionBound) return;
+
+  cardEl._unbindTap = bindTap(cardEl, (event) => triggerCardSelection(cardEl, event));
+
+  const onKeyDown = (event) => {
+    if (!isActivationKey(event)) return;
+    event.preventDefault();
+    triggerCardSelection(cardEl, event);
+  };
+
+  cardEl.addEventListener('keydown', onKeyDown);
+  cardEl._selectionBound = true;
+}
+
+function cancelPendingDealAnimation(cardEl) {
+  if (!cardEl) return;
+
+  if (typeof cardEl._dealAnimationFrame === 'number') {
+    cancelAnimationFrame(cardEl._dealAnimationFrame);
+    cardEl._dealAnimationFrame = null;
+  }
+
+  if (typeof cardEl._dealAnimationTimeout === 'number') {
+    clearTimeout(cardEl._dealAnimationTimeout);
+    cardEl._dealAnimationTimeout = null;
+  }
+}
+
+function scheduleDealAnimation(cardEl, delayMs) {
+  if (!cardEl) return;
+
+  cancelPendingDealAnimation(cardEl);
+  cardEl.classList.remove('card--dealing');
+  cardEl.style.setProperty('--deal-delay', `${delayMs}ms`);
+
+  if (!isReducedEffectsEnabled()) {
+    setCardAnimating(cardEl, true);
+  } else {
+    setCardAnimating(cardEl, false);
+  }
+
+  cardEl._dealAnimationFrame = requestAnimationFrame(() => {
+    cardEl._dealAnimationFrame = null;
+    cardEl.classList.add('card--dealing');
+  });
+
+  cardEl._dealAnimationTimeout = setTimeout(() => {
+    cardEl.classList.remove('card--dealing');
+    setCardAnimating(cardEl, false);
+    cardEl._dealAnimationTimeout = null;
+  }, CARD_DEAL_DURATION_MS + delayMs + 80);
+}
+
+function resetCardTransientState(cardEl) {
+  if (!cardEl) return;
+
+  const hasImpactState = cardEl.classList.contains('card-impact-flash')
+    || typeof cardEl._impactFlashTimeout === 'number';
+
+  if (hasImpactState) {
+    cardEl.classList.remove('card-impact-flash');
+    cardEl.querySelectorAll('.card-impact-burst').forEach((burstEl) => burstEl.remove());
+  }
+
+  if (typeof cardEl._impactFlashTimeout === 'number') {
+    clearTimeout(cardEl._impactFlashTimeout);
+    cardEl._impactFlashTimeout = null;
+  }
+
+  cardEl.style.borderColor = "";
+  cardEl.style.backgroundColor = "";
+  cardEl.style.color = "";
+  cardEl.style.removeProperty('--impact-color');
+  cardEl.style.removeProperty('--impact-duration');
+}
+
+function initializeCard(cardEl, onSelectCard) {
+  if (!cardEl) return;
+  if (typeof onSelectCard === 'function') {
+    cardEl._onSelectCard = onSelectCard;
+  }
+  bindCardSelection(cardEl);
+  bindCardDepthMotion(cardEl);
+  getCardFrontElement(cardEl);
+}
+
+export function initCards(onSelectCard) {
+  const cards = getCardElements();
+
+  cards.forEach((cardEl, index) => {
+    if (!cardEl) return;
+    cardEl.dataset.index = String(index);
+    initializeCard(cardEl, onSelectCard);
+  });
+
+  const penaltyDeckEl = document.getElementById('penalty-deck');
+  if (penaltyDeckEl) {
+    bindCardDepthMotion(penaltyDeckEl);
+  }
+}
+
 export function getCardElements() {
   return [
     document.getElementById('card0'),
@@ -192,15 +315,17 @@ export function setCardKind(state, cardEl, cardData, isHidden) {
   cardEl.dataset.kind = kind;
 }
 
-export function renderCards(state, onSelectCard) {
+export function renderCards(state) {
   const cards = getCardElements();
 
-  cards.forEach((cardEl) => {
+  cards.forEach((cardEl, index) => {
     if (!cardEl) return;
+    cardEl.dataset.index = String(index);
+    initializeCard(cardEl);
+    cancelPendingDealAnimation(cardEl);
     cardEl.classList.remove('card--dealing');
     setCardAnimating(cardEl, false);
     cardEl.style.removeProperty('--deal-delay');
-    bindCardDepthMotion(cardEl);
     resetCardDepth(cardEl);
   });
 
@@ -210,34 +335,12 @@ export function renderCards(state, onSelectCard) {
     resetCardDepth(penaltyDeckEl);
   }
 
-  if (cards[0]) void cards[0].offsetWidth;
-
   for (let i = 0; i < 3; i++) {
     const cardEl = cards[i];
     if (!cardEl) continue;
 
-    cardEl.style.setProperty('--deal-delay', `${i * 55}ms`);
-    cardEl.classList.add('card--dealing');
-    if (!isReducedEffectsEnabled()) {
-      setCardAnimating(cardEl, true);
-      const clearAnimating = () => setCardAnimating(cardEl, false);
-      cardEl.addEventListener('animationend', clearAnimating, { once: true });
-      cardEl.addEventListener('animationcancel', clearAnimating, { once: true });
-    }
-    cardEl.classList.remove('card-impact-flash');
-    cardEl.querySelectorAll('.card-impact-burst').forEach((burstEl) => burstEl.remove());
-
-    if (typeof cardEl._impactFlashTimeout === 'number') {
-      clearTimeout(cardEl._impactFlashTimeout);
-      cardEl._impactFlashTimeout = null;
-    }
-
-    // reset root inline styles
-    cardEl.style.borderColor = "";
-    cardEl.style.backgroundColor = "";
-    cardEl.style.color = "";
-    cardEl.style.removeProperty('--impact-color');
-    cardEl.style.removeProperty('--impact-duration');
+    resetCardTransientState(cardEl);
+    scheduleDealAnimation(cardEl, i * CARD_DEAL_STAGGER_MS);
 
     const isHidden = !state.revealed[i];
 
@@ -245,7 +348,7 @@ export function renderCards(state, onSelectCard) {
     setCardKind(state, cardEl, state.currentCards[i], isHidden);
 
     // reset possible Ditto / any overrides on front
-    const front = cardEl.querySelector('.card__front');
+    const front = getCardFrontElement(cardEl);
     if (front) front.removeAttribute('style');
 
     if (isHidden) {
@@ -253,16 +356,5 @@ export function renderCards(state, onSelectCard) {
     } else {
       flipCardAnimation(cardEl, getCardDisplayValue(state.currentCards[i]));
     }
-
-    if (typeof cardEl._unbindTap === 'function') {
-      cardEl._unbindTap();
-    }
-    cardEl._unbindTap = bindTap(cardEl, (event) => onSelectCard(i, event));
-
-    cardEl.onkeydown = (event) => {
-      if (!isActivationKey(event)) return;
-      event.preventDefault();
-      onSelectCard(i, event);
-    };
   }
 }

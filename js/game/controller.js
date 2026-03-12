@@ -18,7 +18,7 @@ import {
 } from '../logic/flowMachine.js';
 import { enableLeaveGuard } from '../navigationGuard.js';
 
-import { renderCards } from '../ui/cards.js';
+import { initCards, renderCards } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { showCardActionModal } from '../ui/cardActionModal.js';
 import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundScene.js';
@@ -226,6 +226,7 @@ function startGame() {
 
 function initGameView() {
   showGameContainer();
+  initCards(onCardClick);
   syncBackgroundScene(state);
   bindPenaltyDeckSizeSync();
   requestAnimationFrame(syncPenaltyDeckSizeToCards);
@@ -316,7 +317,7 @@ function updateItemsPanelVisibility() {
 function resetCards({ keepPenaltyOpen = false } = {}) {
   setBaseBackgroundScene(state, 'normal');
   dealTurnCards(state, rng);
-  renderCards(state, onCardClick);
+  renderCards(state);
   if (!keepPenaltyOpen) {
     hidePenaltyCard(state);
   }
