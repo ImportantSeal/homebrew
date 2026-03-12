@@ -236,21 +236,59 @@ function buildEffectCard(state, eff, onRemoveEffect) {
   return card;
 }
 
+function createStatusEffectsSignature(state) {
+  const effects = Array.isArray(state?.effects)
+    ? state.effects
+      .filter((effect) => (effect?.remainingTurns ?? 0) > 0)
+      .map((effect) => ({
+        id: effect?.id ?? null,
+        type: effect?.type ?? null,
+        remainingTurns: effect?.remainingTurns ?? 0,
+        totalTurns: effect?.totalTurns ?? 0,
+        sourceIndex: effect?.sourceIndex ?? null,
+        targetIndex: effect?.targetIndex ?? null
+      }))
+    : [];
+
+  const pendingSelection = isEffectSelectionActive(state)
+    ? {
+      type: state?.effectSelection?.pending?.type ?? null,
+      sourceIndex: state?.effectSelection?.pending?.sourceIndex ?? null,
+      targetIndex: state?.effectSelection?.pending?.targetIndex ?? null
+    }
+    : null;
+
+  return JSON.stringify({
+    effects,
+    pendingSelection,
+    players: (state?.players || []).map((player, index) => ({
+      name: player?.name ?? '',
+      color: ensurePlayerColor(player, index),
+      shield: Boolean(player?.shield),
+      skipNextTurn: Boolean(player?.skipNextTurn),
+      extraLife: Boolean(player?.extraLife)
+    }))
+  });
+}
+
 export function renderStatusEffects(state, options = {}) {
   const { onRemoveEffect, onRemoveStatus } = options || {};
 
   const root = document.getElementById('status-effects');
   if (!root) return;
-
-  root.innerHTML = "";
+  const renderSignature = createStatusEffectsSignature(state);
+  if (root.dataset.renderSignature === renderSignature && root.dataset.rendered === 'true') {
+    return;
+  }
 
   const effects = Array.isArray(state.effects) ? state.effects.filter(e => (e?.remainingTurns ?? 0) > 0) : [];
 
   const hasPendingPick = isEffectSelectionActive(state);
+  const fragment = document.createDocumentFragment();
 
   // --- Active Effects section ---
   if (effects.length > 0 || hasPendingPick) {
-    root.appendChild(el("div", "effects-section-title", "Active effects"));
+    fragment.appendChild(el("div", "effects-section-title", "Active effects"));
 
     // Pending selection hint
     if (hasPendingPick) {
@@ -272,11 +310,11 @@ export function renderStatusEffects(state, options = {}) {
       pendingCard.appendChild(right);
 
       pendingCard.appendChild(el("div", "effect-bar")).appendChild(el("span", "effect-bar-fill"));
-      root.appendChild(pendingCard);
+      fragment.appendChild(pendingCard);
     }
 
     effects.forEach(eff => {
-      root.appendChild(buildEffectCard(state, eff, onRemoveEffect));
+      fragment.appendChild(buildEffectCard(state, eff, onRemoveEffect));
     });
   }
 
@@ -324,10 +362,11 @@ export function renderStatusEffects(state, options = {}) {
   });
 
   if (anyStatuses) {
-    root.appendChild(el("div", "effects-section-title", "Player status"));
-    root.appendChild(statusWrap);
+    fragment.appendChild(el("div", "effects-section-title", "Player status"));
+    fragment.appendChild(statusWrap);
   }
 
-  // If nothing, keep empty so CSS hides it
-  if (!root.childElementCount) root.innerHTML = "";
+  root.replaceChildren(fragment);
+  root.dataset.renderSignature = renderSignature;
+  root.dataset.rendered = 'true';
 }

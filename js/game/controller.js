@@ -54,6 +54,8 @@ export function createGameController({ initialState = createInitialState() } = {
     ? initialState
     : createInitialState();
   let penaltyDeckSizeSyncBound = false;
+  let penaltyDeckSizeSyncFrame = 0;
+  let lastPenaltyDeckWidth = '';
 
 function resolveHistoryLogKind(options = {}) {
   if (options && typeof options === 'object' && typeof options.kind === 'string') {
@@ -125,38 +127,47 @@ function openActionScreen(title, message = "", options = {}) {
 }
 
 function syncPenaltyDeckSizeToCards() {
+  penaltyDeckSizeSyncFrame = 0;
+
   const penaltyDeckEl = getPenaltyDeckEl();
   const cardEl = getPrimaryCardEl();
   if (!penaltyDeckEl || !cardEl) return;
 
   const cardRect = cardEl.getBoundingClientRect();
   const panel = penaltyDeckEl.closest(".left-panel");
-  const panelRect = panel?.getBoundingClientRect();
   const panelStyles = panel ? window.getComputedStyle(panel) : null;
   const panelPaddingX = panelStyles
     ? (parseFloat(panelStyles.paddingLeft || "0") + parseFloat(panelStyles.paddingRight || "0"))
     : 0;
-  const panelInnerWidth = panelRect ? Math.max(0, panelRect.width - panelPaddingX) : 0;
+  const panelClientWidth = panel ? Number(panel.clientWidth || 0) : 0;
+  const panelInnerWidth = panel ? Math.max(0, panelClientWidth - panelPaddingX) : 0;
 
   if (cardRect.width > 0) {
     const targetWidth = panelInnerWidth > 0
       ? Math.min(cardRect.width, panelInnerWidth)
       : cardRect.width;
-    penaltyDeckEl.style.width = `${Math.round(targetWidth)}px`;
+    const nextWidth = `${Math.round(targetWidth)}px`;
+    if (nextWidth === lastPenaltyDeckWidth && penaltyDeckEl.style.width === nextWidth) return;
+    penaltyDeckEl.style.width = nextWidth;
+    lastPenaltyDeckWidth = nextWidth;
   }
+}
+
+function schedulePenaltyDeckSizeSync() {
+  if (penaltyDeckSizeSyncFrame) return;
+  penaltyDeckSizeSyncFrame = requestAnimationFrame(syncPenaltyDeckSizeToCards);
 }
 
 function bindPenaltyDeckSizeSync() {
   if (penaltyDeckSizeSyncBound) return;
   penaltyDeckSizeSyncBound = true;
 
-  const sync = () => requestAnimationFrame(syncPenaltyDeckSizeToCards);
-  window.addEventListener("resize", sync);
+  window.addEventListener("resize", schedulePenaltyDeckSizeSync);
 
   if (typeof ResizeObserver !== "undefined") {
     const cardContainer = getCardContainerEl();
     if (cardContainer) {
-      const observer = new ResizeObserver(sync);
+      const observer = new ResizeObserver(schedulePenaltyDeckSizeSync);
       observer.observe(cardContainer);
     }
   }
@@ -184,7 +195,7 @@ const { onTurnOrderPlayerRemoveClick } = createPlayerRemovalController({
   renderItems,
   renderEffectsPanel,
   updateTurn,
-  syncPenaltyDeckSizeToCards,
+  syncPenaltyDeckSizeToCards: schedulePenaltyDeckSizeSync,
   isPenaltyFlowActive
 });
 
@@ -229,7 +240,7 @@ function initGameView() {
   initCards(onCardClick);
   syncBackgroundScene(state);
   bindPenaltyDeckSizeSync();
-  requestAnimationFrame(syncPenaltyDeckSizeToCards);
+  schedulePenaltyDeckSizeSync();
   hidePenaltyCard(state);
 }
 
@@ -307,7 +318,7 @@ function updateTurn() {
   renderItems();
   renderEffectsPanel();
   resetCards();
-  requestAnimationFrame(syncPenaltyDeckSizeToCards);
+  schedulePenaltyDeckSizeSync();
 }
 
 function updateItemsPanelVisibility() {
@@ -322,7 +333,7 @@ function resetCards({ keepPenaltyOpen = false } = {}) {
     hidePenaltyCard(state);
   }
   renderEffectsPanel();
-  requestAnimationFrame(syncPenaltyDeckSizeToCards);
+  schedulePenaltyDeckSizeSync();
 }
 
   return {

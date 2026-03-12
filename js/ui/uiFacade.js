@@ -3,6 +3,7 @@
 // Goal: game logic modules should not query the DOM directly.
 
 import { bindTap } from '../utils/tap.js';
+import { restartClassAnimation } from '../utils/restartClassAnimation.js';
 
 const cache = new Map();
 const listeners = {
@@ -34,9 +35,7 @@ export function setTurnIndicatorText(text) {
   el.textContent = nextText;
   if (!didChange) return;
 
-  el.classList.remove('turn-indicator--pulse');
-  void el.offsetWidth;
-  el.classList.add('turn-indicator--pulse');
+  restartClassAnimation(el, 'turn-indicator--pulse');
 }
 
 export function getPenaltyDeckEl() {
@@ -48,7 +47,11 @@ export function getPrimaryCardEl() {
 }
 
 export function getCardContainerEl() {
-  return document.querySelector('.card-container');
+  const key = 'card-container';
+  if (cache.has(key)) return cache.get(key);
+  const el = document.querySelector('.card-container');
+  cache.set(key, el);
+  return el;
 }
 
 export function setItemsPanelVisibility(showItems) {
@@ -60,7 +63,10 @@ export function setItemsPanelVisibility(showItems) {
   if (!itemsBoard) return;
 
   itemsBoard.style.display = isVisible ? '' : 'none';
-  if (!isVisible) itemsBoard.innerHTML = '';
+  if (!isVisible) {
+    itemsBoard.replaceChildren();
+    delete itemsBoard.dataset.renderSignature;
+  }
 }
 
 export function bindRedrawClick(handler) {

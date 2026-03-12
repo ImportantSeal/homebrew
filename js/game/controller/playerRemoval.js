@@ -159,7 +159,7 @@ export function createPlayerRemovalController({
       renderTurnHeader();
       renderItems();
       renderEffectsPanel();
-      requestAnimationFrame(syncPenaltyDeckSizeToCards);
+      syncPenaltyDeckSizeToCards();
     }
 
     return true;

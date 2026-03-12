@@ -1,10 +1,26 @@
 import { bindTap } from '../utils/tap.js';
 import { applyPlayerColor, ensurePlayerColor } from '../utils/playerColors.js';
 
+function createItemsSignature(state) {
+  return JSON.stringify(
+    (state?.players || []).map((player, pIndex) => ({
+      name: player?.name ?? '',
+      color: ensurePlayerColor(player, pIndex),
+      inventory: Array.isArray(player?.inventory) ? [...player.inventory] : []
+    }))
+  );
+}
+
 export function renderItemsBoard(state, onUseItem) {
   const board = document.getElementById('items-board');
   if (!board) return;
-  board.innerHTML = '';
+
+  const renderSignature = createItemsSignature(state);
+  if (board.dataset.renderSignature === renderSignature && board.childElementCount > 0) {
+    return;
+  }
+
+  const fragment = document.createDocumentFragment();
 
   state.players.forEach((player, pIndex) => {
     const row = document.createElement('div');
@@ -38,6 +54,9 @@ export function renderItemsBoard(state, onUseItem) {
       });
     }
 
-    board.appendChild(row);
+    fragment.appendChild(row);
   });
+
+  board.replaceChildren(fragment);
+  board.dataset.renderSignature = renderSignature;
 }

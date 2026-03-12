@@ -1,4 +1,5 @@
 import { isPenaltyFlowActive } from '../logic/flowMachine.js';
+import { restartClassAnimation } from '../utils/restartClassAnimation.js';
 
 const BASE_SCENES = new Set([
   'normal',
@@ -35,9 +36,7 @@ function applySceneSurge() {
   const body = document.body;
   if (!body?.classList) return;
 
-  body.classList.remove('scene-surge');
-  void body.offsetWidth;
-  body.classList.add('scene-surge');
+  restartClassAnimation(body, 'scene-surge');
 
   if (surgeTimeoutId) clearTimeout(surgeTimeoutId);
   surgeTimeoutId = setTimeout(() => {
@@ -53,9 +52,7 @@ function applyDangerFlash() {
   const body = document.body;
   if (!body?.classList) return;
 
-  body.classList.remove(DANGER_FLASH_CLASS);
-  void body.offsetWidth;
-  body.classList.add(DANGER_FLASH_CLASS);
+  restartClassAnimation(body, DANGER_FLASH_CLASS);
 
   if (dangerFlashTimeoutId) clearTimeout(dangerFlashTimeoutId);
   dangerFlashTimeoutId = setTimeout(() => {

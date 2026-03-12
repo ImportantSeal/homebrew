@@ -1,4 +1,5 @@
 import { isReducedEffectsEnabled } from './ui/effectsProfile.js';
+import { restartClassAnimation } from './utils/restartClassAnimation.js';
 
 const CARD_COMPACT_TEXT_MIN_LENGTH = 30;
 const DEFAULT_FLIP_DURATION_MS = 460;
@@ -51,9 +52,23 @@ function setFrontContent(frontEl, finalText) {
   frontEl.appendChild(content);
 }
 
+function getCardFrontElement(cardElement) {
+  if (!cardElement) return null;
+  if (cardElement._frontElement) return cardElement._frontElement;
+  cardElement._frontElement = cardElement.querySelector?.('.card__front') ?? null;
+  return cardElement._frontElement;
+}
+
+function getCardInnerElement(cardElement) {
+  if (!cardElement) return null;
+  if (cardElement._innerElement) return cardElement._innerElement;
+  cardElement._innerElement = cardElement.querySelector?.('.card__inner') ?? null;
+  return cardElement._innerElement;
+}
+
 export function flipCardAnimation(cardElement, finalText) {
-  const front = cardElement.querySelector?.('.card__front');
-  const inner = cardElement.querySelector?.('.card__inner');
+  const front = getCardFrontElement(cardElement);
+  const inner = getCardInnerElement(cardElement);
   const flipDurationMs = resolveFlipDurationMs(cardElement);
   markAnimating(inner || cardElement, 'transform', flipDurationMs);
 
@@ -236,9 +251,7 @@ export function flashElement(
 
   element.style.setProperty('--impact-color', impactColor);
   element.style.setProperty('--impact-duration', `${safeDuration}ms`);
-  element.classList.remove(IMPACT_FLASH_CLASS);
-  void element.offsetWidth;
-  element.classList.add(IMPACT_FLASH_CLASS);
+  restartClassAnimation(element, IMPACT_FLASH_CLASS);
 
   if (!shouldReduceEffects()) {
     const burst = document.createElement('span');

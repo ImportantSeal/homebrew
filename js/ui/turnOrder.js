@@ -3,15 +3,32 @@ import { applyPlayerColor, ensurePlayerColor, ensurePlayerColors } from '../util
 
 let lastCurrentPlayerIndex = null;
 
+function createTurnOrderSignature(state, canRemovePlayers, currentPlayerIndex) {
+  return JSON.stringify({
+    canRemovePlayers,
+    currentPlayerIndex,
+    players: (state?.players || []).map((player, index) => ({
+      name: player?.name ?? '',
+      color: ensurePlayerColor(player, index)
+    }))
+  });
+}
+
 export function renderTurnOrder(state) {
   const turnOrderElem = document.getElementById('turn-order');
   if (!turnOrderElem) return;
 
-  turnOrderElem.innerHTML = '';
   ensurePlayerColors(state.players);
   const canRemovePlayers = (state?.players?.length || 0) > 2;
   const currentPlayerIndex = Number.isInteger(state?.currentPlayerIndex) ? state.currentPlayerIndex : null;
+  const renderSignature = createTurnOrderSignature(state, canRemovePlayers, currentPlayerIndex);
+  if (turnOrderElem.dataset.renderSignature === renderSignature && turnOrderElem.childElementCount > 0) {
+    lastCurrentPlayerIndex = currentPlayerIndex;
+    return;
+  }
+
   const shouldAnimateCurrent = currentPlayerIndex !== null && currentPlayerIndex !== lastCurrentPlayerIndex;
+  const fragment = document.createDocumentFragment();
 
   state.players.forEach((player, index) => {
     const color = ensurePlayerColor(player, index);
@@ -53,14 +70,16 @@ export function renderTurnOrder(state) {
     }
     playerDiv.appendChild(removeBtn);
 
-    turnOrderElem.appendChild(playerDiv);
+    fragment.appendChild(playerDiv);
 
     if (index < state.players.length - 1) {
       const arrowSpan = document.createElement('span');
       arrowSpan.textContent = ' \u2192 ';
-      turnOrderElem.appendChild(arrowSpan);
+      fragment.appendChild(arrowSpan);
     }
   });
 
+  turnOrderElem.replaceChildren(fragment);
+  turnOrderElem.dataset.renderSignature = renderSignature;
   lastCurrentPlayerIndex = currentPlayerIndex;
 }
