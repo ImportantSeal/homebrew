@@ -84,6 +84,7 @@ export function initSetup({ state, startGame } = {}) {
       state.players.push(player);
       updatePlayerList(state.players.length - 1);
       playerInput.value = "";
+      playerInput.focus();
       startGameButton.disabled = state.players.length < MIN_PLAYERS;
     }
   }

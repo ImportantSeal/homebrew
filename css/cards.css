@@ -33,6 +33,7 @@
   isolation: isolate;
 
   cursor: pointer;
+  touch-action: manipulation;
 
   transition:
     transform 150ms ease,
