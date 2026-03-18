@@ -14,6 +14,27 @@ export function bindTap(element, handler, { capture = false } = {}) {
   let touchStartY = 0;
   let touchMoved = false;
 
+  const resetTouchTracking = () => {
+    activeTouchId = null;
+    touchStartX = 0;
+    touchStartY = 0;
+    touchMoved = false;
+  };
+
+  const getActiveTouch = (event) => {
+    if (activeTouchId === null) return null;
+
+    const touches = event.changedTouches;
+    if (!touches) return null;
+
+    for (let i = 0; i < touches.length; i++) {
+      const touch = touches[i];
+      if (touch.identifier === activeTouchId) return touch;
+    }
+
+    return null;
+  };
+
   const onTouchStart = (event) => {
     const touch = event.changedTouches?.[0];
     if (!touch) return;
@@ -25,61 +46,38 @@ export function bindTap(element, handler, { capture = false } = {}) {
   };
 
   const onTouchMove = (event) => {
-    if (activeTouchId === null) return;
+    const touch = getActiveTouch(event);
+    if (!touch) return;
 
-    const touches = event.changedTouches;
-    if (!touches) return;
-
-    for (let i = 0; i < touches.length; i++) {
-      const touch = touches[i];
-      if (touch.identifier !== activeTouchId) continue;
-
-      if (
-        Math.abs(touch.clientX - touchStartX) > TOUCH_MOVE_TOLERANCE_PX ||
-        Math.abs(touch.clientY - touchStartY) > TOUCH_MOVE_TOLERANCE_PX
-      ) {
-        touchMoved = true;
-      }
-      return;
+    if (
+      Math.abs(touch.clientX - touchStartX) > TOUCH_MOVE_TOLERANCE_PX ||
+      Math.abs(touch.clientY - touchStartY) > TOUCH_MOVE_TOLERANCE_PX
+    ) {
+      touchMoved = true;
     }
   };
 
   const onTouchEnd = (event) => {
     lastTouchAt = Date.now();
-
-    if (activeTouchId === null) return;
-
-    const touches = event.changedTouches;
-    if (!touches) {
-      activeTouchId = null;
-      touchMoved = false;
+    const touch = getActiveTouch(event);
+    if (!touch) {
+      resetTouchTracking();
       return;
     }
 
-    for (let i = 0; i < touches.length; i++) {
-      const touch = touches[i];
-      if (touch.identifier !== activeTouchId) continue;
+    const moved =
+      touchMoved ||
+      Math.abs(touch.clientX - touchStartX) > TOUCH_MOVE_TOLERANCE_PX ||
+      Math.abs(touch.clientY - touchStartY) > TOUCH_MOVE_TOLERANCE_PX;
 
-      const moved =
-        touchMoved ||
-        Math.abs(touch.clientX - touchStartX) > TOUCH_MOVE_TOLERANCE_PX ||
-        Math.abs(touch.clientY - touchStartY) > TOUCH_MOVE_TOLERANCE_PX;
+    resetTouchTracking();
+    if (moved) return;
 
-      activeTouchId = null;
-      touchMoved = false;
-
-      if (moved) return;
-
-      event.preventDefault();
-      handler(event);
-      return;
-    }
+    event.preventDefault();
+    handler(event);
   };
 
-  const onTouchCancel = () => {
-    activeTouchId = null;
-    touchMoved = false;
-  };
+  const onTouchCancel = () => resetTouchTracking();
 
   const onClick = (event) => {
     if (Date.now() - lastTouchAt < TOUCH_CLICK_GUARD_MS) return;

@@ -37,6 +37,16 @@ function normalizePenaltyPlayerName(value, fallback) {
   return text || fallback;
 }
 
+function hasImmediatePenaltyDeckInstruction(...parts) {
+  const text = parts.map((part) => String(part || "")).join(' ').trim();
+  if (!text) return false;
+
+  if (/reveal\s+(a\s+)?penalty\s+card(\s+now)?/i.test(text)) return true;
+  if (/draw\s+(a\s+)?penalty\s+card\s+now/i.test(text)) return true;
+  if (/roll\s+the\s+penalty\s+deck/i.test(text)) return true;
+  return false;
+}
+
 export function queueManualPenaltyDraw(
   state,
   log,
@@ -104,23 +114,11 @@ export function queueManualPenaltyDrawForPlayers(
 }
 
 export function shouldTriggerPenaltyPreview(subName, subInstruction, challengeText) {
-  const text = `${String(subName || "")} ${String(subInstruction || "")} ${String(challengeText || "")}`.trim();
-  if (!text) return false;
-
-  // Auto-preview when instruction explicitly says to reveal/roll now.
-  if (/reveal\s+(a\s+)?penalty\s+card(\s+now)?/i.test(text)) return true;
-  if (/draw\s+(a\s+)?penalty\s+card\s+now/i.test(text)) return true;
-  if (/roll\s+the\s+penalty\s+deck/i.test(text)) return true;
-  return false;
+  return hasImmediatePenaltyDeckInstruction(subName, subInstruction, challengeText);
 }
 
 export function shouldWaitForPenaltyDeckRoll(subName, subInstruction, challengeText) {
-  const text = `${String(subName || "")} ${String(subInstruction || "")} ${String(challengeText || "")}`.trim();
-  if (!text) return false;
-  if (/roll\s+the\s+penalty\s+deck/i.test(text)) return true;
-  if (/reveal\s+(a\s+)?penalty\s+card(\s+now)?/i.test(text)) return true;
-  if (/draw\s+(a\s+)?penalty\s+card\s+now/i.test(text)) return true;
-  return false;
+  return hasImmediatePenaltyDeckInstruction(subName, subInstruction, challengeText);
 }
 
 export function getBagKeyForObjectCard(state, cardData) {

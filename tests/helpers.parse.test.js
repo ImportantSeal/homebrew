@@ -5,6 +5,7 @@ import {
   parseDrinkFromText,
   parseGiveFromText,
   shouldTriggerPenaltyPreview,
+  shouldWaitForPenaltyDeckRoll,
   shouldShowActionScreenForPlainCard,
   isDrawPenaltyCardText,
   isPenaltyCardInstructionText
@@ -99,6 +100,41 @@ test('shouldTriggerPenaltyPreview only for immediate penalty reveal instructions
   );
   assert.equal(
     shouldTriggerPenaltyPreview(
+      'Notification Curse',
+      "For the next 10 rounds, 'notification' means taking a Penalty card.",
+      ''
+    ),
+    false
+  );
+});
+
+test('shouldWaitForPenaltyDeckRoll matches only immediate penalty deck instructions', () => {
+  assert.equal(
+    shouldWaitForPenaltyDeckRoll(
+      'Penalty Sprint',
+      'Draw a Penalty card now and continue after the reveal.',
+      ''
+    ),
+    true
+  );
+  assert.equal(
+    shouldWaitForPenaltyDeckRoll(
+      'Share Penalty',
+      'Reveal a Penalty card now and share that same penalty with one other player.',
+      ''
+    ),
+    true
+  );
+  assert.equal(
+    shouldWaitForPenaltyDeckRoll(
+      'Clean Sheet Punishment',
+      'If your Penalties are 0, draw a Penalty Card.',
+      ''
+    ),
+    false
+  );
+  assert.equal(
+    shouldWaitForPenaltyDeckRoll(
       'Notification Curse',
       "For the next 10 rounds, 'notification' means taking a Penalty card.",
       ''
