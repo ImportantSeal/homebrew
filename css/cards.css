@@ -294,6 +294,15 @@ body[data-scene="penalty"] .penalty-deck::before {
     0 0 0 3px var(--hover-ring);
 }
 
+body.modal-open .card:hover,
+body.modal-open .card:focus-visible {
+  --card-lift-y: 0px;
+  --card-scale: 1;
+  --card-shine-opacity: 0;
+  border-color: var(--card-border);
+  box-shadow: var(--elevation-raised);
+}
+
 /* ===== Cards: 3D Flip ===== */
 .card__inner {
   position: absolute;
