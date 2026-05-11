@@ -85,6 +85,11 @@ function isOpen(modal) {
   return Boolean(modal?.classList.contains('is-open'));
 }
 
+function shouldRestoreFocus(element) {
+  if (!(element instanceof HTMLElement)) return false;
+  return !element.matches('.card, .penalty-deck');
+}
+
 function setOpen(modal, open) {
   if (!modal) return;
   const currentlyOpen = isOpen(modal);
@@ -121,16 +126,19 @@ function closeModal(restoreFocus = true) {
   const { modal, actionsEl } = refs();
   if (!modal || !isOpen(modal)) return;
 
-  if (restoreFocus && returnFocusEl && typeof returnFocusEl.focus === 'function') {
-    returnFocusEl.focus();
-  }
-
   const activeEl = document.activeElement;
   if (activeEl instanceof HTMLElement && modal.contains(activeEl)) {
     activeEl.blur();
   }
 
   setOpen(modal, false);
+
+  if (restoreFocus && shouldRestoreFocus(returnFocusEl)) {
+    returnFocusEl.focus();
+  } else if (returnFocusEl instanceof HTMLElement) {
+    returnFocusEl.blur();
+  }
+
   clearActionButtons(actionsEl);
 
   const handler = closeHandler;
