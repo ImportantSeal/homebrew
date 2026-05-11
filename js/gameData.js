@@ -63,7 +63,11 @@ export const gameData = {
         { name: "Common Misconception", instruction: "Share one thing most people get wrong about you." },
         { name: "Annoying Trait", instruction: "Name one trait of yours that annoys other people." },
         { name: "Unreasonable Pet Peeve", instruction: "Name one everyday thing you irrationally hate." },
-        { name: "Give Count Guess", instruction: "Guess how many drinks you have given so far. If your guess is exact, give that many drinks (max 10). If your guess is wrong, drink your guessed amount (max 10)." },
+        {
+          name: "Give Count Guess",
+          instruction: "Guess how many drinks you have given so far. If your guess is exact, give that many drinks (max 10). If your guess is wrong, drink your guessed amount (max 10).",
+          leaderboardTopic: "drinks_given_max"
+        },
         { name: "First Thought", instruction: "The player on your right says any word. Immediately say the first word that comes to mind from it. If you hesitate or freeze, drink 2." },
         { name: "No Filter", instruction: "Say out loud the first thing that comes to mind. If you hesitate, drink 2." },
         { name: "Dating Resume", instruction: "Give a 15-second dating pitch for yourself." },

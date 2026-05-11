@@ -201,7 +201,7 @@ export function resolveStatsLeaderboardTopic(cardName = '', instruction = '') {
     return 'drinks_taken_min';
   }
 
-  if (/most\s+drinks?\s+taken|drunkest|tank reward|most drinks guess/.test(text)) {
+  if (/most\s+drinks?\s+taken|drinks?\s+you\s+have\s+taken\s+so\s+far|drunkest|tank reward|most drinks guess/.test(text)) {
     return 'drinks_taken_max';
   }
 
@@ -209,7 +209,7 @@ export function resolveStatsLeaderboardTopic(cardName = '', instruction = '') {
     return 'drinks_given_min';
   }
 
-  if (/most\s+drinks?\s+given|generous\s+leader/.test(text)) {
+  if (/most\s+drinks?\s+given|drinks?\s+you\s+have\s+given\s+so\s+far|give count guess|generous\s+leader/.test(text)) {
     return 'drinks_given_max';
   }
 

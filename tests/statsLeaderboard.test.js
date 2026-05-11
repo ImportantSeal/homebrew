@@ -77,6 +77,13 @@ test('resolveStatsLeaderboardTopic maps known stats cards and mystery pick wordi
     ),
     'penalties_min'
   );
+  assert.equal(
+    resolveStatsLeaderboardTopic(
+      'Give Count Guess',
+      'Guess how many drinks you have given so far.'
+    ),
+    'drinks_given_max'
+  );
   assert.equal(resolveStatsLeaderboardTopic('Random Card', 'Everyone drinks 1.'), null);
 });
 
