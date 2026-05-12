@@ -288,8 +288,6 @@ export function renderStatusEffects(state, options = {}) {
 
   // --- Active Effects section ---
   if (effects.length > 0 || hasPendingPick) {
-    fragment.appendChild(el("div", "effects-section-title", "Active effects"));
-
     // Pending selection hint
     if (hasPendingPick) {
       const pending = state.effectSelection?.pending;

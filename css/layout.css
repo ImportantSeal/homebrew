@@ -322,9 +322,8 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
-  scrollbar-gutter: stable both-edges;
 }
 .game-header {
   width: 100%;

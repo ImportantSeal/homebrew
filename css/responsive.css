@@ -34,6 +34,31 @@
   }
 }
 
+/* ===== Responsive: Short Desktop Height ===== */
+@media (min-width: 901px) and (max-height: 820px) {
+  :root {
+    --card-min-width: clamp(5.8rem, 17dvh, 7.2rem);
+    --card-max-width: clamp(7rem, 22dvh, 9.5rem);
+  }
+
+  .game-main {
+    height: min(78dvh, 46rem);
+  }
+
+  .game-header {
+    margin-bottom: 0.45rem;
+  }
+
+  .turn-indicator {
+    margin: 0.45rem 0 0.7rem;
+    padding: 0.45rem 0.82rem;
+  }
+
+  .card-container {
+    margin-bottom: 0.55rem;
+  }
+}
+
 /* ===== Responsive: <= 900px ===== */
 @media (max-width: 900px) {
   :root {
@@ -149,6 +174,7 @@
   }
 
   .effects-panel {
+    flex: 1 1 auto;
     gap: 0.35rem;
     margin-top: 0;
     padding: 0;
@@ -165,9 +191,13 @@
     line-height: 1.25;
   }
 
-  .status-effects,
+  .status-effects {
+    min-height: 0;
+    max-height: none;
+  }
+
   .history-section {
-    max-height: 13rem;
+    max-height: 11rem;
   }
 
   .effect-card {
@@ -273,7 +303,7 @@
 
   .center-panel {
     order: 1;
-    overflow: visible;
+    overflow: hidden;
   }
 
   .right-panel {
@@ -289,7 +319,7 @@
     margin: 0.1rem 0;
   }
 
-  .items-board { flex-basis: 11.5rem; max-height: 11.5rem; }
+  .items-board { flex-basis: 9.5rem; max-height: 9.5rem; }
 
   .dice-box { height: min(48vh, 21rem); }
 
