@@ -152,7 +152,7 @@ export function createCardHandlers({
 
     // Block card clicks while an effect is waiting for target pick.
     if (isEffectSelectionActive(state)) {
-      log("Pick the target player in the turn order first.");
+      log("Pick the target player from the player menu first.");
       return;
     }
 

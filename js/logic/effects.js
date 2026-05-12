@@ -6,7 +6,6 @@ import { systemRng } from '../utils/rng.js';
 import { FLOW_TRANSITIONS, transitionFlow } from './flowMachine.js';
 
 const NOOP_EFFECT_UI = Object.freeze({
-  setPickMode: () => {},
   clearPickMode: () => {},
   enablePlayerNameSelection: () => () => {}
 });
@@ -14,7 +13,6 @@ const NOOP_EFFECT_UI = Object.freeze({
 function normalizeEffectUi(ui) {
   if (!ui || typeof ui !== 'object') return NOOP_EFFECT_UI;
   return {
-    setPickMode: typeof ui.setPickMode === 'function' ? ui.setPickMode : NOOP_EFFECT_UI.setPickMode,
     clearPickMode: typeof ui.clearPickMode === 'function' ? ui.clearPickMode : NOOP_EFFECT_UI.clearPickMode,
     enablePlayerNameSelection: typeof ui.enablePlayerNameSelection === 'function'
       ? ui.enablePlayerNameSelection
@@ -101,8 +99,7 @@ export function cancelTargetedEffectSelection(state) {
 
 /**
  * "Pick a target" mode for targeted effects like DRINK_BUDDY / DITTO_MAGNET.
- * - Adds highlight mode to turn order names
- * - Blocks other actions until target picked (controller handles the guard)
+ * Blocks other actions until a target is picked (controller handles the guard).
  */
 export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDone, rng = systemRng, ui = null) {
   cancelTargetedEffectSelection(state);
@@ -135,10 +132,14 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
     return null;
   }
 
-  // Visual hint: highlight player names while picking
-  selectionUi.setPickMode('effect-target');
+  const effectName = getEffectTitle(def.type, def.type);
+  const cardMessage = String(def?.message || '').trim();
+  const selectionMessage = [
+    cardMessage,
+    `Choose a player for ${effectName}.`
+  ].filter(Boolean).join(' ');
 
-  log?.(`Pick a player for: ${getEffectTitle(def.type, def.type)}. Click a player name in turn order.`);
+  log?.(`Pick a player for: ${effectName}. Use the player menu.`);
 
   const activeCleanup = selectionUi.enablePlayerNameSelection(state, (targetIndex, cleanup) => {
     cleanup?.();
@@ -178,6 +179,10 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
     }
 
     onDone?.(targetIndex);
+  }, {
+    title: String(def?.title || 'Pick a Player').trim() || 'Pick a Player',
+    message: selectionMessage || `Choose a player for ${effectName}.`,
+    effectName
   });
 
   state.effectSelection.cleanup = activeCleanup;

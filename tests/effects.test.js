@@ -169,16 +169,16 @@ test('onDittoActivated applies shot and consumes magnet on trigger', () => {
 test('beginTargetedEffectSelection uses UI adapter and creates effect on pick', () => {
   const state = createState();
   const { log } = createLogCollector();
-  let pickMode = null;
   let cleared = false;
   let cleanupCalled = false;
   let capturedPick = null;
+  let capturedDetails = null;
 
   const ui = {
-    setPickMode: (mode) => { pickMode = mode; },
     clearPickMode: () => { cleared = true; },
-    enablePlayerNameSelection: (innerState, onPick) => {
+    enablePlayerNameSelection: (innerState, onPick, details) => {
       capturedPick = onPick;
+      capturedDetails = details;
       return () => { cleanupCalled = true; };
     }
   };
@@ -195,8 +195,9 @@ test('beginTargetedEffectSelection uses UI adapter and creates effect on pick', 
   );
 
   assert.equal(state.effectSelection.active, true);
-  assert.equal(pickMode, 'effect-target');
   assert.ok(typeof capturedPick === 'function');
+  assert.equal(capturedDetails.title, 'Pick a Player');
+  assert.match(capturedDetails.message, /Choose a player for Drink Buddy/);
 
   capturedPick(1, () => { cleanupCalled = true; });
 

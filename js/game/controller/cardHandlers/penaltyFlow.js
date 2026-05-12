@@ -63,7 +63,7 @@ export function createPenaltyFlow({
     }
 
     if (isEffectSelectionActive(state)) {
-      log('Pick a target player first (effect selection is active).');
+      log('Pick a target player from the player menu first.');
       return true;
     }
 

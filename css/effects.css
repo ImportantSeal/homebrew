@@ -1,17 +1,3 @@
-/* ===== Effects: Pick Mode ===== */
-body[data-pickmode="effect-target"] .turn-player-name {
-  cursor: pointer;
-  border-color: rgba(53,224,199,0.28);
-  box-shadow: 0 0 0 3px rgba(53,224,199,0.14);
-}
-
-body[data-pickmode="effect-target"] .turn-player-name.turn-player-name--current {
-  border-color: var(--player-color, rgba(53,224,199,0.72));
-  box-shadow:
-    0 0 0 1px var(--player-color, rgba(53,224,199,0.82)),
-    0 0 0 4px rgba(53,224,199,0.14);
-}
-
 /* ===== Effects: Panel ===== */
 .effects-panel {
   width: 100%;

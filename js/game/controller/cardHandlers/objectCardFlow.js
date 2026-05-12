@@ -139,7 +139,12 @@ export function createObjectCardFlow({
       if (effectDef.needsTarget) {
         beginTargetedEffectSelection(
           state,
-          { type: effectDef.type, turns: effectDef.turns },
+          {
+            type: effectDef.type,
+            turns: effectDef.turns,
+            title: actionTitle,
+            message: actionMessage || drawMessage
+          },
           state.currentPlayerIndex,
           log,
           () => {
@@ -148,7 +153,6 @@ export function createObjectCardFlow({
           }
         );
 
-        openActionScreen(actionTitle, actionMessage || drawMessage, { variant: "normal" });
         renderEffectsPanel();
         return false;
       }

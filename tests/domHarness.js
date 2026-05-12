@@ -454,6 +454,12 @@ class FakeElement extends FakeNode {
     if (this.ownerDocument) this.ownerDocument.activeElement = this;
   }
 
+  blur() {
+    if (this.ownerDocument && this.ownerDocument.activeElement === this) {
+      this.ownerDocument.activeElement = this.ownerDocument.body;
+    }
+  }
+
   click() {
     this.dispatchEvent(new FakeEvent('click', { bubbles: true, cancelable: true }));
   }

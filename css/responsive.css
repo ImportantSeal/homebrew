@@ -13,14 +13,6 @@
     border-color: rgba(255,255,255,0.2);
   }
 
-  body[data-pickmode="effect-target"] .turn-player-name:hover {
-    filter: brightness(1.08);
-    border-color: rgba(255,79,216,0.28);
-    box-shadow:
-      0 0 0 3px rgba(53,224,199,0.14),
-      0 0 0 5px rgba(255,79,216,0.10);
-  }
-
   .card:hover,
   .penalty-deck:hover {
     --card-lift-y: -3px;
