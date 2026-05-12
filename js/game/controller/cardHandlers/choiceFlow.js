@@ -41,7 +41,8 @@ export function createChoiceFlow({
       actions: choice.options.map((option) => ({
         id: option.id,
         label: option.label,
-        variant: option.variant || "primary"
+        variant: option.variant || "primary",
+        playerColor: option.playerColor || ''
       })),
       onAction: (selectedAction) => {
         if (!isChoiceSelectionActive(state)) return false;

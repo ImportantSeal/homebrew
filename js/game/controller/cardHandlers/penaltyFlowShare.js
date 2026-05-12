@@ -6,6 +6,7 @@ import {
 import { recordPenaltyTaken } from '../../../stats.js';
 import { getPenaltyDisplayValue, getPenaltySpec } from '../../../logic/penaltySchema.js';
 import { FLOW_TRANSITIONS, transitionFlow } from '../../../logic/flowMachine.js';
+import { getPlayerColorByIndex } from '../../../utils/playerColors.js';
 
 export function createSharePenaltyFlow({
   state,
@@ -56,7 +57,7 @@ export function createSharePenaltyFlow({
 
     const candidates = Array.isArray(state.players)
       ? state.players
-        .map((_, idx) => ({ idx, name: playerName(idx) }))
+        .map((_, idx) => ({ idx, name: playerName(idx), color: getPlayerColorByIndex(state.players, idx) }))
         .filter((entry) => entry.idx !== sourcePlayerIndex)
       : [];
 
@@ -89,6 +90,7 @@ export function createSharePenaltyFlow({
         actions: candidates.map((entry) => ({
           id: `share_penalty_${entry.idx}`,
           label: entry.name,
+          playerColor: entry.color,
           variant: 'danger'
         })),
         onAction: (selectedAction) => {

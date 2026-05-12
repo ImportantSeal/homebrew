@@ -1,4 +1,5 @@
 import { closeCardActionModal, showCardActionModal } from './cardActionModal.js';
+import { getPlayerColorByIndex } from '../utils/playerColors.js';
 
 export function clearPickMode() {
   if (typeof document === 'undefined' || !document.body?.dataset) return;
@@ -49,6 +50,7 @@ export function enablePlayerNameSelection(state, onPick, details = {}) {
     actions: players.map((player, index) => ({
       id: `effect_target_${index}`,
       label: playerLabel(player, index),
+      playerColor: getPlayerColorByIndex(players, index),
       variant: index === state.currentPlayerIndex ? 'secondary' : 'primary'
     })),
     onAction: (selectedAction) => {

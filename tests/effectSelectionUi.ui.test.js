@@ -66,7 +66,11 @@ test('effect player selection opens a menu and returns the selected player', asy
     enablePlayerNameSelection(
       {
         currentPlayerIndex: 0,
-        players: [{ name: 'A' }, { name: 'B' }, { name: 'C' }]
+        players: [
+          { name: 'A', color: '#EE6868' },
+          { name: 'B', color: '#68ABEE' },
+          { name: 'C', color: '#68EEAB' }
+        ]
       },
       (targetIndex, cleanup) => {
         cleanup();
@@ -84,6 +88,11 @@ test('effect player selection opens a menu and returns the selected player', asy
 
     const buttons = refs.actions.querySelectorAll('.card-action__button--option');
     assert.deepEqual(buttons.map((button) => button.textContent), ['A', 'B', 'C']);
+    assert.equal(buttons[1].classList.contains('card-action__button--player'), true);
+    assert.equal(
+      buttons[1].querySelector('.player-name-token')?.style.getPropertyValue('--player-color'),
+      '#68ABEE'
+    );
 
     dom.click(buttons[1]);
     await dom.flush();

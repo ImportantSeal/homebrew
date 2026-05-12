@@ -298,6 +298,18 @@
   text-align: left;
 }
 
+.card-action__button--player {
+  border-color: var(--player-color, var(--action-border));
+  box-shadow:
+    var(--elevation-surface),
+    inset 0.28rem 0 0 var(--player-color, transparent);
+}
+
+.card-action__button--player .player-name-token {
+  color: var(--player-color, rgba(250,252,255,0.96));
+  font-weight: 950;
+}
+
 .card-action__button--option[data-variant="secondary"] {
   background:
     linear-gradient(135deg, rgba(160, 174, 205, 0.26), rgba(116, 138, 179, 0.18)),

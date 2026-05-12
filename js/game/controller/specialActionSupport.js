@@ -1,3 +1,5 @@
+import { getPlayerColorByIndex } from '../../utils/playerColors.js';
+
 function getPlayers(state) {
   return Array.isArray(state?.players) ? state.players : [];
 }
@@ -38,6 +40,7 @@ function normalizeChoiceOptions(options) {
         id,
         label,
         variant: normalizeChoiceText(option.variant, 'primary').toLowerCase(),
+        playerColor: normalizeChoiceText(option.playerColor, ''),
         run: option.run
       };
     })
@@ -99,12 +102,14 @@ export function createTargetPlayerChoiceAction({
   const options = players
     .map((player, idx) => ({
       idx,
-      name: normalizeChoiceText(player?.name, `Player ${idx + 1}`)
+      name: normalizeChoiceText(player?.name, `Player ${idx + 1}`),
+      color: getPlayerColorByIndex(players, idx)
     }))
-    .map(({ idx, name }) => ({
+    .map(({ idx, name, color }) => ({
       id: `target_${idx}`,
       label: name,
       variant: optionVariant,
+      playerColor: color,
       run: (context) => {
         if (typeof onPick !== 'function') return {};
         const result = onPick(context, idx, name);

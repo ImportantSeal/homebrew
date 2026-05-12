@@ -1,6 +1,7 @@
 import { getLastHistoryEntry } from '../cardHistory.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 import { bindTap } from '../utils/tap.js';
+import { applyPlayerColor } from '../utils/playerColors.js';
 
 const IDS = {
   modal: 'card-action-modal',
@@ -60,6 +61,7 @@ function normalizeActions(actions) {
         id,
         label,
         variant: resolveActionVariant(action.variant),
+        playerColor: String(action.playerColor || '').trim(),
         closeOnSelect: action.closeOnSelect !== false
       };
     })
@@ -238,7 +240,18 @@ export function showCardActionModal({
       button.className = 'card-action__button card-action__button--option';
       button.dataset.variant = action.variant;
       button.dataset.actionId = action.id;
-      button.textContent = action.label;
+      if (action.playerColor) {
+        button.classList.add('card-action__button--player');
+        applyPlayerColor(button, action.playerColor);
+
+        const label = document.createElement('span');
+        label.className = 'player-name-token';
+        applyPlayerColor(label, action.playerColor);
+        label.textContent = action.label;
+        button.appendChild(label);
+      } else {
+        button.textContent = action.label;
+      }
       actionsEl.appendChild(button);
 
       const unbind = bindTap(button, async () => {
