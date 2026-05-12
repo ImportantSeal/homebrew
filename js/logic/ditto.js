@@ -2,9 +2,11 @@
 
 import { randomFromArray } from '../utils/random.js';
 import { resolveRng } from '../utils/rng.js';
+import { getPlainCardSpec } from './cardSchema.js';
 import { getPenaltyDisplayValue, getPenaltySpec } from './penaltySchema.js';
 
 const ITEM_DITTO_TYPES = new Set(['LOSE_ONE_ITEM_ALL', 'STEAL_RANDOM_ITEM']);
+const TRAP_DITTO_TYPE = 'TRAP_CARD';
 
 function logDitto(log, message) {
   if (typeof log === 'function') {
@@ -21,6 +23,98 @@ function applyPenaltyResult(state, playerIndex, penaltyCard, log, applyDrinkEven
   }
 }
 
+function formatDrinkLabel(amount) {
+  if (typeof amount === 'number') return `Drink ${amount}`;
+  const text = String(amount || '').trim();
+  if (/^Shot\+Shotgun$/i.test(text)) return 'Shot + Shotgun';
+  if (/^Shotgun$/i.test(text)) return 'Shotgun';
+  if (/^Shot$/i.test(text)) return 'Shot';
+  return text || 'Drink 1';
+}
+
+function formatEveryoneAction(amount) {
+  if (typeof amount === 'number') return `drinks ${amount}`;
+  const text = String(amount || '').trim();
+  if (/^Shot\+Shotgun$/i.test(text)) return 'takes a Shot and a Shotgun';
+  if (/^Shotgun$/i.test(text)) return 'takes a Shotgun';
+  return 'takes a Shot';
+}
+
+function toPositiveNumber(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed) || parsed <= 0) return 0;
+  return parsed;
+}
+
+function boostGroupDrinkAmount(amount) {
+  if (typeof amount === 'number') return amount + 1;
+
+  const text = String(amount || '').trim();
+  if (/^Shot\+Shotgun$/i.test(text)) return 'Shot+Shotgun';
+  if (/^Shotgun$/i.test(text)) return 'Shot+Shotgun';
+  if (/^Shot$/i.test(text)) return 'Shotgun';
+  return amount;
+}
+
+function applyEveryoneDrink(state, amount, reason, log, applyDrinkEvent) {
+  if (!Array.isArray(state?.players) || typeof applyDrinkEvent !== 'function') return;
+
+  state.players.forEach((_, idx) => {
+    applyDrinkEvent(state, idx, amount, reason, log, { suppressSelfLog: true });
+  });
+}
+
+function resolveTrapSourceCard(state, cardIndex, ev) {
+  if (ev && Object.prototype.hasOwnProperty.call(ev, 'sourceCard')) return ev.sourceCard;
+  return state?.currentCards?.[cardIndex];
+}
+
+function runDittoTrap(state, cardIndex, ev, log, applyDrinkEvent) {
+  const sourceCard = resolveTrapSourceCard(state, cardIndex, ev);
+  const spec = getPlainCardSpec(sourceCard);
+
+  if (spec.drink && spec.give && spec.drink.scope === 'self') {
+    const drinkAmount = toPositiveNumber(spec.drink.amount);
+    const giveAmount = toPositiveNumber(spec.give.amount);
+
+    if (drinkAmount > 0 && giveAmount > 0) {
+      const trapAmount = drinkAmount + giveAmount;
+      const message = `The Give backfires. ${formatDrinkLabel(trapAmount)}.`;
+      logDitto(log, message);
+      applyDrinkEvent?.(state, state.currentPlayerIndex, trapAmount, 'Ditto trap', log);
+      return message;
+    }
+  }
+
+  if (spec.give) {
+    const trapAmount = toPositiveNumber(spec.give.amount) || 1;
+    const message = `The Give backfires. ${formatDrinkLabel(trapAmount)}.`;
+    logDitto(log, message);
+    applyDrinkEvent?.(state, state.currentPlayerIndex, trapAmount, 'Ditto trap', log);
+    return message;
+  }
+
+  if (spec.drink) {
+    if (spec.drink.scope === 'all') {
+      const trapAmount = boostGroupDrinkAmount(spec.drink.amount);
+      const message = `The group drink gets worse. Everybody ${formatEveryoneAction(trapAmount)}.`;
+      logDitto(log, message);
+      applyEveryoneDrink(state, trapAmount, 'Ditto trap', log, applyDrinkEvent);
+      return message;
+    }
+
+    const message = `The Drink spreads. Everybody ${formatEveryoneAction(spec.drink.amount)}.`;
+    logDitto(log, message);
+    applyEveryoneDrink(state, spec.drink.amount, 'Ditto trap', log, applyDrinkEvent);
+    return message;
+  }
+
+  const message = 'The trap misfires. Drink 3.';
+  logDitto(log, message);
+  applyDrinkEvent?.(state, state.currentPlayerIndex, 3, 'Ditto trap', log);
+  return message;
+}
+
 export function getDittoEventPool(state) {
   const pool = [
     { type: 'LOSE_ONE_ITEM_ALL' },
@@ -29,15 +123,17 @@ export function getDittoEventPool(state) {
     { type: 'WATERFALL' },
     { type: 'SHOT' },
     { type: 'RANDOM_CHALLENGE' },
-    { type: 'PENALTY_ALL' }
+    { type: 'PENALTY_ALL' },
+    { type: TRAP_DITTO_TYPE }
   ];
 
   if (state?.includeItems) return pool;
   return pool.filter(ev => !ITEM_DITTO_TYPES.has(ev.type));
 }
 
-export function activateDitto(state, cardElement, cardIndex, log) {
+export function activateDitto(state, cardElement, cardIndex, log, sourceCard = null) {
   const rng = resolveRng(state?.rng);
+  const originalCard = sourceCard ?? state?.currentCards?.[cardIndex] ?? cardElement?.dataset?.value ?? null;
   state.dittoActive[cardIndex] = true;
   cardElement.dataset.value = "Ditto";
 
@@ -58,7 +154,10 @@ export function activateDitto(state, cardElement, cardIndex, log) {
 
   cardElement.dataset.dittoTime = Date.now();
   const dittoPool = getDittoEventPool(state);
-  state.dittoPending[cardIndex] = randomFromArray(dittoPool, rng) || { type: 'DRINK_3' };
+  const selectedEvent = randomFromArray(dittoPool, rng) || { type: 'DRINK_3' };
+  state.dittoPending[cardIndex] = selectedEvent.type === TRAP_DITTO_TYPE
+    ? { ...selectedEvent, sourceCard: originalCard }
+    : selectedEvent;
 }
 
 /**
@@ -186,6 +285,11 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
       }
 
       logDitto(log, `Ditto triggered group penalty ${penaltyLabel}. Affected ${affectedCount}.`);
+      return { title: infoTitle, message };
+    }
+
+    case TRAP_DITTO_TYPE: {
+      const message = runDittoTrap(state, cardIndex, ev, log, applyDrinkEvent);
       return { title: infoTitle, message };
     }
 

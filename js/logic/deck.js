@@ -49,7 +49,7 @@ export function dealTurnCards(state, rng = null) {
 
 function pickBaseCard(state, rng) {
   const cardTypeChance = rng.nextFloat();
-  if (cardTypeChance < 0.3) { 
+  if (cardTypeChance < 0.3) {
 
     return randomFromArray(state.socialCards, rng);
   } else if (cardTypeChance < 0.4) {

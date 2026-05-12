@@ -87,7 +87,7 @@ export function createPlainCardFlow({
     const activeRng = resolveRng(rng ?? state?.rng);
     if (activeRng.nextFloat() < 0.16) { //16% chance to activate Ditto on any plain card
       const idx = parseInt(cardEl.dataset.index || "0", 10);
-      activateDitto(state, cardEl, idx, log);
+      activateDitto(state, cardEl, idx, log, cardData);
 
       onDittoActivated(state, state.currentPlayerIndex, log);
       replaceCardSelectionKind(state, state.currentPlayerIndex, selectedKind, 'ditto');
