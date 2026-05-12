@@ -42,7 +42,7 @@ export const gameData = {
         { name: "Rock, Paper, Scissors", instruction: "Play R,P,S against someone; loser drinks three." },
         { name: "Random Fact", instruction: "Share an interesting fact - a boring fact means 1 drink." },
         { name: "This or That", instruction: "You pick two options and ask one player to choose immediately. If they hesitate, they drink 2." },
-        { name: "5-Second Rule", instruction: "Name 3 things in a category within 5 seconds. Fail and drink 2." },
+        { name: "5-Second Rule", instruction: "The player to your left names the category. Name 3 things in that category within 5 seconds. Fail and drink 2." },
         { name: "Most Likely To", instruction: "Say 'Most likely to...'. Count to three and point; the most-voted player drinks 1." },
         { name: "Staring Contest", instruction: "Pick an opponent. First to blink drinks two." },
         { name: "Hot Take", instruction: "Share one hot take." },
@@ -139,7 +139,7 @@ export const gameData = {
       { name: "Unpopular Opinion", instruction: "Share one unpopular opinion. If nobody agrees, drink 1. If everyone agrees, drink 3." },
       { name: "Silent Agreement", instruction: "State one opinion. Everyone who agrees drinks 1. No discussion." },
       { name: "Never Have I Ever", instruction: "Say 'Never have I ever...' and finish it. Anyone who has done it drinks 1, including you." },
-      { name: "First Impression", instruction: "Everyone says one word about their first impression of you. Group picks the most accurate; that player gives 3." },
+      { name: "First Impression", instruction: "Everyone says one word about their first impression of you. You decide who was closest; that player gives 3." },
       { name: "The Bluff", instruction: "Make a bold claim about yourself. Anyone may challenge. If the challenger is right, you drink 3. If wrong, the challenger drinks 3. No challenge means no drinks." },
       {
         name: "Most Drinks Guess",
@@ -445,7 +445,7 @@ export const gameData = {
       },
       {
         name: "Ditto Magnet (Pick a target)",
-        instruction: "Pick a player (you may choose yourself). For the next 5 turns, if Ditto triggers for them, they take a Shot immediately.",
+        instruction: "Pick a player (you may choose yourself). For the next 5 turns, if Ditto triggers, they take a Shot immediately.",
         effect: { type: EFFECT_TYPES.DITTO_MAGNET, turns: 5, needsTarget: true }
       }
     ]
