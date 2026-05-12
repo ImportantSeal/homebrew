@@ -14,7 +14,7 @@ export function restartClassAnimation(element, className) {
   element._classAnimationRafIds = store;
 
   const previousFrameId = store.get(className);
-  if (typeof previousFrameId === 'number') {
+  if (previousFrameId != null) {
     cancelAnimationFrame(previousFrameId);
   }
 
@@ -27,4 +27,16 @@ export function restartClassAnimation(element, className) {
   });
 
   store.set(className, frameId);
+}
+
+export function cancelClassAnimationRestart(element, className) {
+  if (!element?._classAnimationRafIds || !className) return;
+
+  const store = element._classAnimationRafIds;
+  const frameId = store.get(className);
+  if (frameId != null && typeof cancelAnimationFrame === 'function') {
+    cancelAnimationFrame(frameId);
+  }
+
+  store.delete(className);
 }

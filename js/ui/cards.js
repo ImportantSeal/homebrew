@@ -1,6 +1,7 @@
 import { flipCardAnimation } from '../animations.js';
 import { getCardDisplayValue } from '../utils/cardDisplay.js';
 import { bindTap } from '../utils/tap.js';
+import { cancelClassAnimationRestart } from '../utils/restartClassAnimation.js';
 import { getPlainCardKind } from '../logic/cardSchema.js';
 import { isReducedEffectsEnabled } from './effectsProfile.js';
 
@@ -230,15 +231,11 @@ function scheduleDealAnimation(cardEl, delayMs) {
 function resetCardTransientState(cardEl) {
   if (!cardEl) return;
 
-  const hasImpactState = cardEl.classList.contains('card-impact-flash')
-    || typeof cardEl._impactFlashTimeout === 'number';
+  cancelClassAnimationRestart(cardEl, 'card-impact-flash');
+  cardEl.classList.remove('card-impact-flash');
+  cardEl.querySelectorAll('.card-impact-burst').forEach((burstEl) => burstEl.remove());
 
-  if (hasImpactState) {
-    cardEl.classList.remove('card-impact-flash');
-    cardEl.querySelectorAll('.card-impact-burst').forEach((burstEl) => burstEl.remove());
-  }
-
-  if (typeof cardEl._impactFlashTimeout === 'number') {
+  if (cardEl._impactFlashTimeout != null) {
     clearTimeout(cardEl._impactFlashTimeout);
     cardEl._impactFlashTimeout = null;
   }

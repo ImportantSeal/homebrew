@@ -122,3 +122,39 @@ test('cards init binds selection handlers once and renderCards avoids forced ref
     dom.cleanup();
   }
 });
+
+test('renderCards cancels pending impact flashes before reusing card elements', async () => {
+  const dom = installDom();
+
+  try {
+    const card0 = buildCard(dom.document, 'card0', 0);
+    const card1 = buildCard(dom.document, 'card1', 1);
+    const card2 = buildCard(dom.document, 'card2', 2);
+    buildPenaltyDeck(dom.document);
+
+    const { flashElement } = await importFresh('../js/animations.js', import.meta.url);
+    const { renderCards } = await importFresh('../js/ui/cards.js', import.meta.url);
+
+    flashElement(card2);
+
+    renderCards({
+      currentCards: [
+        'Drink 1',
+        'Give 1',
+        { name: 'Crowd Challenge', subcategories: ['Everyone gives 1'] }
+      ],
+      revealed: [true, true, true],
+      itemCards: []
+    });
+
+    await dom.flush(6);
+
+    assert.equal(card0.classList.contains('card-impact-flash'), false);
+    assert.equal(card1.classList.contains('card-impact-flash'), false);
+    assert.equal(card2.classList.contains('card-impact-flash'), false);
+    assert.equal(card2.querySelector('.card-impact-burst'), null);
+    assert.equal(card2.dataset.kind, 'crowd');
+  } finally {
+    dom.cleanup();
+  }
+});
