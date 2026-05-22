@@ -20,6 +20,7 @@ function effectIcon(type) {
     case EFFECT_TYPES.NO_PHONE_TOUCH: return "\u{1F4F5}";
     case EFFECT_TYPES.DRINK_BUDDY: return "\u{1F91D}\u{1F37B}";
     case EFFECT_TYPES.DITTO_MAGNET: return "\u{1F9F2}";
+    case EFFECT_TYPES.DOUBLE_DRINKS: return "x2";
     case EFFECT_TYPES.KINGS_TAX: return "\u{1F451}";
     case EFFECT_TYPES.LIE_MODE: return "\u{1F925}";
     case EFFECT_TYPES.DELAYED_REACTION: return "\u23F1\uFE0F";
@@ -58,6 +59,10 @@ function effectDescription(state, eff) {
     case EFFECT_TYPES.DITTO_MAGNET: {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `If Ditto triggers for ${tgt}, they take a Shot.`;
+    }
+    case EFFECT_TYPES.DOUBLE_DRINKS: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? state.players?.[eff.sourceIndex]?.name ?? "Someone";
+      return `${tgt} drinks double for every drink amount they take.`;
     }
     case EFFECT_TYPES.KINGS_TAX: {
       const king = state.players?.[eff.targetIndex]?.name;
@@ -125,6 +130,10 @@ function effectAppliesTo(state, eff) {
     case EFFECT_TYPES.DITTO_MAGNET: {
       const tgt = state.players?.[eff.targetIndex]?.name ?? "Someone";
       return `Magnetized: ${tgt}`;
+    }
+    case EFFECT_TYPES.DOUBLE_DRINKS: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? state.players?.[eff.sourceIndex]?.name ?? "Player";
+      return `Doubled: ${tgt}`;
     }
     case EFFECT_TYPES.KINGS_TAX: {
       const king = state.players?.[eff.targetIndex]?.name ?? "Player";

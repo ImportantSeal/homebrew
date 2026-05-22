@@ -33,6 +33,14 @@ function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel, ad
   } else if (effectDef.type === "GLASS_DOWN") {
     addEffect(state, createEffect("GLASS_DOWN", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
     log(`Effect activated: Glass Down Rule (${effectDef.turns} turns).`);
+  } else if (effectDef.type === "DOUBLE_DRINKS") {
+    const targetIndex = state.currentPlayerIndex;
+    const targetName = state.players?.[targetIndex]?.name ?? "Someone";
+    addEffect(state, createEffect("DOUBLE_DRINKS", effectDef.turns, {
+      sourceIndex: state.currentPlayerIndex,
+      targetIndex
+    }));
+    log(`Effect activated: Double Drinks. ${targetName} drinks double for ${effectDef.turns} turns.`);
   } else {
     addEffect(state, createEffect(effectDef.type, effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
     log(`Effect activated: ${effectLabelForLog({ type: effectDef.type }, effectDef.type)} (${effectDef.turns} turns).`);

@@ -16,7 +16,8 @@ const EFFECT_TITLES = Object.freeze({
   [EFFECT_TYPES.NEMESIS_MARK]: "Nemesis Mark",
   [EFFECT_TYPES.FORBIDDEN_WORD]: "Forbidden Word",
   [EFFECT_TYPES.QUESTION_MASTER]: "Question Master",
-  [EFFECT_TYPES.NOTIFICATION_CURSE]: "Notification Curse"
+  [EFFECT_TYPES.NOTIFICATION_CURSE]: "Notification Curse",
+  [EFFECT_TYPES.DOUBLE_DRINKS]: "Double Drinks"
 });
 
 export function getEffectTitle(type, fallback = "Effect") {

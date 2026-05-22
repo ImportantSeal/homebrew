@@ -174,6 +174,8 @@ export function beginTargetedEffectSelection(state, def, sourceIndex, log, onDon
       log?.(`Domino Curse: whenever ${tgtName} drinks, everyone else drinks 1 (${def.turns} turns).`);
     } else if (def.type === EFFECT_TYPES.NEMESIS_MARK) {
       log?.(`Nemesis Mark: when ${tgtName} drinks, ${srcName} may give 1 (${def.turns} turns).`);
+    } else if (def.type === EFFECT_TYPES.DOUBLE_DRINKS) {
+      log?.(`Double Drinks: ${tgtName} drinks double for ${def.turns} turns.`);
     } else {
       log?.(`Effect set: ${def.type} -> ${tgtName} (${def.turns} turns).`);
     }
@@ -209,6 +211,29 @@ function parseDrinkAmount(text) {
   return null;
 }
 
+function activeDoubleDrinkEffectFor(state, playerIndex) {
+  const effects = Array.isArray(state?.effects) ? state.effects : [];
+  return effects.find(e => (
+    e
+    && e.type === EFFECT_TYPES.DOUBLE_DRINKS
+    && (e.remainingTurns ?? 0) > 0
+    && (e.targetIndex === playerIndex || (e.targetIndex == null && e.sourceIndex === playerIndex))
+  )) || null;
+}
+
+function applyDrinkMultiplier(state, playerIndex, amount, label) {
+  if (!activeDoubleDrinkEffectFor(state, playerIndex)) {
+    return { amount, label, doubled: false };
+  }
+
+  const doubledAmount = amount * 2;
+  return {
+    amount: doubledAmount,
+    label: `Drink ${doubledAmount} (doubled from ${label})`,
+    doubled: true
+  };
+}
+
 /**
  * Central "drink happened" hook:
  * - triggers DRINK_BUDDY if drinker is a source
@@ -239,7 +264,11 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
     label = parsed.label;
   }
 
-  if (!suppressSelfLog) {
+  const resolvedDrink = applyDrinkMultiplier(state, playerIndex, amount, label);
+  amount = resolvedDrink.amount;
+  label = resolvedDrink.label;
+
+  if (!suppressSelfLog || resolvedDrink.doubled) {
     log?.(`${player.name}: ${label}${reason ? ` (${reason})` : ""}`);
   }
 
@@ -254,8 +283,9 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
         const tgt = state.players?.[e.targetIndex];
         if (!tgt) return;
 
-        log?.(`${tgt.name}: ${label} (Drink Buddy with ${player.name})`);
-        recordDrinkTaken(state, e.targetIndex, amount);
+        const buddyDrink = applyDrinkMultiplier(state, e.targetIndex, amount, `Drink ${amount}`);
+        log?.(`${tgt.name}: ${buddyDrink.label} (Drink Buddy with ${player.name})`);
+        recordDrinkTaken(state, e.targetIndex, buddyDrink.amount);
       });
   }
 
