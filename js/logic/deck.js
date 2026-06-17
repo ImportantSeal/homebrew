@@ -1,6 +1,7 @@
 // homebrew/js/logic/deck.js
 import { randomFromArray } from '../utils/random.js';
 import { resolveRng } from '../utils/rng.js';
+import { dealTestCards } from '../dev/cardTestMode.js';
 
 // Helps reduce "this feels broken" moments:
 // - Avoids dealing exact same "card" twice in the SAME 3-card turn (best-effort).
@@ -14,6 +15,8 @@ function cardKey(card) {
 }
 
 export function dealTurnCards(state, rng = null) {
+  if (dealTestCards(state)) return;
+
   const activeRng = resolveRng(rng ?? state?.rng);
   state.currentCards = [];
   state.dittoPending = [null, null, null];
