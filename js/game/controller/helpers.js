@@ -37,6 +37,13 @@ function normalizePenaltyPlayerName(value, fallback) {
   return text || fallback;
 }
 
+function normalizePenaltyPlayerIndexes(state, playerIndexes) {
+  const players = Array.isArray(state?.players) ? state.players : [];
+  return Array.isArray(playerIndexes)
+    ? playerIndexes.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < players.length)
+    : [];
+}
+
 function hasImmediatePenaltyDeckInstruction(...parts) {
   const text = parts.map((part) => String(part || "")).join(' ').trim();
   if (!text) return false;
@@ -84,9 +91,7 @@ export function queueManualPenaltyDrawForPlayers(
   }
 
   const players = Array.isArray(state?.players) ? state.players : [];
-  const queue = Array.isArray(playerIndexes)
-    ? playerIndexes.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < players.length)
-    : [];
+  const queue = normalizePenaltyPlayerIndexes(state, playerIndexes);
 
   if (queue.length === 0) {
     log?.("No valid players available for group penalty.");
@@ -110,6 +115,46 @@ export function queueManualPenaltyDrawForPlayers(
     `Player ${firstPlayerIndex + 1}`
   );
   log?.(`${prompt} ${firstPlayerName} rolls first.`);
+  return true;
+}
+
+export function queueSharedPenaltyDrawForPlayers(
+  state,
+  log,
+  playerIndexes,
+  originPlayerIndex,
+  prompt = "Roll the Penalty Deck once. The same penalty applies to everyone."
+) {
+  if (state.penaltyShown) {
+    log?.("Resolve the current penalty first.");
+    return false;
+  }
+
+  const queue = normalizePenaltyPlayerIndexes(state, playerIndexes);
+  if (queue.length === 0) {
+    log?.("No valid players available for shared penalty.");
+    return false;
+  }
+
+  const sourcePlayerIndex = Number.isInteger(originPlayerIndex)
+    ? originPlayerIndex
+    : state.currentPlayerIndex;
+  const transition = transitionFlow(state, FLOW_TRANSITIONS.QUEUE_CARD_PENALTY, {
+    targetPlayerIndex: sourcePlayerIndex
+  });
+  if (!transition.ok) {
+    log?.("Resolve the current flow first.");
+    return false;
+  }
+
+  state.penaltyGroup = {
+    active: true,
+    mode: "shared",
+    queue,
+    cursor: 0,
+    originPlayerIndex: sourcePlayerIndex
+  };
+  log?.(prompt);
   return true;
 }
 

@@ -2,7 +2,8 @@ import { recordGiveDrinks } from '../../stats.js';
 import { ACTION_CODES } from '../../logic/actionEffectRegistry.js';
 import {
   queueManualPenaltyDraw,
-  queueManualPenaltyDrawForPlayers
+  queueManualPenaltyDrawForPlayers,
+  queueSharedPenaltyDrawForPlayers
 } from './helpers.js';
 import { applyEveryoneDrink } from './specialActionSupport.js';
 import {
@@ -158,12 +159,12 @@ function handleAllInTax(context) {
 function handlePenaltyAllManual(context) {
   const { state, currentPlayerIndex, log } = context;
 
-  queueManualPenaltyDrawForPlayers(
+  queueSharedPenaltyDrawForPlayers(
     state,
     log,
     allPlayerIndexes(state),
     currentPlayerIndex,
-    "Fun for whole family: everybody takes a Penalty card."
+    "Fun for whole family: roll the Penalty Deck once; the same penalty applies to everyone."
   );
   return { endTurn: false };
 }

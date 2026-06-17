@@ -120,18 +120,19 @@ test('CHAOS_REFERENDUM_GROUP penalty choice queues manual group penalties and ke
   assert.ok(lines.some((line) => line.includes('Chaos Referendum: everybody takes a Penalty card.')));
 });
 
-test('PENALTY_ALL_MANUAL queues manual group penalties for all players', () => {
+test('PENALTY_ALL_MANUAL queues one shared penalty roll for all players', () => {
   const state = createState();
   const { lines, log } = createLogCollector();
 
   const result = runSpecialAction('PENALTY_ALL_MANUAL', createContext(state, log));
 
   assert.deepEqual(result, { endTurn: false });
-  assert.equal(state.penaltySource, 'group_pending');
+  assert.equal(state.penaltySource, 'card_pending');
   assert.equal(state.penaltyGroup?.active, true);
+  assert.equal(state.penaltyGroup?.mode, 'shared');
   assert.deepEqual(state.penaltyGroup?.queue, [0, 1, 2]);
   assert.equal(state.penaltyGroup?.cursor, 0);
-  assert.ok(lines.some((line) => line.includes('Fun for whole family: everybody takes a Penalty card.')));
+  assert.ok(lines.some((line) => line.includes('Fun for whole family: roll the Penalty Deck once')));
 });
 
 test('SHARE_PENALTY_LOCKED arms share flow and keeps turn pending', () => {

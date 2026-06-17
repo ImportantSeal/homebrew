@@ -116,6 +116,37 @@ test('group penalty rolls the next queued player and waits for confirmation', ()
   assert.equal(counts.nextPlayer, 0);
 });
 
+test('shared penalty roll reveals one card and targets all queued players', () => {
+  const rollCalls = [];
+  const { state, counts, flow } = createHarness({
+    penaltyShown: false,
+    penaltyConfirmArmed: false,
+    penaltySource: 'card_pending',
+    penaltyRollPlayerIndex: 0,
+    penaltyGroup: { active: true, mode: 'shared', queue: [0, 1], cursor: 0, originPlayerIndex: 0 },
+    players: [{ name: 'A' }, { name: 'B' }],
+    currentPlayerIndex: 0
+  }, {
+    rollPenaltyCard: (innerState, log, source, applyDrinkEvent, options = {}) => {
+      rollCalls.push({ source, options });
+      innerState.penaltyShown = true;
+      innerState.penaltyConfirmArmed = true;
+      innerState.penaltySource = 'card';
+    }
+  });
+
+  flow.onPenaltyDeckClick();
+
+  assert.equal(counts.lockUI, 1);
+  assert.equal(rollCalls.length, 1);
+  assert.equal(rollCalls[0].source, 'card');
+  assert.deepEqual(rollCalls[0].options.targetPlayerIndexes, [0, 1]);
+  assert.equal(rollCalls[0].options.targetLabel, 'everyone');
+  assert.equal(state.penaltyGroup, null);
+  assert.equal(counts.unlockAfter, 1);
+  assert.equal(counts.nextPlayer, 0);
+});
+
 test('group penalty confirmation ends turn after last queued penalty', () => {
   const { counts, flow } = createHarness({
     penaltyShown: true,

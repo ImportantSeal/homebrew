@@ -114,7 +114,7 @@ export const gameData = {
       { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
       { name: "Reverse Waterfall", instruction: "Everyone starts drinking; you can stop anytime, but your right neighbor must stop after you." },
       { name: "Last Letter Chain", instruction: "Pick a category; each item must start with the last letter of the previous; first repeat or miss drinks." },
-      { name: "Lowest Fingers", instruction: "Behind your back, choose 0-5 fingers. Reveal at the same time. The player(s) showing the lowest number drink 2. Any player who matched someone else's number also drinks 2." },
+      { name: "Lowest Fingers", instruction: "Everyone secretly chooses 0–5 fingers. Reveal together. Lowest number drinks 2. Anyone who matches another player drinks 1 extra." },
       { name: "Glance & Sip", instruction: "Everyone looks at the same person (count to 3). Most looked-at drinks 3." },
       { name: "Show Most Recent Picture", instruction: "Everyone shows their most recent picture." },
       { name: "Race to the bottom", instruction: "The last player to finish their drink must take a shot." },
@@ -243,7 +243,7 @@ export const gameData = {
         instruction: "Reveal a Penalty card now and share that same penalty with one other player.",
         action: ACTION_CODES.SHARE_PENALTY_LOCKED
       },
-      { name: "Fun for whole family", instruction: "Roll the Penalty deck. The penalty applies to all players.", action: ACTION_CODES.PENALTY_ALL_MANUAL },
+      { name: "Fun for whole family", instruction: "Roll the Penalty deck once. The same penalty applies to all players.", action: ACTION_CODES.PENALTY_ALL_MANUAL },
       { name: "Water break", instruction: "Drink some water... or take a shot, it's your life." },
       { name: "Little unfair", instruction: "If you have an item, give out 3 drinks. If not, drink 3.", itemRelated: true },
       {
@@ -447,7 +447,7 @@ export const gameData = {
       },
       {
         name: "Ditto Magnet (Pick a target)",
-        instruction: "Pick a player (you may choose yourself). For the next 5 turns, if Ditto triggers for them, they take a Shot immediately.",
+        instruction: "Pick a player (you may choose yourself). For the next 5 turns, if Ditto triggers for anyone, they take a Shot.",
         effect: { type: EFFECT_TYPES.DITTO_MAGNET, turns: 5, needsTarget: true }
       }
     ]

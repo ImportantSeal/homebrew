@@ -20,6 +20,44 @@ import {
  *  - "redraw" = info/preview penalty (should NOT end turn on confirm)
  *  - "redraw_hold" = redraw penalty that stays open until card-action modal closes
  */
+function normalizeTargetPlayerIndexes(state, playerIndexes) {
+  if (!Array.isArray(playerIndexes)) return null;
+
+  const playerCount = Array.isArray(state?.players) ? state.players.length : 0;
+  const seen = new Set();
+  const targets = [];
+
+  playerIndexes.forEach((idx) => {
+    if (!Number.isInteger(idx) || idx < 0 || idx >= playerCount || seen.has(idx)) return;
+    seen.add(idx);
+    targets.push(idx);
+  });
+
+  return targets.length > 0 ? targets : null;
+}
+
+function applyRevealedPenaltyToPlayer(state, playerIndex, penalty, log, applyDrinkEvent, reason = "Penalty") {
+  const player = state.players?.[playerIndex];
+  if (!player) return { applied: false, blocked: false };
+
+  if (player.shield) {
+    log(`${player.name}'s Shield protected against the penalty!`);
+    delete player.shield;
+    return { applied: false, blocked: true };
+  }
+
+  recordPenaltyTaken(state, playerIndex);
+
+  if (typeof applyDrinkEvent === "function") {
+    const penaltySpec = getPenaltySpec(penalty);
+    if (penaltySpec?.drink) {
+      applyDrinkEvent(state, playerIndex, penaltySpec.drink.amount, reason, log);
+    }
+  }
+
+  return { applied: true, blocked: false };
+}
+
 export function rollPenaltyCard(state, log, source = PENALTY_SOURCES.DECK, applyDrinkEvent, options = {}) {
   if (state.penaltyShown) return;
 
@@ -32,11 +70,13 @@ export function rollPenaltyCard(state, log, source = PENALTY_SOURCES.DECK, apply
     : defaultIndex;
   const currentPlayer = state.players[requestedIndex];
   if (!currentPlayer) return;
+  const targetPlayerIndexes = normalizeTargetPlayerIndexes(state, options?.targetPlayerIndexes);
+  const isSharedTargetRoll = Boolean(targetPlayerIndexes);
 
   // Reset hint spam guard on new penalty attempt
   state.penaltyHintShown = false;
 
-  if (currentPlayer.shield) {
+  if (!isSharedTargetRoll && currentPlayer.shield) {
     log(`${currentPlayer.name}'s Shield protected against the penalty!`);
     delete currentPlayer.shield;
 
@@ -75,6 +115,25 @@ export function rollPenaltyCard(state, log, source = PENALTY_SOURCES.DECK, apply
 
   const penaltyDeckEl = getPenaltyDeckEl();
   if (penaltyDeckEl) flipCardAnimation(penaltyDeckEl, penaltyLabel);
+
+  if (isSharedTargetRoll) {
+    let affectedCount = 0;
+    let blockedCount = 0;
+
+    log(`${currentPlayer.name} rolled penalty card for ${options?.targetLabel || "the group"}: ${penaltyLabel}`);
+    targetPlayerIndexes.forEach((targetIndex) => {
+      const result = applyRevealedPenaltyToPlayer(state, targetIndex, penalty, log, applyDrinkEvent);
+      if (result.applied) affectedCount += 1;
+      if (result.blocked) blockedCount += 1;
+    });
+
+    log(`Shared penalty applied to ${affectedCount} player${affectedCount === 1 ? "" : "s"}.`);
+    if (blockedCount > 0) {
+      log(`Shared penalty blocked by Shield for ${blockedCount} player${blockedCount === 1 ? "" : "s"}.`);
+    }
+    return penalty;
+  }
+
   recordPenaltyTaken(state, requestedIndex);
 
   log(`${currentPlayer.name} rolled penalty card: ${penaltyLabel}`);
@@ -86,6 +145,8 @@ export function rollPenaltyCard(state, log, source = PENALTY_SOURCES.DECK, apply
   if (penaltySpec?.drink) {
     applyDrinkEvent(state, requestedIndex, penaltySpec.drink.amount, "Penalty", log);
   }
+
+  return penalty;
 }
 
 /**

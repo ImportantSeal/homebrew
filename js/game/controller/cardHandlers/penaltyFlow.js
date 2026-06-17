@@ -70,6 +70,21 @@ export function createPenaltyFlow({
     return false;
   }
 
+  function getSharedPenaltyTargetIndexes() {
+    const group = state.penaltyGroup;
+    if (!group?.active || group.mode !== 'shared' || !Array.isArray(group.queue)) return null;
+
+    const playerCount = Array.isArray(state.players) ? state.players.length : 0;
+    const indexes = group.queue.filter((idx) => Number.isInteger(idx) && idx >= 0 && idx < playerCount);
+    return indexes.length > 0 ? indexes : null;
+  }
+
+  function clearSharedPenaltyTargets() {
+    if (state.penaltyGroup?.mode === 'shared') {
+      state.penaltyGroup = null;
+    }
+  }
+
   function redrawGame() {
     rollPenaltyCard(state, log, PENALTY_SOURCES.REDRAW_HOLD);
 
@@ -138,7 +153,14 @@ export function createPenaltyFlow({
 
     if (!state.penaltyShown && isCardPenaltyPending(state)) {
       lockUI();
-      rollPenaltyCard(state, log, PENALTY_SOURCES.CARD, applyDrinkEvent);
+      const sharedTargetIndexes = getSharedPenaltyTargetIndexes();
+      const penaltyOptions = sharedTargetIndexes
+        ? { targetPlayerIndexes: sharedTargetIndexes, targetLabel: 'everyone' }
+        : {};
+      rollPenaltyCard(state, log, PENALTY_SOURCES.CARD, applyDrinkEvent, penaltyOptions);
+      if (sharedTargetIndexes) {
+        clearSharedPenaltyTargets();
+      }
 
       if (!state.penaltyShown) {
         if (state.sharePenalty?.active) {
