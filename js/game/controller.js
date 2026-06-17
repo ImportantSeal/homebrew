@@ -13,10 +13,14 @@ import { hidePenaltyCard } from '../logic/penalty.js';
 import { tickEffects, cancelTargetedEffectSelection } from '../logic/effects.js';
 import {
   isChoiceSelectionActive,
+  isCardPenaltyPending,
   isEffectSelectionActive,
   isGroupPenaltyPending,
+  isPenaltyConfirmRequired,
   isPenaltyFlowActive as isUnifiedPenaltyFlowActive,
+  isPenaltyOpen,
   isPenaltySource,
+  isRedrawHoldPenaltyOpen,
   PENALTY_SOURCES
 } from '../logic/flowMachine.js';
 import { enableLeaveGuard } from '../navigationGuard.js';
@@ -30,6 +34,7 @@ import {
   showGameContainer,
   setTurnIndicatorText,
   setPenaltyDrawIndicator,
+  setNextActionNotification,
   getCardContainerEl,
   getPrimaryCardEl,
   bindRedrawClick,
@@ -152,21 +157,121 @@ function getActivePenaltyDrawDetails() {
   };
 }
 
+function getPenaltyRollTargetName() {
+  const targetIndex = Number.isInteger(state.penaltyRollPlayerIndex)
+    ? state.penaltyRollPlayerIndex
+    : state.currentPlayerIndex;
+  return playerName(targetIndex);
+}
+
+function isSharedPenaltyPending() {
+  return (
+    isCardPenaltyPending(state)
+    && state.penaltyGroup?.active
+    && state.penaltyGroup.mode === 'shared'
+  );
+}
+
 function renderPenaltyDrawStatus() {
   const penaltyDraw = getActivePenaltyDrawDetails();
   if (penaltyDraw) {
     setTurnIndicatorText(`Penalty: ${penaltyDraw.name} draws now`);
     setPenaltyDrawIndicator(penaltyDraw);
-    return;
+    return penaltyDraw;
   }
 
   const p = currentPlayer();
   setTurnIndicatorText(p ? `${p.name}'s Turn` : "Player's Turn");
   setPenaltyDrawIndicator(null);
+  return null;
+}
+
+function getNextActionNotification(penaltyDraw = null) {
+  if (isChoiceSelectionActive(state)) {
+    return {
+      meta: 'Next action',
+      message: 'Choose an option in the card action window to continue.',
+      variant: 'choice'
+    };
+  }
+
+  if (isEffectSelectionActive(state)) {
+    return {
+      meta: 'Next action',
+      message: 'Pick a target player from the player list to continue.',
+      variant: 'choice'
+    };
+  }
+
+  if (isRedrawHoldPenaltyOpen(state)) {
+    return {
+      meta: 'Next action',
+      message: 'Close the Redraw penalty window to continue.',
+      variant: 'penalty'
+    };
+  }
+
+  if (isGroupPenaltyPending(state)) {
+    const targetName = penaltyDraw?.name || getPenaltyRollTargetName();
+    return {
+      meta: penaltyDraw ? `Penalty ${penaltyDraw.position}/${penaltyDraw.total}` : 'Next action',
+      message: `Click the Penalty Deck to roll ${targetName}'s penalty card.`,
+      variant: 'penalty'
+    };
+  }
+
+  if (isSharedPenaltyPending()) {
+    return {
+      meta: 'Next action',
+      message: 'Click the Penalty Deck to roll one penalty for everyone.',
+      variant: 'penalty'
+    };
+  }
+
+  if (isCardPenaltyPending(state)) {
+    const targetName = getPenaltyRollTargetName();
+    return {
+      meta: 'Next action',
+      message: `Click the Penalty Deck to roll ${targetName}'s penalty card.`,
+      variant: 'penalty'
+    };
+  }
+
+  if (state.penaltyShown && isPenaltyConfirmRequired(state)) {
+    const targetName = penaltyDraw?.name || getPenaltyRollTargetName();
+    return {
+      meta: 'Next action',
+      message: `Click the Penalty Deck again to confirm ${targetName}'s penalty and continue.`,
+      variant: 'penalty'
+    };
+  }
+
+  if (state.penaltyShown && isPenaltySource(state, PENALTY_SOURCES.REDRAW)) {
+    return {
+      meta: 'Next action',
+      message: 'Click the Penalty Deck again to close this preview.',
+      variant: 'penalty'
+    };
+  }
+
+  if (state.penaltyShown && isPenaltyOpen(state)) {
+    return {
+      meta: 'Next action',
+      message: 'Click the Penalty Deck again to confirm and continue.',
+      variant: 'penalty'
+    };
+  }
+
+  return null;
+}
+
+function renderFlowStatus() {
+  const penaltyDraw = renderPenaltyDrawStatus();
+  setNextActionNotification(getNextActionNotification(penaltyDraw));
 }
 
 function renderTurnHeader() {
-  renderPenaltyDrawStatus();
+  renderFlowStatus();
   renderTurnOrder(state);
 }
 
@@ -251,7 +356,7 @@ const effectsPanelController = createEffectsPanelController({
 });
 
 function renderEffectsPanel() {
-  renderPenaltyDrawStatus();
+  renderFlowStatus();
   effectsPanelController.renderEffectsPanel();
 }
 

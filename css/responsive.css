@@ -169,6 +169,14 @@
     margin: 0.5rem 0 0.85rem;
   }
 
+  .next-action-notification {
+    width: 100%;
+    margin: -0.45rem 0 0.75rem;
+    min-height: 3.2rem;
+    padding: 0.55rem 0.68rem;
+    gap: 0.52rem;
+  }
+
   .card-container {
     margin-bottom: 0.65rem;
   }
@@ -641,7 +649,8 @@ body[data-reduced-effects="true"] .history-entry.is-latest {
 body[data-reduced-effects="true"] #player-list li.player-list-item--added,
 body[data-reduced-effects="true"] .turn-player-name.turn-player-name--turn-enter,
 body[data-reduced-effects="true"] .turn-indicator--pulse,
-body[data-reduced-effects="true"] .penalty-draw-indicator--pulse {
+body[data-reduced-effects="true"] .penalty-draw-indicator--pulse,
+body[data-reduced-effects="true"] .next-action-notification--pulse {
   animation-duration: 220ms;
 }
 

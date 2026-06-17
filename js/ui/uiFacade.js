@@ -74,6 +74,40 @@ export function setPenaltyDrawIndicator(details = null) {
   }
 }
 
+export function setNextActionNotification(details = null) {
+  const el = getEl('next-action-notification');
+  if (!el) return;
+
+  const message = typeof details?.message === 'string' ? details.message.trim() : '';
+  if (!message) {
+    el.hidden = true;
+    el.removeAttribute('aria-label');
+    delete el.dataset.variant;
+    return;
+  }
+
+  const metaEl = el.querySelector('.next-action-notification__meta');
+  const messageEl = el.querySelector('.next-action-notification__message');
+  const metaText = typeof details?.meta === 'string' && details.meta.trim()
+    ? details.meta.trim()
+    : 'Next action';
+  const variant = typeof details?.variant === 'string' && details.variant.trim()
+    ? details.variant.trim()
+    : 'default';
+  const previousText = `${metaEl?.textContent || ''}|${messageEl?.textContent || ''}`;
+  const nextText = `${metaText}|${message}`;
+
+  if (metaEl) metaEl.textContent = metaText;
+  if (messageEl) messageEl.textContent = message;
+  el.dataset.variant = variant;
+  el.setAttribute('aria-label', `${metaText}: ${message}`);
+  el.hidden = false;
+
+  if (previousText !== nextText) {
+    restartClassAnimation(el, 'next-action-notification--pulse');
+  }
+}
+
 export function getPenaltyDeckEl() {
   return getEl('penalty-deck');
 }
