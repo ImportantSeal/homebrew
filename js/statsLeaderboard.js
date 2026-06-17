@@ -29,6 +29,10 @@ const TOPIC_DEFINITIONS = {
     positiveOnly: false,
     valueOf: (entry) => Number(entry?.drinksGiven || 0)
   },
+  player_drinks_given: {
+    label: 'Player drinks given',
+    buttonLabel: 'Show give count'
+  },
   penalties_max: {
     label: 'Most penalties',
     buttonLabel: 'Show penalties leaderboard',
@@ -73,6 +77,10 @@ function normalizeTopic(topic) {
 
 function formatValue(value) {
   return Number(value || 0).toLocaleString('fi-FI');
+}
+
+function formatDrinkNoun(value) {
+  return Number(value || 0) === 1 ? 'drink' : 'drinks';
 }
 
 function joinNames(names = []) {
@@ -134,6 +142,20 @@ function formatLeaderResult(snapshot, topicKey) {
   return `Leaderboard (${definition.label}): ${joinNames(leaders.playerNames)} (${formatValue(leaders.value)}).`;
 }
 
+function resolvePlayerEntry(snapshot, playerIndex) {
+  const safeIndex = Number(playerIndex);
+  if (!Number.isInteger(safeIndex) || safeIndex < 0) return null;
+  return snapshot.find((entry) => entry?.playerIndex === safeIndex) || snapshot[safeIndex] || null;
+}
+
+function buildPlayerDrinksGivenMessage(snapshot, playerIndex) {
+  const entry = resolvePlayerEntry(snapshot, playerIndex);
+  if (!entry) return 'Give count: player stats not found.';
+
+  const playerName = String(entry.playerName || 'Player');
+  return `Give count: ${playerName} has given ${formatValue(entry.drinksGiven)} ${formatDrinkNoun(entry.drinksGiven)}.`;
+}
+
 function buildOverviewMessage(snapshot) {
   const drinksTaken = pickLeaders(snapshot, TOPIC_DEFINITIONS.drinks_taken_max);
   const drinksGiven = pickLeaders(snapshot, TOPIC_DEFINITIONS.drinks_given_max);
@@ -168,7 +190,7 @@ export function getStatsLeaderboardButtonLabel(topic) {
   return TOPIC_DEFINITIONS[normalized].buttonLabel || 'Show leaderboard';
 }
 
-export function buildStatsLeaderboardMessage(stateObj, topic) {
+export function buildStatsLeaderboardMessage(stateObj, topic, options = {}) {
   const normalized = normalizeTopic(topic);
   if (!normalized) return null;
 
@@ -179,6 +201,10 @@ export function buildStatsLeaderboardMessage(stateObj, topic) {
 
   if (normalized === 'stats_overview') {
     return buildOverviewMessage(snapshot);
+  }
+
+  if (normalized === 'player_drinks_given') {
+    return buildPlayerDrinksGivenMessage(snapshot, options?.playerIndex);
   }
 
   return formatLeaderResult(snapshot, normalized);
@@ -209,7 +235,11 @@ export function resolveStatsLeaderboardTopic(cardName = '', instruction = '') {
     return 'drinks_given_min';
   }
 
-  if (/most\s+drinks?\s+given|drinks?\s+you\s+have\s+given\s+so\s+far|give count guess|generous\s+leader/.test(text)) {
+  if (/drinks?\s+you\s+have\s+given\s+so\s+far|give count guess/.test(text)) {
+    return 'player_drinks_given';
+  }
+
+  if (/most\s+drinks?\s+given|generous\s+leader/.test(text)) {
     return 'drinks_given_max';
   }
 

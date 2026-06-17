@@ -87,3 +87,21 @@ test('object card flow prefers explicit leaderboard topic metadata', () => {
   const entry = logEntries.find((item) => item.message.includes('Most Drinks Guess'));
   assert.equal(entry?.options?.leaderboardTopic, 'drinks_taken_max');
 });
+
+test('object card flow logs drawer index for player-specific stats cards', () => {
+  const event = {
+    name: 'Give Count Guess',
+    instruction: 'Guess how many drinks you have given so far.'
+  };
+  const { state, logEntries, flow } = createHarness(event);
+  state.players = [{ name: 'A', inventory: [] }, { name: 'B', inventory: [] }];
+  state.currentPlayerIndex = 1;
+
+  const parentCard = { name: 'Challenge', subcategories: [event] };
+  const cardEl = {};
+  flow.handleObjectCardDraw(cardEl, parentCard);
+
+  const entry = logEntries.find((item) => item.message.includes('Give Count Guess'));
+  assert.equal(entry?.options?.leaderboardTopic, 'player_drinks_given');
+  assert.equal(entry?.options?.leaderboardPlayerIndex, 1);
+});

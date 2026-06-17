@@ -70,6 +70,7 @@ export function createObjectCardFlow({
   flipCardAnimation
 }) {
   function handleObjectCardDraw(cardEl, parentCard) {
+    const cardDrawerIndex = state.currentPlayerIndex;
     const pool = getObjectCardPool(state, parentCard);
     if (pool.length === 0) {
       log("No valid cards available in this deck.");
@@ -115,7 +116,7 @@ export function createObjectCardFlow({
 
     if (drawMessage) {
       if (leaderboardTopic) {
-        log(drawMessage, { leaderboardTopic });
+        log(drawMessage, { leaderboardTopic, leaderboardPlayerIndex: cardDrawerIndex });
       } else {
         log(drawMessage);
       }

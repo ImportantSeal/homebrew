@@ -82,7 +82,7 @@ test('resolveStatsLeaderboardTopic maps known stats cards and mystery pick wordi
       'Give Count Guess',
       'Guess how many drinks you have given so far.'
     ),
-    'drinks_given_max'
+    'player_drinks_given'
   );
   assert.equal(resolveStatsLeaderboardTopic('Random Card', 'Everyone drinks 1.'), null);
 });
@@ -98,6 +98,20 @@ test('buildStatsLeaderboardMessage prints related leaders', () => {
 
   const mix = buildStatsLeaderboardMessage(state, 'mix_total_max');
   assert.match(mix, /^Leaderboard \(Highest Drink \+ Give total\): Beni \(9\)\.$/);
+});
+
+test('buildStatsLeaderboardMessage prints player-specific give count', () => {
+  const state = createMockState();
+
+  assert.equal(
+    buildStatsLeaderboardMessage(state, 'player_drinks_given', { playerIndex: 0 }),
+    'Give count: Aino has given 2 drinks.'
+  );
+
+  assert.equal(
+    buildStatsLeaderboardMessage(state, 'player_drinks_given', { playerIndex: 2 }),
+    'Give count: Caro has given 1 drink.'
+  );
 });
 
 test('buildStatsLeaderboardMessage supports quickboard fallback', () => {

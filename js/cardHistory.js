@@ -29,6 +29,12 @@ function normalizeKind(kind) {
   return HISTORY_CARD_KINDS.has(normalized) ? normalized : null;
 }
 
+function normalizePlayerIndex(index) {
+  if (index === null || index === undefined || index === '') return null;
+  const parsed = Number(index);
+  return Number.isInteger(parsed) && parsed >= 0 ? parsed : null;
+}
+
 function createHistoryEntryElement(state, text, index, kind, options = {}) {
   const entry = document.createElement('article');
   entry.className = 'history-entry is-latest';
@@ -36,6 +42,10 @@ function createHistoryEntryElement(state, text, index, kind, options = {}) {
   if (kind) entry.dataset.kind = kind;
   const leaderboardTopic = normalizeStatsLeaderboardTopic(options?.leaderboardTopic);
   if (leaderboardTopic) entry.dataset.leaderboardTopic = leaderboardTopic;
+  const leaderboardPlayerIndex = normalizePlayerIndex(options?.leaderboardPlayerIndex);
+  if (leaderboardPlayerIndex !== null) {
+    entry.dataset.leaderboardPlayerIndex = String(leaderboardPlayerIndex);
+  }
 
   const meta = document.createElement('div');
   meta.className = 'history-entry__meta';
@@ -57,7 +67,9 @@ function createHistoryEntryElement(state, text, index, kind, options = {}) {
     btn.textContent = getStatsLeaderboardButtonLabel(leaderboardTopic);
 
     btn.addEventListener('click', () => {
-      const leaderboardText = buildStatsLeaderboardMessage(state, leaderboardTopic);
+      const leaderboardText = buildStatsLeaderboardMessage(state, leaderboardTopic, {
+        playerIndex: leaderboardPlayerIndex
+      });
       if (!leaderboardText) return;
       addHistoryEntry(state, leaderboardText, { kind: 'special' });
     });
@@ -78,6 +90,9 @@ export function addHistoryEntry(state, message, options = {}) {
   const leaderboardTopic = normalizeStatsLeaderboardTopic(
     options && typeof options === 'object' ? options.leaderboardTopic : null
   );
+  const leaderboardPlayerIndex = normalizePlayerIndex(
+    options && typeof options === 'object' ? options.leaderboardPlayerIndex : null
+  );
   if (!historyContainer || !text) return null;
   ensurePlayerColors(state.players);
 
@@ -97,7 +112,10 @@ export function addHistoryEntry(state, message, options = {}) {
   const latest = historyContainer.querySelector('.history-entry.is-latest');
   if (latest) latest.classList.remove('is-latest');
 
-  const entry = createHistoryEntryElement(state, text, state.historyEntryCount, kind, { leaderboardTopic });
+  const entry = createHistoryEntryElement(state, text, state.historyEntryCount, kind, {
+    leaderboardTopic,
+    leaderboardPlayerIndex
+  });
   historyContainer.appendChild(entry);
 
   while (historyContainer.childElementCount > MAX_HISTORY_ENTRIES) {
