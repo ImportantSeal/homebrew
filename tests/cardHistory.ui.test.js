@@ -98,6 +98,8 @@ test('card history player stat action stays tied to the card drawer', async () =
       historyEntryCount: 0
     };
 
+    recordDrinkTaken(state, 0, 4);
+    recordDrinkTaken(state, 1, 8);
     recordGiveDrinks(state, 0, 2);
     recordGiveDrinks(state, 1, 9);
 
@@ -115,6 +117,21 @@ test('card history player stat action stays tied to the card drawer', async () =
     await dom.flush();
 
     assert.match(getLastHistoryEntry(), /Give count: Alice has given 2 drinks\./);
+
+    addHistoryEntry(state, 'Untouched Tank - Check the Stats page. If your Drinks taken is 0, drink 9.', {
+      kind: 'special',
+      leaderboardTopic: 'player_drinks_taken',
+      leaderboardPlayerIndex: 0
+    });
+
+    state.currentPlayerIndex = 1;
+
+    const latestButton = historyContainer.lastElementChild.querySelector('.history-entry__leaderboard-btn');
+    assert.ok(latestButton);
+    dom.click(latestButton);
+    await dom.flush();
+
+    assert.match(getLastHistoryEntry(), /Drink count: Alice has taken 4 drinks\./);
   } finally {
     dom.cleanup();
   }

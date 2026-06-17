@@ -61,6 +61,13 @@ test('resolveStatsLeaderboardTopic maps known stats cards and mystery pick wordi
       'Untouched Tank',
       'Check the Stats page. If your Drinks taken is 0, drink 9.'
     ),
+    'player_drinks_taken'
+  );
+  assert.equal(
+    resolveStatsLeaderboardTopic(
+      'Least Drunk Drinks',
+      'The player with the fewest drinks so far drinks one.'
+    ),
     'drinks_taken_min'
   );
   assert.equal(
@@ -75,12 +82,19 @@ test('resolveStatsLeaderboardTopic maps known stats cards and mystery pick wordi
       'Clean Sheet Punishment',
       'If your Penalties are 0, draw a Penalty Card.'
     ),
-    'penalties_min'
+    'player_penalties'
   );
   assert.equal(
     resolveStatsLeaderboardTopic(
       'Give Count Guess',
       'Guess how many drinks you have given so far.'
+    ),
+    'player_drinks_given'
+  );
+  assert.equal(
+    resolveStatsLeaderboardTopic(
+      'No-Show Giver',
+      'If your Drinks given is 0, drink 9.'
     ),
     'player_drinks_given'
   );
@@ -100,8 +114,13 @@ test('buildStatsLeaderboardMessage prints related leaders', () => {
   assert.match(mix, /^Leaderboard \(Highest Drink \+ Give total\): Beni \(9\)\.$/);
 });
 
-test('buildStatsLeaderboardMessage prints player-specific give count', () => {
+test('buildStatsLeaderboardMessage prints player-specific stat counts', () => {
   const state = createMockState();
+
+  assert.equal(
+    buildStatsLeaderboardMessage(state, 'player_drinks_taken', { playerIndex: 1 }),
+    'Drink count: Beni has taken 2 drinks.'
+  );
 
   assert.equal(
     buildStatsLeaderboardMessage(state, 'player_drinks_given', { playerIndex: 0 }),
@@ -111,6 +130,11 @@ test('buildStatsLeaderboardMessage prints player-specific give count', () => {
   assert.equal(
     buildStatsLeaderboardMessage(state, 'player_drinks_given', { playerIndex: 2 }),
     'Give count: Caro has given 1 drink.'
+  );
+
+  assert.equal(
+    buildStatsLeaderboardMessage(state, 'player_penalties', { playerIndex: 0 }),
+    'Penalty count: Aino has 1 penalty.'
   );
 });
 

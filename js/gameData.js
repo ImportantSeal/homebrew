@@ -169,8 +169,16 @@ export const gameData = {
       { name: "Double Social", instruction: "Everyone drinks two." },
       { name: "Youngest Drinks", instruction: "The youngest player drinks one." },
       { name: "Oldest Drinks", instruction: "The oldest player drinks one." },
-      { name: "Least Drunk Drinks", instruction: "The player with the fewest drinks so far drinks one." },
-      { name: "Party Sponsor", instruction: "The drunkest player gives out 3 drinks." },
+      {
+        name: "Least Drunk Drinks",
+        instruction: "The player with the fewest drinks so far drinks one.",
+        leaderboardTopic: "drinks_taken_min"
+      },
+      {
+        name: "Party Sponsor",
+        instruction: "The drunkest player gives out 3 drinks.",
+        leaderboardTopic: "drinks_taken_max"
+      },
       { name: "Singles Drink", instruction: "All single players drink one." },
       { name: "Couples Tax", instruction: "All players in a relationship drink 2." },
       { name: "Last Bathroom", instruction: "The player who last used the bathroom drinks one." },
@@ -241,7 +249,7 @@ export const gameData = {
       {
         name: "Clean Sheet Punishment",
         instruction: "If your Penalties are 0, draw a Penalty Card.",
-        leaderboardTopic: "penalties_min"
+        leaderboardTopic: "player_penalties"
       },
       {
         name: "Generous Leader",
@@ -266,12 +274,12 @@ export const gameData = {
       {
         name: "Untouched Tank",
         instruction: "Check the Stats page. If your Drinks taken is 0, drink 9.",
-        leaderboardTopic: "drinks_taken_min"
+        leaderboardTopic: "player_drinks_taken"
       },
       {
         name: "No-Show Giver",
         instruction: "If your Drinks given is 0, drink 9.",
-        leaderboardTopic: "drinks_given_min"
+        leaderboardTopic: "player_drinks_given"
       },
       {
         name: "Mix Master",

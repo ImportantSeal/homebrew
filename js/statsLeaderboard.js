@@ -29,9 +29,17 @@ const TOPIC_DEFINITIONS = {
     positiveOnly: false,
     valueOf: (entry) => Number(entry?.drinksGiven || 0)
   },
+  player_drinks_taken: {
+    label: 'Player drinks taken',
+    buttonLabel: 'Show drink count'
+  },
   player_drinks_given: {
     label: 'Player drinks given',
     buttonLabel: 'Show give count'
+  },
+  player_penalties: {
+    label: 'Player penalties',
+    buttonLabel: 'Show penalty count'
   },
   penalties_max: {
     label: 'Most penalties',
@@ -67,6 +75,33 @@ const TOPIC_DEFINITIONS = {
   }
 };
 
+const PLAYER_STAT_DEFINITIONS = {
+  player_drinks_taken: {
+    label: 'Drink count',
+    missing: 'Drink count: player stats not found.',
+    field: 'drinksTaken',
+    verb: 'has taken',
+    singular: 'drink',
+    plural: 'drinks'
+  },
+  player_drinks_given: {
+    label: 'Give count',
+    missing: 'Give count: player stats not found.',
+    field: 'drinksGiven',
+    verb: 'has given',
+    singular: 'drink',
+    plural: 'drinks'
+  },
+  player_penalties: {
+    label: 'Penalty count',
+    missing: 'Penalty count: player stats not found.',
+    field: 'penaltiesTaken',
+    verb: 'has',
+    singular: 'penalty',
+    plural: 'penalties'
+  }
+};
+
 const VALID_TOPICS = new Set(Object.keys(TOPIC_DEFINITIONS));
 
 function normalizeTopic(topic) {
@@ -79,8 +114,8 @@ function formatValue(value) {
   return Number(value || 0).toLocaleString('fi-FI');
 }
 
-function formatDrinkNoun(value) {
-  return Number(value || 0) === 1 ? 'drink' : 'drinks';
+function formatNoun(value, singular, plural) {
+  return Number(value || 0) === 1 ? singular : plural;
 }
 
 function joinNames(names = []) {
@@ -148,12 +183,16 @@ function resolvePlayerEntry(snapshot, playerIndex) {
   return snapshot.find((entry) => entry?.playerIndex === safeIndex) || snapshot[safeIndex] || null;
 }
 
-function buildPlayerDrinksGivenMessage(snapshot, playerIndex) {
+function buildPlayerStatMessage(snapshot, topicKey, playerIndex) {
+  const definition = PLAYER_STAT_DEFINITIONS[topicKey];
+  if (!definition) return null;
+
   const entry = resolvePlayerEntry(snapshot, playerIndex);
-  if (!entry) return 'Give count: player stats not found.';
+  if (!entry) return definition.missing;
 
   const playerName = String(entry.playerName || 'Player');
-  return `Give count: ${playerName} has given ${formatValue(entry.drinksGiven)} ${formatDrinkNoun(entry.drinksGiven)}.`;
+  const value = Number(entry[definition.field] || 0);
+  return `${definition.label}: ${playerName} ${definition.verb} ${formatValue(value)} ${formatNoun(value, definition.singular, definition.plural)}.`;
 }
 
 function buildOverviewMessage(snapshot) {
@@ -203,8 +242,8 @@ export function buildStatsLeaderboardMessage(stateObj, topic, options = {}) {
     return buildOverviewMessage(snapshot);
   }
 
-  if (normalized === 'player_drinks_given') {
-    return buildPlayerDrinksGivenMessage(snapshot, options?.playerIndex);
+  if (PLAYER_STAT_DEFINITIONS[normalized]) {
+    return buildPlayerStatMessage(snapshot, normalized, options?.playerIndex);
   }
 
   return formatLeaderResult(snapshot, normalized);
@@ -223,27 +262,35 @@ export function resolveStatsLeaderboardTopic(cardName = '', instruction = '') {
     return 'mix_total_max';
   }
 
-  if (/least\s+drinks?\s+taken|fewest\s+drinks?|untouched\s+tank|drinks?\s+taken\s+is\s+0/.test(text)) {
+  if (/untouched\s+tank|drinks?\s+you\s+have\s+taken\s+so\s+far|(?:your\s+)?drinks?\s+taken\s+is\s+0/.test(text)) {
+    return 'player_drinks_taken';
+  }
+
+  if (/drinks?\s+you\s+have\s+given\s+so\s+far|give count guess|no-show\s+giver|(?:your\s+)?drinks?\s+given\s+is\s+0/.test(text)) {
+    return 'player_drinks_given';
+  }
+
+  if (/clean sheet punishment|(?:your\s+)?penalties\s+are\s+0/.test(text)) {
+    return 'player_penalties';
+  }
+
+  if (/least\s+drinks?\s+taken|fewest\s+drinks?/.test(text)) {
     return 'drinks_taken_min';
   }
 
-  if (/most\s+drinks?\s+taken|drinks?\s+you\s+have\s+taken\s+so\s+far|drunkest|tank reward|most drinks guess/.test(text)) {
+  if (/most\s+drinks?\s+taken|drunkest|tank reward|most drinks guess/.test(text)) {
     return 'drinks_taken_max';
   }
 
-  if (/least\s+drinks?\s+given|no-show\s+giver|quiet hands|drinks?\s+given\s+is\s+0/.test(text)) {
+  if (/least\s+drinks?\s+given|quiet hands/.test(text)) {
     return 'drinks_given_min';
-  }
-
-  if (/drinks?\s+you\s+have\s+given\s+so\s+far|give count guess/.test(text)) {
-    return 'player_drinks_given';
   }
 
   if (/most\s+drinks?\s+given|generous\s+leader/.test(text)) {
     return 'drinks_given_max';
   }
 
-  if (/least\s+penalties?|clean sheet punishment|penalties\s+are\s+0/.test(text)) {
+  if (/least\s+penalties?/.test(text)) {
     return 'penalties_min';
   }
 

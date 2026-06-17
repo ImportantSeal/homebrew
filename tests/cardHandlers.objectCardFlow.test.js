@@ -89,19 +89,35 @@ test('object card flow prefers explicit leaderboard topic metadata', () => {
 });
 
 test('object card flow logs drawer index for player-specific stats cards', () => {
-  const event = {
-    name: 'Give Count Guess',
-    instruction: 'Guess how many drinks you have given so far.'
-  };
-  const { state, logEntries, flow } = createHarness(event);
-  state.players = [{ name: 'A', inventory: [] }, { name: 'B', inventory: [] }];
-  state.currentPlayerIndex = 1;
+  const cases = [
+    {
+      name: 'Give Count Guess',
+      instruction: 'Guess how many drinks you have given so far.',
+      topic: 'player_drinks_given'
+    },
+    {
+      name: 'Untouched Tank',
+      instruction: 'Check the Stats page. If your Drinks taken is 0, drink 9.',
+      topic: 'player_drinks_taken'
+    },
+    {
+      name: 'Clean Sheet Punishment',
+      instruction: 'If your Penalties are 0, draw a Penalty Card.',
+      topic: 'player_penalties'
+    }
+  ];
 
-  const parentCard = { name: 'Challenge', subcategories: [event] };
-  const cardEl = {};
-  flow.handleObjectCardDraw(cardEl, parentCard);
+  cases.forEach((event) => {
+    const { state, logEntries, flow } = createHarness(event);
+    state.players = [{ name: 'A', inventory: [] }, { name: 'B', inventory: [] }];
+    state.currentPlayerIndex = 1;
 
-  const entry = logEntries.find((item) => item.message.includes('Give Count Guess'));
-  assert.equal(entry?.options?.leaderboardTopic, 'player_drinks_given');
-  assert.equal(entry?.options?.leaderboardPlayerIndex, 1);
+    const parentCard = { name: 'Challenge', subcategories: [event] };
+    const cardEl = {};
+    flow.handleObjectCardDraw(cardEl, parentCard);
+
+    const entry = logEntries.find((item) => item.message.includes(event.name));
+    assert.equal(entry?.options?.leaderboardTopic, event.topic);
+    assert.equal(entry?.options?.leaderboardPlayerIndex, 1);
+  });
 });
