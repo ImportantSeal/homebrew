@@ -61,6 +61,16 @@
       <!-- Vasen paneeli -->
       <aside class="left-panel">
         <div class="penalty-deck-container">
+          <div
+            class="penalty-draw-indicator"
+            id="penalty-draw-indicator"
+            aria-live="polite"
+            hidden
+          >
+            <span class="penalty-draw-indicator__meta">Penalty draw</span>
+            <strong class="penalty-draw-indicator__name">Player draws now</strong>
+          </div>
+
           <!-- Keep back face visible by default (cardback) -->
           <button class="penalty-deck" id="penalty-deck" type="button" aria-label="Penalty deck">
             <div class="card__inner">

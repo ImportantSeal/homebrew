@@ -4,6 +4,7 @@
 
 import { bindTap } from '../utils/tap.js';
 import { restartClassAnimation } from '../utils/restartClassAnimation.js';
+import { applyPlayerColor } from '../utils/playerColors.js';
 
 const cache = new Map();
 const listeners = {
@@ -36,6 +37,41 @@ export function setTurnIndicatorText(text) {
   if (!didChange) return;
 
   restartClassAnimation(el, 'turn-indicator--pulse');
+}
+
+export function setPenaltyDrawIndicator(details = null) {
+  const el = getEl('penalty-draw-indicator');
+  if (!el) return;
+
+  const name = typeof details?.name === 'string' ? details.name.trim() : '';
+  if (!name) {
+    el.hidden = true;
+    el.removeAttribute('aria-label');
+    applyPlayerColor(el, '');
+    return;
+  }
+
+  const metaEl = el.querySelector('.penalty-draw-indicator__meta');
+  const nameEl = el.querySelector('.penalty-draw-indicator__name');
+  const position = Number.isInteger(details?.position) ? details.position : null;
+  const total = Number.isInteger(details?.total) ? details.total : null;
+  const hasProgress = position !== null && total !== null && total > 1 && position >= 1 && position <= total;
+  const metaText = hasProgress ? `Penalty ${position}/${total}` : 'Penalty draw';
+  const nameText = `${name} draws now`;
+  const previousText = `${metaEl?.textContent || ''}|${nameEl?.textContent || ''}`;
+  const nextText = `${metaText}|${nameText}`;
+
+  if (metaEl) metaEl.textContent = metaText;
+  if (nameEl) nameEl.textContent = nameText;
+  applyPlayerColor(el, details?.color || '');
+  el.setAttribute('aria-label', hasProgress
+    ? `${name} draws penalty card now. Penalty ${position} of ${total}.`
+    : `${name} draws penalty card now.`);
+  el.hidden = false;
+
+  if (previousText !== nextText) {
+    restartClassAnimation(el, 'penalty-draw-indicator--pulse');
+  }
 }
 
 export function getPenaltyDeckEl() {

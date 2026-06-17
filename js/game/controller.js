@@ -6,7 +6,7 @@ import { resetStats } from '../stats.js';
 
 import { createBag } from '../utils/random.js';
 import { systemRng } from '../utils/rng.js';
-import { ensurePlayerColors } from '../utils/playerColors.js';
+import { ensurePlayerColors, getPlayerColorByIndex } from '../utils/playerColors.js';
 
 import { dealTurnCards } from '../logic/deck.js';
 import { hidePenaltyCard } from '../logic/penalty.js';
@@ -14,7 +14,10 @@ import { tickEffects, cancelTargetedEffectSelection } from '../logic/effects.js'
 import {
   isChoiceSelectionActive,
   isEffectSelectionActive,
-  isPenaltyFlowActive as isUnifiedPenaltyFlowActive
+  isGroupPenaltyPending,
+  isPenaltyFlowActive as isUnifiedPenaltyFlowActive,
+  isPenaltySource,
+  PENALTY_SOURCES
 } from '../logic/flowMachine.js';
 import { enableLeaveGuard } from '../navigationGuard.js';
 
@@ -26,6 +29,7 @@ import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundSce
 import {
   showGameContainer,
   setTurnIndicatorText,
+  setPenaltyDrawIndicator,
   getCardContainerEl,
   getPrimaryCardEl,
   bindRedrawClick,
@@ -93,9 +97,76 @@ function playerName(index) {
   return `Player ${safeIndex + 1}`;
 }
 
-function renderTurnHeader() {
+function getValidQueuedPenaltyEntries(group) {
+  const playerCount = Array.isArray(state.players) ? state.players.length : 0;
+  if (!group?.active || group.mode === 'shared' || !Array.isArray(group.queue)) return [];
+
+  return group.queue
+    .map((playerIndex, queueIndex) => ({ playerIndex, queueIndex }))
+    .filter(({ playerIndex }) => (
+      Number.isInteger(playerIndex)
+      && playerIndex >= 0
+      && playerIndex < playerCount
+    ));
+}
+
+function getPendingGroupPenaltyQueueIndex(group, entries) {
+  const cursor = Number.isInteger(group?.cursor) && group.cursor >= 0 ? group.cursor : 0;
+  const entry = entries.find(({ queueIndex }) => queueIndex >= cursor);
+  return entry?.queueIndex ?? null;
+}
+
+function getOpenGroupPenaltyQueueIndex(group, entries) {
+  const targetIndex = state.penaltyRollPlayerIndex;
+  if (!Number.isInteger(targetIndex)) return null;
+
+  const cursor = Number.isInteger(group?.cursor) && group.cursor >= 0 ? group.cursor : 0;
+  const entryFromCursor = entries.find(({ playerIndex, queueIndex }) => (
+    playerIndex === targetIndex && queueIndex >= cursor
+  ));
+  if (entryFromCursor) return entryFromCursor.queueIndex;
+
+  const fallbackEntry = entries.find(({ playerIndex }) => playerIndex === targetIndex);
+  return fallbackEntry?.queueIndex ?? null;
+}
+
+function getActivePenaltyDrawDetails() {
+  const group = state.penaltyGroup;
+  const entries = getValidQueuedPenaltyEntries(group);
+  if (!entries.length) return null;
+
+  const queueIndex = state.penaltyShown && isPenaltySource(state, PENALTY_SOURCES.GROUP)
+    ? getOpenGroupPenaltyQueueIndex(group, entries)
+    : (isGroupPenaltyPending(state) ? getPendingGroupPenaltyQueueIndex(group, entries) : null);
+  if (!Number.isInteger(queueIndex)) return null;
+
+  const activeEntry = entries.find((entry) => entry.queueIndex === queueIndex);
+  if (!activeEntry) return null;
+
+  const position = entries.findIndex((entry) => entry.queueIndex === queueIndex) + 1;
+  return {
+    name: playerName(activeEntry.playerIndex),
+    color: getPlayerColorByIndex(state.players, activeEntry.playerIndex),
+    position,
+    total: entries.length
+  };
+}
+
+function renderPenaltyDrawStatus() {
+  const penaltyDraw = getActivePenaltyDrawDetails();
+  if (penaltyDraw) {
+    setTurnIndicatorText(`Penalty: ${penaltyDraw.name} draws now`);
+    setPenaltyDrawIndicator(penaltyDraw);
+    return;
+  }
+
   const p = currentPlayer();
   setTurnIndicatorText(p ? `${p.name}'s Turn` : "Player's Turn");
+  setPenaltyDrawIndicator(null);
+}
+
+function renderTurnHeader() {
+  renderPenaltyDrawStatus();
   renderTurnOrder(state);
 }
 
@@ -173,11 +244,16 @@ function bindPenaltyDeckSizeSync() {
   }
 }
 
-const { renderEffectsPanel } = createEffectsPanelController({
+const effectsPanelController = createEffectsPanelController({
   state,
   log,
   playerName
 });
+
+function renderEffectsPanel() {
+  renderPenaltyDrawStatus();
+  effectsPanelController.renderEffectsPanel();
+}
 
 const { renderItems } = createItemsController({
   state,
