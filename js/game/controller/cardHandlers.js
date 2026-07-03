@@ -58,6 +58,8 @@ export function createCardHandlers({
   renderTurnOrder,
   resetCards,
   openActionScreen,
+  onCardSelected = null,
+  onDittoTriggered = null,
   rng = systemRng,
   effectUi = effectSelectionUi
 }) {
@@ -136,6 +138,7 @@ export function createCardHandlers({
     applyDrinkEvent,
     activateDitto,
     onDittoActivated,
+    onDittoTriggered,
     replaceCardSelectionKind,
     setBaseBackgroundScene,
     flashElement,
@@ -199,6 +202,10 @@ export function createCardHandlers({
 
     // 1) Mystery reveal: first click only reveals.
     if (!state.revealed[index]) {
+      if (typeof onCardSelected === 'function') {
+        onCardSelected({ index, cardEl, phase: 'reveal', triggerEvent });
+      }
+
       state.revealed[index] = true;
 
       setCardKind(state, cardEl, state.currentCards[index], false);
@@ -224,6 +231,10 @@ export function createCardHandlers({
         if (Date.now() - activationTime < timing.DITTO_DOUBLECLICK_GUARD_MS) {
           unlockUI();
           return;
+        }
+
+        if (typeof onCardSelected === 'function') {
+          onCardSelected({ index, cardEl, phase: 'ditto-confirm', triggerEvent });
         }
 
         const p = currentPlayer();
@@ -258,6 +269,10 @@ export function createCardHandlers({
 
       // 3) Object card (Special/Crowd/Social) draw.
       if (typeof cardData === "object" && cardData.subcategories) {
+        if (typeof onCardSelected === 'function') {
+          onCardSelected({ index, cardEl, phase: 'object-draw', triggerEvent });
+        }
+
         const endsTurnNow = handleObjectCardDraw(cardEl, cardData);
 
         // If we started a target-pick effect, do not end turn yet.
@@ -271,6 +286,10 @@ export function createCardHandlers({
       }
 
       // 4) Plain cards / items / drink/give.
+      if (typeof onCardSelected === 'function') {
+        onCardSelected({ index, cardEl, phase: 'plain', triggerEvent });
+      }
+
       handlePlainCard(cardEl, cardData, selectedKind, triggerEvent);
     } finally {
       state.historyLogKind = previousHistoryLogKind;

@@ -12,7 +12,10 @@ const listeners = {
   penaltyRefreshUnbind: null,
   penaltyDeckUnbind: null,
   turnOrderUnbind: null,
-  turnOrderRemoveUnbind: null
+  turnOrderRemoveUnbind: null,
+  audioMuteUnbind: null,
+  audioVolumeInputHandler: null,
+  audioVolumeChangeHandler: null
 };
 
 function getEl(id) {
@@ -193,6 +196,64 @@ export function bindTurnOrderRemoveClick(handler) {
 
     handler?.(removeBtn, event);
   });
+}
+
+export function bindAudioMuteToggle(handler) {
+  const btn = getEl('audio-mute-toggle');
+  if (!btn) return;
+
+  if (typeof listeners.audioMuteUnbind === 'function') listeners.audioMuteUnbind();
+  listeners.audioMuteUnbind = bindTap(btn, handler);
+}
+
+export function bindAudioVolumeChange(handler) {
+  const slider = getEl('audio-volume-slider');
+  if (!slider || typeof handler !== 'function') return;
+
+  if (typeof listeners.audioVolumeInputHandler === 'function') {
+    slider.removeEventListener('input', listeners.audioVolumeInputHandler);
+  }
+  if (typeof listeners.audioVolumeChangeHandler === 'function') {
+    slider.removeEventListener('change', listeners.audioVolumeChangeHandler);
+  }
+
+  const onInput = (event) => handler(event);
+  const onChange = (event) => handler(event);
+
+  slider.addEventListener('input', onInput);
+  slider.addEventListener('change', onChange);
+
+  listeners.audioVolumeInputHandler = onInput;
+  listeners.audioVolumeChangeHandler = onChange;
+}
+
+export function setAudioMuteState(muted) {
+  const btn = getEl('audio-mute-toggle');
+  if (!btn) return;
+
+  const isMuted = Boolean(muted);
+  btn.setAttribute('aria-pressed', isMuted ? 'true' : 'false');
+  btn.setAttribute('aria-label', isMuted ? 'Unmute sounds' : 'Mute sounds');
+  btn.textContent = isMuted ? 'Sound: Off' : 'Sound: On';
+}
+
+export function setAudioVolumeValue(volumePercent) {
+  const slider = getEl('audio-volume-slider');
+  if (!slider) return;
+
+  const safePercent = Number.isFinite(volumePercent)
+    ? Math.min(100, Math.max(0, Math.round(volumePercent)))
+    : 100;
+  slider.value = String(safePercent);
+}
+
+export function getAudioVolumeValue() {
+  const slider = getEl('audio-volume-slider');
+  if (!slider) return 100;
+
+  const raw = Number.parseInt(slider.value, 10);
+  if (!Number.isFinite(raw)) return 100;
+  return Math.min(100, Math.max(0, raw));
 }
 
 // Optional: if you ever need to reset cached refs (rare)

@@ -127,6 +127,31 @@
             >
               Rules
             </button>
+
+            <div class="audio-controls" aria-label="Sound controls">
+              <button
+                id="audio-mute-toggle"
+                class="rules-button audio-toggle"
+                type="button"
+                aria-pressed="false"
+                aria-label="Mute sounds"
+              >
+                Sound: On
+              </button>
+              <label class="audio-volume-control" for="audio-volume-slider">
+                <span class="audio-volume-control__label">Vol</span>
+                <input
+                  id="audio-volume-slider"
+                  class="audio-volume"
+                  type="range"
+                  min="0"
+                  max="100"
+                  step="1"
+                  value="100"
+                  aria-label="Sound volume"
+                />
+              </label>
+            </div>
           </div>
 
           <div id="turn-order" class="turn-order"></div>

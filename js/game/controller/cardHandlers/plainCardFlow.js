@@ -21,6 +21,7 @@ export function createPlainCardFlow({
   applyDrinkEvent,
   activateDitto,
   onDittoActivated,
+  onDittoTriggered = null,
   replaceCardSelectionKind,
   setBaseBackgroundScene,
   flashElement,
@@ -88,6 +89,9 @@ export function createPlainCardFlow({
     if (activeRng.nextFloat() < 0.16) { //16% chance to activate Ditto on any plain card
       const idx = parseInt(cardEl.dataset.index || "0", 10);
       activateDitto(state, cardEl, idx, log, cardData);
+      if (typeof onDittoTriggered === 'function') {
+        onDittoTriggered({ cardIndex: idx, cardData });
+      }
 
       onDittoActivated(state, state.currentPlayerIndex, log);
       replaceCardSelectionKind(state, state.currentPlayerIndex, selectedKind, 'ditto');

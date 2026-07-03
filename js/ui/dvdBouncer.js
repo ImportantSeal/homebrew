@@ -54,6 +54,7 @@ export function createDvdBouncer({
   containerSelector = '',
   imageSrc = '',
   imageAlt = 'DVD logo',
+  onWallHit = null,
   onCornerHit = null,
   speedX = DEFAULTS.speedX,
   speedY = DEFAULTS.speedY,
@@ -209,6 +210,9 @@ export function createDvdBouncer({
 
     if (hitX || hitY) {
       applyNextGradient(el);
+      if (typeof onWallHit === 'function') {
+        onWallHit({ hitX, hitY });
+      }
     }
 
     if (hitX && hitY) {
