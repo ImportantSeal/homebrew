@@ -29,6 +29,7 @@ import { initCards, renderCards } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { showCardActionModal } from '../ui/cardActionModal.js';
 import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundScene.js';
+import { createDvdBouncer } from '../ui/dvdBouncer.js';
 
 import {
   showGameContainer,
@@ -57,6 +58,13 @@ const TIMING = {
   DITTO_DOUBLECLICK_GUARD_MS: 1000,
   REDRAW_REFRESH_MS: 1000
 };
+
+function formatCornerLabel(corner) {
+  return String(corner || '')
+    .trim()
+    .replace(/-/g, ' ')
+    .replace(/\b\w/g, (char) => char.toUpperCase()) || 'Corner';
+}
 
 export function createGameController({ initialState = createInitialState() } = {}) {
   const state = initialState && typeof initialState === 'object'
@@ -403,6 +411,26 @@ const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } 
   openActionScreen
 });
 
+const dvdBouncer = createDvdBouncer({
+  containerSelector: '#game-container',
+  imageSrc: 'images/dvd.png',
+  imageAlt: 'DVD logo',
+  onCornerHit: ({ corner }) => {
+    if (!Array.isArray(state.players) || state.players.length < 1) return;
+
+    const cornerLabel = formatCornerLabel(corner);
+    log(`Bombur corner hit (${cornerLabel}): everyone takes 1 shot.`, { kind: 'shot' });
+    openActionScreen(
+      'Corner Hit',
+      `Bombur landed perfectly on ${cornerLabel}. Everyone takes 1 shot.`,
+      {
+        variant: 'penalty',
+        closeLabel: 'Cheers'
+      }
+    );
+  }
+});
+
 function startGame() {
   cancelTargetedEffectSelection(state);
   resetStateForNewGame(state);
@@ -420,6 +448,7 @@ function initGameView() {
   showGameContainer();
   initCards(onCardClick);
   syncBackgroundScene(state);
+  dvdBouncer.start();
   bindPenaltyDeckSizeSync();
   schedulePenaltyDeckSizeSync();
   hidePenaltyCard(state);
