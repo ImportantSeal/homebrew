@@ -33,6 +33,22 @@ function resolveCornerName(x, y, minX, maxX, minY, maxY) {
   return 'a corner';
 }
 
+function randomHue() {
+  return Math.floor(Math.random() * 360);
+}
+
+function applyGradientFromHue(el, base) {
+  if (!el || !el.style) return;
+
+  const c1 = `hsla(${base}, 88%, 58%, 0.88)`;
+  const c2 = `hsla(${(base + 72) % 360}, 86%, 57%, 0.82)`;
+  const c3 = `hsla(${(base + 148) % 360}, 84%, 52%, 0.86)`;
+
+  el.style.setProperty('--dvd-grad-1', c1);
+  el.style.setProperty('--dvd-grad-2', c2);
+  el.style.setProperty('--dvd-grad-3', c3);
+}
+
 export function createDvdBouncer({
   containerId = 'game-container',
   containerSelector = '',
@@ -53,6 +69,13 @@ export function createDvdBouncer({
   let vx = Number.isFinite(speedX) ? Math.abs(speedX) : DEFAULTS.speedX;
   let vy = Number.isFinite(speedY) ? Math.abs(speedY) : DEFAULTS.speedY;
   let lastCornerHitAt = 0;
+  let gradientHue = randomHue();
+
+  function applyNextGradient(el) {
+    // Golden-angle hue stepping keeps strong visual separation between hits.
+    gradientHue = (gradientHue + 137) % 360;
+    applyGradientFromHue(el, gradientHue);
+  }
 
   function getContainer() {
     if (typeof document === 'undefined') return null;
@@ -182,6 +205,10 @@ export function createDvdBouncer({
       y = maxY;
       vy = -Math.abs(vy);
       hitY = true;
+    }
+
+    if (hitX || hitY) {
+      applyNextGradient(el);
     }
 
     if (hitX && hitY) {
