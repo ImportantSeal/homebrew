@@ -125,6 +125,10 @@ function bindCardDepthMotion(cardEl) {
   const supportsPointer = (event) => !event.pointerType || allowedPointerType.has(event.pointerType);
 
   const onPointerEnter = (event) => {
+    if (typeof cardEl?._onHoverCard === 'function') {
+      cardEl._onHoverCard(event);
+    }
+
     if (!motionState.enabled || !supportsPointer(event)) {
       setCardAnimating(cardEl, false);
       resetCardDepth(cardEl);
@@ -247,23 +251,26 @@ function resetCardTransientState(cardEl) {
   cardEl.style.removeProperty('--impact-duration');
 }
 
-function initializeCard(cardEl, onSelectCard) {
+function initializeCard(cardEl, onSelectCard, options = {}) {
   if (!cardEl) return;
   if (typeof onSelectCard === 'function') {
     cardEl._onSelectCard = onSelectCard;
+  }
+  if (typeof options.onHoverCard === 'function') {
+    cardEl._onHoverCard = options.onHoverCard;
   }
   bindCardSelection(cardEl);
   bindCardDepthMotion(cardEl);
   getCardFrontElement(cardEl);
 }
 
-export function initCards(onSelectCard) {
+export function initCards(onSelectCard, options = {}) {
   const cards = getCardElements();
 
   cards.forEach((cardEl, index) => {
     if (!cardEl) return;
     cardEl.dataset.index = String(index);
-    initializeCard(cardEl, onSelectCard);
+    initializeCard(cardEl, onSelectCard, options);
   });
 
   const penaltyDeckEl = document.getElementById('penalty-deck');

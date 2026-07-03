@@ -30,6 +30,7 @@ import { renderTurnOrder } from '../ui/turnOrder.js';
 import { showCardActionModal } from '../ui/cardActionModal.js';
 import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundScene.js';
 import { createDvdBouncer } from '../ui/dvdBouncer.js';
+import { createUiSounds } from '../ui/sounds.js';
 
 import {
   showGameContainer,
@@ -43,6 +44,11 @@ import {
   bindPenaltyDeckClick,
   bindTurnOrderPlayerClick,
   bindTurnOrderRemoveClick,
+  bindAudioMuteToggle,
+  bindAudioVolumeChange,
+  setAudioMuteState,
+  setAudioVolumeValue,
+  getAudioVolumeValue,
   getPenaltyDeckEl,
   setItemsPanelVisibility
 } from '../ui/uiFacade.js';
@@ -58,6 +64,43 @@ const TIMING = {
   DITTO_DOUBLECLICK_GUARD_MS: 1000,
   REDRAW_REFRESH_MS: 1000
 };
+
+const AUDIO_STORAGE_KEYS = {
+  muted: 'homebrew.audio.muted',
+  volume: 'homebrew.audio.volume'
+};
+
+function clamp01(value) {
+  if (!Number.isFinite(value)) return 1;
+  return Math.min(1, Math.max(0, value));
+}
+
+function loadAudioPrefs() {
+  if (typeof localStorage === 'undefined') {
+    return { muted: false, volume: 1 };
+  }
+
+  try {
+    const mutedRaw = localStorage.getItem(AUDIO_STORAGE_KEYS.muted);
+    const volumeRaw = Number.parseFloat(localStorage.getItem(AUDIO_STORAGE_KEYS.volume) || '1');
+    const muted = mutedRaw === 'true';
+    const volume = clamp01(volumeRaw);
+    return { muted, volume };
+  } catch {
+    return { muted: false, volume: 1 };
+  }
+}
+
+function saveAudioPrefs({ muted, volume }) {
+  if (typeof localStorage === 'undefined') return;
+
+  try {
+    localStorage.setItem(AUDIO_STORAGE_KEYS.muted, muted ? 'true' : 'false');
+    localStorage.setItem(AUDIO_STORAGE_KEYS.volume, String(clamp01(volume)));
+  } catch {
+    // Ignore persistence failures (private mode, storage disabled, etc.)
+  }
+}
 
 function formatCornerLabel(corner) {
   return String(corner || '')
@@ -392,6 +435,13 @@ const rng = {
   nextFloat: () => (state.rng ?? systemRng).nextFloat()
 };
 
+const uiSounds = createUiSounds();
+const savedAudioPrefs = loadAudioPrefs();
+uiSounds.setMuted(savedAudioPrefs.muted);
+uiSounds.setMasterVolume(savedAudioPrefs.volume);
+setAudioMuteState(savedAudioPrefs.muted);
+setAudioVolumeValue(savedAudioPrefs.volume * 100);
+
 const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } = createCardHandlers({
   state,
   timing: TIMING,
@@ -408,14 +458,20 @@ const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } 
   renderItems,
   renderTurnOrder,
   resetCards,
-  openActionScreen
+  openActionScreen,
+  onCardSelected: () => uiSounds.playSelect(),
+  onDittoTriggered: () => uiSounds.playDitto()
 });
 
 const dvdBouncer = createDvdBouncer({
   containerSelector: '#game-container',
   imageSrc: 'images/dvd.png',
   imageAlt: 'DVD logo',
+  onWallHit: () => {
+    uiSounds.playWallHit();
+  },
   onCornerHit: ({ corner }) => {
+    uiSounds.playCornerHit();
     if (!Array.isArray(state.players) || state.players.length < 1) return;
 
     const cornerLabel = formatCornerLabel(corner);
@@ -445,6 +501,7 @@ function startGame() {
 }
 
 function initGameView() {
+  uiSounds.arm();
   showGameContainer();
   initCards(onCardClick);
   syncBackgroundScene(state);
@@ -460,6 +517,28 @@ function setupEventListeners() {
   bindPenaltyDeckClick(onPenaltyDeckClick);
   bindTurnOrderPlayerClick(onTurnOrderPlayerClick);
   bindTurnOrderRemoveClick(onTurnOrderPlayerRemoveClick);
+  bindAudioMuteToggle(() => {
+    const nextMuted = !uiSounds.getMuted();
+    uiSounds.setMuted(nextMuted);
+    setAudioMuteState(nextMuted);
+    saveAudioPrefs({ muted: nextMuted, volume: uiSounds.getMasterVolume() });
+  });
+  bindAudioVolumeChange(() => {
+    const volumePercent = getAudioVolumeValue();
+    const volume = clamp01(volumePercent / 100);
+    uiSounds.setMasterVolume(volume);
+
+    if (volumePercent === 0 && !uiSounds.getMuted()) {
+      uiSounds.setMuted(true);
+    } else if (volumePercent > 0 && uiSounds.getMuted()) {
+      uiSounds.setMuted(false);
+    }
+
+    const nextMuted = uiSounds.getMuted();
+
+    setAudioMuteState(nextMuted);
+    saveAudioPrefs({ muted: nextMuted, volume });
+  });
 }
 
 function onTurnOrderPlayerClick(playerBtn) {
