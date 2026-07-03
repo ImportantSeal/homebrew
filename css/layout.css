@@ -13,6 +13,11 @@
   min-width: 0;
 }
 
+#game-container {
+  position: relative;
+  overflow: hidden;
+}
+
 #setup-container.container {
   width: min(58rem, 92vw);
 }
@@ -295,6 +300,8 @@
   width: 100%;
   min-width: 0;
   align-items: stretch;
+  position: relative;
+  overflow: hidden;
 }
 
 .left-panel {
