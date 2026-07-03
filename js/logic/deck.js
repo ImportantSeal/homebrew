@@ -5,7 +5,7 @@ import { dealTestCards } from '../dev/cardTestMode.js';
 
 // Helps reduce "this feels broken" moments:
 // - Avoids dealing exact same "card" twice in the SAME 3-card turn (best-effort).
-const ITEM_OVERRIDE_CHANCE = 0.01;
+const ITEM_OVERRIDE_CHANCE = 0.03;
 
 function cardKey(card) {
   if (card && typeof card === 'object') {
