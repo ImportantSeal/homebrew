@@ -60,6 +60,16 @@ export const gameData = {
         { name: "Common Misconception", instruction: "Share one thing most people get wrong about you." },
         { name: "Annoying Trait", instruction: "Name one trait of yours that annoys other people." },
         { name: "Unreasonable Pet Peeve", instruction: "Name one everyday thing you irrationally hate." },
+        { name: "5-Second Flex", instruction: "Name 3 things in a category in 5 seconds. Fail = drink 2." },
+        { name: "Reverse Compliment", instruction: "Compliment the player on your left. If they laugh or smile, they drink 1. If they keep a straight face, you drink 1." },
+        { name: "One Breath Story", instruction: "Tell a short story in one breath. If you pause for air, drink 2." },
+        { name: "Instant Nickname", instruction: "Give one player a nickname for this round. If the group votes it weak, you drink 1." },
+        { name: "Two-Line Pitch", instruction: "Pitch yourself in exactly two sentences. If anyone says 'meh', drink 1." },
+        {
+          name: "Drinks Taken Guess",
+          instruction: "Guess your own Drinks taken from Stats. Exact guess gives 3. Wrong guess drinks 2.",
+          leaderboardTopic: "player_drinks_taken"
+        },
         {
           name: "Give Count Guess",
           instruction: "Guess how many drinks you have given so far. If your guess is exact, give that many drinks (max 10). If your guess is wrong, drink your guessed amount (max 10).",
@@ -130,7 +140,7 @@ export const gameData = {
       { name: "Share a Secret", instruction: "Everyone shares one secret. If your secret is voted lame, drink 1." },
       { name: "On your feet!", instruction: "Everyone stands up. Last one standing drinks 1." },
       { name: "Hear me out", instruction: "Everyone reveals their 'hear me out' crush." },
-      { name: "Two Truths and a Lie", instruction: "Say two truths and one lie. Evereyone that guesses the lie correctly gives 1." },
+      { name: "Two Truths and a Lie", instruction: "Say two truths and one lie. Everyone that guesses the lie correctly gives 1." },
       { name: "Unpopular Opinion", instruction: "Share one unpopular opinion. If nobody agrees, drink 1. If everyone agrees, drink 3." },
       { name: "Silent Agreement", instruction: "State one opinion. Everyone who agrees drinks 1. No discussion." },
       { name: "Never Have I Ever", instruction: "Say 'Never have I ever...' and finish it. Anyone who has done it drinks 1, including you." },
@@ -149,6 +159,16 @@ export const gameData = {
       { name: "Song Association", instruction: "You say one word. First to sing a lyric containing that word gives 3." },
       { name: "Flirting Style", instruction: "Everyone describes their flirting style in 3 words. Group picks the cringiest answer; that player drinks 2." },
       { name: "Cancel Confession", instruction: "Everyone shares one reason they could get cancelled. Group votes for the most believable confession; that player gives 2 drinks." },
+      { name: "Majority Rules", instruction: "Ask a yes/no question. Minority side drinks 2." },
+      { name: "Silent Lineup", instruction: "Line up by birth month without speaking. If your group breaks silence, everyone drinks 1." },
+      { name: "Lightning Category", instruction: "Pick a category. Go around fast; first blank, repeat, or long pause drinks 2." },
+      { name: "Common Ground", instruction: "Everyone quickly says one thing they did this week. Anyone with a unique answer drinks 1." },
+      { name: "Tempo Tap", instruction: "Start a table tap rhythm. First player to break rhythm drinks 2." },
+      {
+        name: "Stats Bounty",
+        instruction: "Everyone points to who gave the most drinks. Check Stats. Wrong guess drinks 1.",
+        leaderboardTopic: "drinks_given_max"
+      },
 
 
 
@@ -169,6 +189,43 @@ export const gameData = {
       { name: "Double Social", instruction: "Everyone drinks two." },
       { name: "Youngest Drinks", instruction: "The youngest player drinks one." },
       { name: "Oldest Drinks", instruction: "The oldest player drinks one." },
+      { name: "Shield Check", instruction: "If you hold any item, give 2. If you hold none, drink 2.", itemRelated: true },
+      { name: "Crowd Tax", instruction: "If there are 6+ players, everybody drinks 2. Otherwise, everybody drinks 1." },
+      {
+        name: "Quick Notification Curse (6 Rounds)",
+        instruction: "For the next 6 rounds, if your phone gets a notification, you drink 1.",
+        effect: { type: EFFECT_TYPES.NOTIFICATION_CURSE, turns: 6 }
+      },
+      {
+        name: "Short Lie Mode (2 Turns)",
+        instruction: "Choose one player (you may choose yourself). For the next 2 turns, they may speak only lies. Truth = drink 2.",
+        effect: { type: EFFECT_TYPES.LIE_MODE, turns: 2, needsTarget: true }
+      },
+      {
+        name: "Double Drinks Sprint (3 Turns)",
+        instruction: "For the next 3 turns, every drink amount you take is doubled.",
+        effect: { type: EFFECT_TYPES.DOUBLE_DRINKS, turns: 3 }
+      },
+      {
+        name: "Quick King's Tax (4 Turns)",
+        instruction: "Choose a temporary king for 4 turns (you may choose yourself). Anyone interrupting the king drinks 2.",
+        effect: { type: EFFECT_TYPES.KINGS_TAX, turns: 4, needsTarget: true }
+      },
+      {
+        name: "Table Referendum",
+        instruction: "Group vote together: either everybody drinks 6 OR everybody takes a Penalty card.",
+        action: ACTION_CODES.CHAOS_REFERENDUM_GROUP
+      },
+      {
+        name: "Most Generous Pays",
+        instruction: "Player(s) with the most Drinks given drink 2.",
+        leaderboardTopic: "drinks_given_max"
+      },
+      {
+        name: "Least Penalized Bonus",
+        instruction: "Player(s) with the fewest Penalties give 2.",
+        leaderboardTopic: "penalties_min"
+      },
       {
         name: "Least Drunk Drinks",
         instruction: "The player with the fewest drinks so far drinks one.",
