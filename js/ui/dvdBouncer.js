@@ -2,8 +2,8 @@ import { isReducedEffectsEnabled } from './effectsProfile.js';
 import { restartClassAnimation } from '../utils/restartClassAnimation.js';
 
 const DEFAULTS = {
-  speedX: 25.35,
-  speedY: 25.05,
+  speedX: 2.35,
+  speedY: 2.35,
   sizePx: 68,
   paddingPx: 0,
   cornerCooldownMs: 7000
