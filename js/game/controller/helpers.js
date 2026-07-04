@@ -1,5 +1,5 @@
-import { ACTION_CODES } from '../../logic/actionEffectRegistry.js';
 import { getEffectTitle } from '../../logic/effectNames.js';
+import { getObjectCardPool } from '../../logic/objectCardCycle.js';
 import {
   getDrinkSpec,
   getGiveSpec,
@@ -12,13 +12,7 @@ import {
   isRedrawHoldPenaltyOpen
 } from '../../logic/flowMachine.js';
 
-const ITEM_RELATED_SPECIAL_ACTIONS = new Set([
-  ACTION_CODES.COLLECTOR,
-  ACTION_CODES.MINIMALIST,
-  ACTION_CODES.IMMUNITY_OR_SUFFER,
-  ACTION_CODES.ITEM_BUYOUT
-]);
-const ITEM_RELATED_TEXT = /\bitems?\b/i;
+export { getObjectCardPool };
 
 export function isDrawPenaltyCardText(txt) {
   return getPenaltyCallType(txt) === "single";
@@ -176,24 +170,6 @@ export function ensureBag(stateObj, key, items, createBag) {
   if (!stateObj.bags) stateObj.bags = {};
   if (!stateObj.bags[key]) stateObj.bags[key] = createBag(items);
   return stateObj.bags[key];
-}
-
-function isItemRelatedSpecialSubcategory(entry) {
-  if (!entry || typeof entry !== "object") return false;
-  if (typeof entry.itemRelated === "boolean") return entry.itemRelated;
-  if (entry.action && ITEM_RELATED_SPECIAL_ACTIONS.has(String(entry.action))) return true;
-
-  const name = String(entry.name || "");
-  const instruction = String(entry.instruction || "");
-  return ITEM_RELATED_TEXT.test(name) || ITEM_RELATED_TEXT.test(instruction);
-}
-
-export function getObjectCardPool(state, cardData) {
-  const source = Array.isArray(cardData?.subcategories) ? cardData.subcategories : [];
-  if (cardData === state.special && !state.includeItems) {
-    return source.filter(entry => !isItemRelatedSpecialSubcategory(entry));
-  }
-  return source;
 }
 
 export function parseDrinkFromText(text) {

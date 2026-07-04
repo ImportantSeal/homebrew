@@ -9,6 +9,9 @@ test('resetStateForNewGame recreates fresh runtime state for a new game', () => 
   const previousBags = {
     special: { next: () => 'stale-bag' }
   };
+  const previousObjectCardCycle = {
+    seenKeys: ['stale-card']
+  };
 
   state.players = [
     {
@@ -27,6 +30,7 @@ test('resetStateForNewGame recreates fresh runtime state for a new game', () => 
   state.includeItems = true;
   state.currentPlayerIndex = 1;
   state.bags = previousBags;
+  state.objectCardCycle = previousObjectCardCycle;
   state.uiLocked = true;
   state.flow.phase = 'penalty_pending_card';
   state.flow.lastTransition = { action: 'TEST', ok: false, from: 'idle', to: 'idle', reason: 'x', at: 1 };
@@ -67,6 +71,8 @@ test('resetStateForNewGame recreates fresh runtime state for a new game', () => 
 
   assert.notEqual(state.bags, previousBags);
   assert.deepEqual(state.bags, {});
+  assert.notEqual(state.objectCardCycle, previousObjectCardCycle);
+  assert.deepEqual(state.objectCardCycle, { seenKeys: [] });
   assert.equal(state.uiLocked, false);
   assert.equal(state.flow.phase, 'idle');
   assert.equal(state.flow.lastTransition, null);

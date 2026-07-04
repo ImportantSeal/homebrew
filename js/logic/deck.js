@@ -2,6 +2,7 @@
 import { randomFromArray } from '../utils/random.js';
 import { resolveRng } from '../utils/rng.js';
 import { dealTestCards } from '../dev/cardTestMode.js';
+import { getAvailableObjectParentCards } from './objectCardCycle.js';
 
 // Helps reduce "this feels broken" moments:
 // - Avoids dealing exact same "card" twice in the SAME 3-card turn (best-effort).
@@ -53,13 +54,28 @@ export function dealTurnCards(state, rng = null) {
 function pickBaseCard(state, rng) {
   const cardTypeChance = rng.nextFloat();
   if (cardTypeChance < 0.3) {
-
-    return randomFromArray(state.socialCards, rng);
+    return pickObjectParentCard(state, state.socialCards, rng);
   } else if (cardTypeChance < 0.4) {
-    return state.crowdChallenge;
+    return pickObjectParentCard(state, [state.crowdChallenge], rng);
   } else if (cardTypeChance < 0.6) {
-    return state.special;
+    return pickObjectParentCard(state, [state.special], rng);
   } else {
     return randomFromArray(state.normalDeck, rng);
   }
+}
+
+function pickObjectParentCard(state, preferredCards, rng) {
+  const preferred = (Array.isArray(preferredCards) ? preferredCards : [preferredCards])
+    .filter(Boolean);
+  const availablePreferred = getAvailableObjectParentCards(state, preferred);
+  if (availablePreferred.length > 0) {
+    return randomFromArray(availablePreferred, rng);
+  }
+
+  const availableAny = getAvailableObjectParentCards(state);
+  if (availableAny.length > 0) {
+    return randomFromArray(availableAny, rng);
+  }
+
+  return randomFromArray(preferred, rng);
 }
