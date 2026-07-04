@@ -354,7 +354,8 @@
 
   .modal--card-action .modal__panel,
   .modal--stats .modal__panel,
-  .modal--spin-wheel .modal__panel {
+  .modal--spin-wheel .modal__panel,
+  .modal--timer .modal__panel {
     width: calc(100vw - 1rem);
     margin-top: 0.4rem;
   }
@@ -447,6 +448,11 @@
     width: min(100%, 22rem);
   }
 
+  .timer-display {
+    min-height: 4.8rem;
+    font-size: 2.55rem;
+  }
+
   .dice-controls label { min-width: 7.25rem; }
 
   .card .card__front {
@@ -517,7 +523,8 @@
 
   .modal--card-action .modal__panel,
   .modal--stats .modal__panel,
-  .modal--spin-wheel .modal__panel {
+  .modal--spin-wheel .modal__panel,
+  .modal--timer .modal__panel {
     width: calc(100vw - 0.6rem);
   }
 
@@ -570,6 +577,16 @@
   .spin-wheel-actions {
     grid-template-columns: 1fr;
   }
+
+  .timer-display {
+    min-height: 4.35rem;
+    font-size: 2.15rem;
+  }
+
+  .timer-duration,
+  .timer-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===== Responsive: Touch Targets ===== */
@@ -582,6 +599,9 @@
   .dice-roll,
   .dice-chip,
   .spin-wheel-spin,
+  .timer-mode-button,
+  .timer-action-button,
+  .timer-chip,
   .card-action__button,
   .effect-remove {
     min-height: 44px;
