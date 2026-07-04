@@ -103,7 +103,8 @@
               aria-controls="settings-modal"
               aria-expanded="false"
             >
-              Menu
+              <span class="button-icon" aria-hidden="true">&#9776;</span>
+              <span>Menu</span>
             </button>
           </div>
 
@@ -176,13 +177,13 @@
 
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
-        <h2>Menu</h2>
+        <h2><span class="modal-title-icon" aria-hidden="true">&#9776;</span>Menu</h2>
         <button class="modal__close" type="button" data-close-settings aria-label="Close menu">&times;</button>
       </div>
 
       <div class="modal__body settings-menu">
         <section class="settings-section" aria-labelledby="settings-tools-title">
-          <h3 id="settings-tools-title">Tools</h3>
+          <h3 id="settings-tools-title"><span aria-hidden="true">&#9673;</span>Tools</h3>
           <div class="settings-tools">
             <button
               id="dice-toggle"
@@ -193,7 +194,8 @@
               aria-expanded="false"
               data-settings-tool
             >
-              Dice
+              <span class="settings-tool-button__icon" aria-hidden="true">&#x2685;</span>
+              <span class="settings-tool-button__label">Dice</span>
             </button>
 
             <button
@@ -205,7 +207,8 @@
               aria-expanded="false"
               data-settings-tool
             >
-              Stats
+              <span class="settings-tool-button__icon" aria-hidden="true">&#9638;</span>
+              <span class="settings-tool-button__label">Stats</span>
             </button>
 
             <button
@@ -217,15 +220,19 @@
               aria-expanded="false"
               data-settings-tool
             >
-              Rules
+              <span class="settings-tool-button__icon" aria-hidden="true">&#167;</span>
+              <span class="settings-tool-button__label">Rules</span>
             </button>
           </div>
         </section>
 
         <section class="settings-section settings-section--bombur" aria-labelledby="settings-bombur-title">
-          <h3 id="settings-bombur-title">Bombur</h3>
+          <h3 id="settings-bombur-title"><span aria-hidden="true">&#9679;</span>Bombur</h3>
           <label class="settings-toggle-row" for="bombur-toggle">
-            <span class="settings-toggle-row__text">DVD icon</span>
+            <span class="settings-row-main">
+              <span class="settings-row-icon settings-row-icon--dvd" aria-hidden="true">DVD</span>
+              <span class="settings-toggle-row__text">DVD icon</span>
+            </span>
             <input
               id="bombur-toggle"
               class="settings-switch"
@@ -237,7 +244,7 @@
         </section>
 
         <section class="settings-section settings-section--audio" aria-labelledby="settings-audio-title">
-          <h3 id="settings-audio-title">Audio</h3>
+          <h3 id="settings-audio-title"><span aria-hidden="true">&#9834;</span>Audio</h3>
           <div class="audio-controls settings-audio" aria-label="Sound controls">
             <button
               id="audio-mute-toggle"
@@ -249,7 +256,8 @@
               Sound: On
             </button>
             <label class="audio-volume-control" for="audio-volume-slider">
-              <span class="audio-volume-control__label">Vol</span>
+              <span class="audio-volume-control__icon" aria-hidden="true">&#9835;</span>
+              <span class="audio-volume-control__label">Volume</span>
               <input
                 id="audio-volume-slider"
                 class="audio-volume"
