@@ -565,6 +565,7 @@
 @media (hover: none), (pointer: coarse) {
   .btn,
   .rules-button,
+  .modal__back,
   .settings-tool-button,
   .audio-volume,
   .dice-roll,

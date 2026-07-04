@@ -1,6 +1,7 @@
 // js/ui/diceModal.js
 import { addHistoryEntry } from '../cardHistory.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
+import { openGameMenu } from './settingsMenu.js';
 import { bindTap } from '../utils/tap.js';
 import {
   clampInt,
@@ -46,6 +47,7 @@ export function initDiceModal({ state } = {}) {
   if (!toggleBtn || !modal) return;
 
   const panel = modal.querySelector('.modal__panel');
+  const backBtn = modal.querySelector('[data-back-menu]');
 
   const sidesSelect = document.getElementById('dice-sides');
   const qtyInput = document.getElementById('dice-qty');
@@ -101,7 +103,7 @@ export function initDiceModal({ state } = {}) {
     panel?.focus?.();
   };
 
-  const close = () => {
+  const close = ({ restoreFocus = true } = {}) => {
     if (!isDiceModalOpen()) return;
 
     // Invalidate any in-flight roll so it can't overwrite UI later.
@@ -112,9 +114,9 @@ export function initDiceModal({ state } = {}) {
     modal.setAttribute('aria-hidden', 'true');
     toggleBtn.setAttribute('aria-expanded', 'false');
     unlockModalScroll();
-    const focusTarget = returnFocusEl || toggleBtn;
+    const focusTarget = restoreFocus ? (returnFocusEl || toggleBtn) : null;
     returnFocusEl = null;
-    focusTarget.focus?.();
+    focusTarget?.focus?.();
 
     resetDiceUI();
     hideDiceBox();
@@ -123,6 +125,11 @@ export function initDiceModal({ state } = {}) {
   bindTap(toggleBtn, () => {
     if (isDiceModalOpen()) close();
     else open();
+  });
+
+  bindTap(backBtn, () => {
+    close({ restoreFocus: false });
+    openGameMenu();
   });
 
   // Close via backdrop or X.

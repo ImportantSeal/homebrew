@@ -15,42 +15,76 @@ function isElement(value) {
   return value instanceof HTMLElement;
 }
 
-export function initSettingsMenu(options = {}) {
-  if (initialized) return;
-
-  const config = { ...DEFAULTS, ...(options || {}) };
-  const toggleBtn = document.getElementById(config.toggleId);
+function getRefs(config = DEFAULTS) {
   const modal = document.getElementById(config.modalId);
-  if (!toggleBtn || !modal) return;
+  return {
+    toggleBtn: document.getElementById(config.toggleId),
+    modal,
+    panel: modal?.querySelector(config.panelSelector) || null
+  };
+}
 
-  const panel = modal.querySelector(config.panelSelector);
-  const boundTools = new WeakSet();
+function isMenuOpen(modal) {
+  return Boolean(modal?.classList.contains('is-open'));
+}
 
-  function isOpen() {
-    return modal.classList.contains('is-open');
-  }
+function openMenu(config = DEFAULTS, { focusPanel = true } = {}) {
+  const { toggleBtn, modal, panel } = getRefs(config);
+  if (!toggleBtn || !modal) return false;
 
-  function open() {
-    if (isOpen()) return;
-
+  if (!isMenuOpen(modal)) {
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     toggleBtn.setAttribute('aria-expanded', 'true');
     lockModalScroll();
+  }
+
+  if (focusPanel) {
     panel?.focus?.();
   }
 
+  return true;
+}
+
+function closeMenu(config = DEFAULTS, { restoreFocus = true } = {}) {
+  const { toggleBtn, modal } = getRefs(config);
+  if (!toggleBtn || !modal || !isMenuOpen(modal)) return false;
+
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  toggleBtn.setAttribute('aria-expanded', 'false');
+  unlockModalScroll();
+
+  if (restoreFocus) {
+    toggleBtn.focus();
+  }
+
+  return true;
+}
+
+export function openGameMenu(options = {}) {
+  return openMenu(DEFAULTS, options);
+}
+
+export function initSettingsMenu(options = {}) {
+  if (initialized) return;
+
+  const config = { ...DEFAULTS, ...(options || {}) };
+  const { toggleBtn, modal } = getRefs(config);
+  if (!toggleBtn || !modal) return;
+
+  const boundTools = new WeakSet();
+
+  function isOpen() {
+    return isMenuOpen(modal);
+  }
+
+  function open() {
+    openMenu(config);
+  }
+
   function close({ restoreFocus = true } = {}) {
-    if (!isOpen()) return;
-
-    modal.classList.remove('is-open');
-    modal.setAttribute('aria-hidden', 'true');
-    toggleBtn.setAttribute('aria-expanded', 'false');
-    unlockModalScroll();
-
-    if (restoreFocus) {
-      toggleBtn.focus();
-    }
+    closeMenu(config, { restoreFocus });
   }
 
   function bindTool(tool) {

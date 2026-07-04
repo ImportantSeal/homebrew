@@ -1,6 +1,7 @@
 import { CARD_KIND_LABELS, CARD_KIND_ORDER, STATS_UPDATED_EVENT, getStatsSnapshot } from '../stats.js';
 import { bindTap } from '../utils/tap.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
+import { openGameMenu } from './settingsMenu.js';
 import { applyPlayerColor, ensurePlayerColors, getPlayerColorByName, setPlayerColoredText } from '../utils/playerColors.js';
 
 const IDS = {
@@ -20,6 +21,7 @@ function refs() {
     toggleBtn: document.getElementById(IDS.toggle),
     modal,
     panel: modal?.querySelector(IDS.panel) || null,
+    backBtn: modal?.querySelector('[data-back-menu]') || null,
     board: document.getElementById(IDS.board),
     empty: document.getElementById(IDS.empty)
   };
@@ -337,7 +339,7 @@ export function initStatsModal({ state } = {}) {
   if (!state || typeof state !== 'object') return;
   if (initialized) return;
 
-  const { modal, toggleBtn } = refs();
+  const { modal, toggleBtn, backBtn } = refs();
   if (!modal || !toggleBtn) return;
 
   bindTap(toggleBtn, () => {
@@ -353,6 +355,11 @@ export function initStatsModal({ state } = {}) {
     if (target && target.closest && target.closest('[data-close-stats]')) {
       closeModal(true);
     }
+  });
+
+  bindTap(backBtn, () => {
+    closeModal(false);
+    openGameMenu();
   });
 
   document.addEventListener('keydown', (event) => {

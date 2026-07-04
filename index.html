@@ -103,7 +103,7 @@
               aria-controls="settings-modal"
               aria-expanded="false"
             >
-              Settings
+              Menu
             </button>
           </div>
 
@@ -170,14 +170,14 @@
     </main>
   </div>
 
-  <!-- Settings Modal -->
+  <!-- Menu Modal -->
   <div id="settings-modal" class="modal modal--settings" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="modal__backdrop" data-close-settings></div>
 
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Menu</h2>
-        <button class="modal__close" type="button" data-close-settings aria-label="Close settings">&times;</button>
+        <button class="modal__close" type="button" data-close-settings aria-label="Close menu">&times;</button>
       </div>
 
       <div class="modal__body settings-menu">
@@ -260,7 +260,10 @@
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Rules</h2>
-        <button class="modal__close" type="button" data-close aria-label="Close rules">&times;</button>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu">Menu</button>
+          <button class="modal__close" type="button" data-close aria-label="Close rules">&times;</button>
+        </div>
       </div>
 
       <div class="modal__body">
@@ -303,7 +306,10 @@
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Dice</h2>
-        <button class="modal__close" type="button" data-close aria-label="Close dice">&times;</button>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu">Menu</button>
+          <button class="modal__close" type="button" data-close aria-label="Close dice">&times;</button>
+        </div>
       </div>
 
       <div class="modal__body">
@@ -360,7 +366,10 @@
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Stats</h2>
-        <button class="modal__close" type="button" data-close-stats aria-label="Close stats">&times;</button>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu">Menu</button>
+          <button class="modal__close" type="button" data-close-stats aria-label="Close stats">&times;</button>
+        </div>
       </div>
 
       <div class="modal__body">

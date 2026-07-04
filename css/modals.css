@@ -43,6 +43,35 @@
   letter-spacing: 0.02em;
 }
 
+.modal__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+}
+
+.modal__back {
+  min-height: 2.35rem;
+  padding: 0 0.7rem;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 0.65rem;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s, filter 0.2s, border-color 0.2s;
+  touch-action: manipulation;
+}
+
+.modal__back:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  border-color: rgba(53,224,199,0.32);
+}
+
 .modal__close {
   background: rgba(255,255,255,0.06);
   border: 1px solid rgba(255,255,255,0.14);
@@ -67,7 +96,7 @@
 .modal__body ul { margin-left: 1.15rem; margin-bottom: 0.6rem; }
 .modal__body li { margin: 0.3rem 0; color: rgba(234,240,255,0.86); }
 
-/* ===== Modals: Settings ===== */
+/* ===== Modals: Menu ===== */
 .modal--settings .modal__panel {
   width: min(30rem, 92vw);
 }
