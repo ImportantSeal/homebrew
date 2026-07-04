@@ -1,5 +1,14 @@
 // js/ui/rulesModal.js
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
+import { openGameMenu } from './settingsMenu.js';
+
+function resolveReturnFocus(toggleBtn) {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body) {
+    return active;
+  }
+  return toggleBtn;
+}
 
 export function initRulesModal() {
   const toggleBtn = document.getElementById('rules-toggle');
@@ -7,9 +16,12 @@ export function initRulesModal() {
   if (!toggleBtn || !modal) return;
 
   const panel = modal.querySelector('.modal__panel');
+  const backBtn = modal.querySelector('[data-back-menu]');
+  let returnFocusEl = null;
 
   const open = () => {
     if (modal.classList.contains('is-open')) return;
+    returnFocusEl = resolveReturnFocus(toggleBtn);
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     toggleBtn.setAttribute('aria-expanded', 'true');
@@ -17,19 +29,26 @@ export function initRulesModal() {
     panel?.focus?.();
   };
 
-  const close = () => {
+  const close = ({ restoreFocus = true } = {}) => {
     if (!modal.classList.contains('is-open')) return;
     modal.classList.remove('is-open');
     modal.setAttribute('aria-hidden', 'true');
     toggleBtn.setAttribute('aria-expanded', 'false');
     unlockModalScroll();
-    toggleBtn.focus();
+    const focusTarget = restoreFocus ? (returnFocusEl || toggleBtn) : null;
+    returnFocusEl = null;
+    focusTarget?.focus?.();
   };
 
   toggleBtn.addEventListener('click', () => {
     const isOpen = modal.classList.contains('is-open');
     if (isOpen) close();
     else open();
+  });
+
+  backBtn?.addEventListener('click', () => {
+    close({ restoreFocus: false });
+    openGameMenu();
   });
 
   // Sulje backdropista tai X-napista

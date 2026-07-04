@@ -96,62 +96,16 @@
             <h1>Homebrew beta</h1>
 
             <button
-              id="dice-toggle"
-              class="rules-button"
+              id="settings-toggle"
+              class="rules-button settings-toggle"
               type="button"
               aria-haspopup="dialog"
-              aria-controls="dice-modal"
+              aria-controls="settings-modal"
               aria-expanded="false"
             >
-              Dice
+              <span class="button-icon" aria-hidden="true">&#9776;</span>
+              <span>Menu</span>
             </button>
-
-            <button
-              id="stats-toggle"
-              class="rules-button"
-              type="button"
-              aria-haspopup="dialog"
-              aria-controls="stats-modal"
-              aria-expanded="false"
-            >
-              Stats
-            </button>
-
-            <button
-              id="rules-toggle"
-              class="rules-button"
-              type="button"
-              aria-haspopup="dialog"
-              aria-controls="rules-modal"
-              aria-expanded="false"
-            >
-              Rules
-            </button>
-
-            <div class="audio-controls" aria-label="Sound controls">
-              <button
-                id="audio-mute-toggle"
-                class="rules-button audio-toggle"
-                type="button"
-                aria-pressed="false"
-                aria-label="Mute sounds"
-              >
-                Sound: On
-              </button>
-              <label class="audio-volume-control" for="audio-volume-slider">
-                <span class="audio-volume-control__label">Vol</span>
-                <input
-                  id="audio-volume-slider"
-                  class="audio-volume"
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value="100"
-                  aria-label="Sound volume"
-                />
-              </label>
-            </div>
           </div>
 
           <div id="turn-order" class="turn-order"></div>
@@ -217,6 +171,110 @@
     </main>
   </div>
 
+  <!-- Menu Modal -->
+  <div id="settings-modal" class="modal modal--settings" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close-settings></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2><span class="modal-title-icon" aria-hidden="true">&#9776;</span>Menu</h2>
+        <button class="modal__close" type="button" data-close-settings aria-label="Close menu">&times;</button>
+      </div>
+
+      <div class="modal__body settings-menu">
+        <section class="settings-section" aria-labelledby="settings-tools-title">
+          <h3 id="settings-tools-title"><span aria-hidden="true">&#9673;</span>Tools</h3>
+          <div class="settings-tools">
+            <button
+              id="dice-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="dice-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              <span class="settings-tool-button__icon" aria-hidden="true">&#x2685;</span>
+              <span class="settings-tool-button__label">Dice</span>
+            </button>
+
+            <button
+              id="stats-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="stats-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              <span class="settings-tool-button__icon" aria-hidden="true">&#9638;</span>
+              <span class="settings-tool-button__label">Stats</span>
+            </button>
+
+            <button
+              id="rules-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="rules-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              <span class="settings-tool-button__icon" aria-hidden="true">&#167;</span>
+              <span class="settings-tool-button__label">Rules</span>
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-section settings-section--bombur" aria-labelledby="settings-bombur-title">
+          <h3 id="settings-bombur-title"><span aria-hidden="true">&#9679;</span>Bombur</h3>
+          <label class="settings-toggle-row" for="bombur-toggle">
+            <span class="settings-row-main">
+              <span class="settings-row-icon settings-row-icon--dvd" aria-hidden="true">DVD</span>
+              <span class="settings-toggle-row__text">DVD icon</span>
+            </span>
+            <input
+              id="bombur-toggle"
+              class="settings-switch"
+              type="checkbox"
+              checked
+              aria-label="Show Bombur DVD icon"
+            />
+          </label>
+        </section>
+
+        <section class="settings-section settings-section--audio" aria-labelledby="settings-audio-title">
+          <h3 id="settings-audio-title"><span aria-hidden="true">&#9834;</span>Audio</h3>
+          <div class="audio-controls settings-audio" aria-label="Sound controls">
+            <button
+              id="audio-mute-toggle"
+              class="rules-button audio-toggle"
+              type="button"
+              aria-pressed="false"
+              aria-label="Mute sounds"
+            >
+              Sound: On
+            </button>
+            <label class="audio-volume-control" for="audio-volume-slider">
+              <span class="audio-volume-control__icon" aria-hidden="true">&#9835;</span>
+              <span class="audio-volume-control__label">Volume</span>
+              <input
+                id="audio-volume-slider"
+                class="audio-volume"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value="100"
+                aria-label="Sound volume"
+              />
+            </label>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
   <!-- Rules Modal -->
   <div id="rules-modal" class="modal" aria-hidden="true" role="dialog" aria-modal="true">
     <div class="modal__backdrop" data-close></div>
@@ -224,7 +282,10 @@
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Rules</h2>
-        <button class="modal__close" type="button" data-close aria-label="Close rules">&times;</button>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu" title="Back to menu">&#x232B;</button>
+          <button class="modal__close" type="button" data-close aria-label="Close rules">&times;</button>
+        </div>
       </div>
 
       <div class="modal__body">
@@ -267,7 +328,10 @@
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Dice</h2>
-        <button class="modal__close" type="button" data-close aria-label="Close dice">&times;</button>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu" title="Back to menu">&#x232B;</button>
+          <button class="modal__close" type="button" data-close aria-label="Close dice">&times;</button>
+        </div>
       </div>
 
       <div class="modal__body">
@@ -324,7 +388,10 @@
     <div class="modal__panel" role="document" tabindex="-1">
       <div class="modal__header">
         <h2>Stats</h2>
-        <button class="modal__close" type="button" data-close-stats aria-label="Close stats">&times;</button>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu" title="Back to menu">&#x232B;</button>
+          <button class="modal__close" type="button" data-close-stats aria-label="Close stats">&times;</button>
+        </div>
       </div>
 
       <div class="modal__body">

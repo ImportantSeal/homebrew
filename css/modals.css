@@ -37,10 +37,58 @@
 }
 .modal__header h2 {
   margin: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-size: 1.2rem;
   font-family: var(--font-display);
   font-weight: 800;
   letter-spacing: 0.02em;
+}
+
+.modal-title-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.55rem;
+  height: 1.55rem;
+  border-radius: 0.45rem;
+  border: 1px solid rgba(53,224,199,0.28);
+  background: rgba(53,224,199,0.11);
+  color: rgba(111,255,234,0.95);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.modal__header-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+}
+
+.modal__back {
+  width: 2.35rem;
+  min-height: 2.35rem;
+  padding: 0;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 0.65rem;
+  background: rgba(255,255,255,0.06);
+  color: rgba(255,255,255,0.9);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 1.18rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  transition: transform 0.15s, filter 0.2s, border-color 0.2s;
+  touch-action: manipulation;
+}
+
+.modal__back:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.08);
+  border-color: rgba(53,224,199,0.32);
 }
 
 .modal__close {
@@ -66,6 +114,217 @@
 .modal__body h3 { margin: 0.85rem 0 0.35rem; font-size: 1.05rem; color: rgba(255,255,255,0.92); }
 .modal__body ul { margin-left: 1.15rem; margin-bottom: 0.6rem; }
 .modal__body li { margin: 0.3rem 0; color: rgba(234,240,255,0.86); }
+
+/* ===== Modals: Menu ===== */
+.modal--settings .modal__panel {
+  width: min(30rem, 92vw);
+}
+
+.settings-menu {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.settings-section {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.settings-section h3 {
+  margin: 0 0 0.02rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  color: rgba(234,240,255,0.78);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.6rem, 1fr));
+  gap: 0.5rem;
+}
+
+.settings-tool-button {
+  min-height: 3.7rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.62rem;
+  text-align: left;
+  padding: 0.62rem 0.7rem;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 0.5rem;
+  background:
+    linear-gradient(135deg, rgba(53,224,199,0.15), rgba(168,85,247,0.13)),
+    rgba(10, 14, 28, 0.58);
+  color: rgba(250,252,255,0.95);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: var(--elevation-surface);
+  transition: transform 0.15s, filter 0.2s, border-color 0.2s;
+  touch-action: manipulation;
+}
+
+.settings-tool-button__icon,
+.settings-row-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(53,224,199,0.24);
+  background:
+    linear-gradient(135deg, rgba(53,224,199,0.18), rgba(101,141,255,0.12)),
+    rgba(10, 14, 28, 0.62);
+  color: rgba(231,255,251,0.94);
+  font-size: 1rem;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.settings-tool-button__label {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.settings-tool-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  border-color: rgba(53,224,199,0.35);
+}
+
+.settings-tool-button[aria-expanded="true"] {
+  border-color: rgba(53,224,199,0.52);
+  box-shadow:
+    var(--elevation-surface),
+    0 0 0 3px rgba(53,224,199,0.12);
+}
+
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.58rem 0.65rem;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 0.5rem;
+  background: rgba(10, 14, 28, 0.48);
+  color: rgba(250,252,255,0.94);
+  font-family: var(--font-display);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.settings-row-main {
+  min-width: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.62rem;
+}
+
+.settings-row-icon--dvd {
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+}
+
+.settings-toggle-row__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.settings-switch {
+  position: relative;
+  width: 2.75rem;
+  height: 1.45rem;
+  flex: 0 0 auto;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid rgba(255,128,138,0.36);
+  border-radius: 999px;
+  background: rgba(56, 23, 34, 0.8);
+  cursor: pointer;
+  transition: background-color 0.18s, border-color 0.18s, box-shadow 0.18s;
+}
+
+.settings-switch::before {
+  content: "";
+  position: absolute;
+  top: 0.18rem;
+  left: 0.2rem;
+  width: 0.98rem;
+  height: 0.98rem;
+  border-radius: 999px;
+  background: rgba(255,235,238,0.95);
+  box-shadow: 0 0.12rem 0.35rem rgba(0,0,0,0.3);
+  transition: transform 0.18s ease;
+}
+
+.settings-switch:checked {
+  border-color: rgba(53,224,199,0.45);
+  background: rgba(20, 116, 104, 0.72);
+  box-shadow: 0 0 0 3px rgba(53,224,199,0.09);
+}
+
+.settings-switch:checked::before {
+  transform: translateX(1.26rem);
+}
+
+.settings-audio {
+  width: 100%;
+  justify-content: space-between;
+  gap: 0.7rem;
+  border-radius: 0.5rem;
+  padding: 0.58rem 0.65rem;
+  background: rgba(10, 14, 28, 0.48);
+}
+
+.settings-audio .audio-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.settings-audio .audio-toggle::before {
+  content: "\266A";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.12rem;
+  height: 1.12rem;
+  color: rgba(111,255,234,0.96);
+  line-height: 1;
+}
+
+.settings-audio .audio-toggle[aria-pressed="true"]::before {
+  content: "\00D7";
+  color: rgba(255,184,192,0.96);
+}
+
+.settings-audio .audio-volume-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.audio-volume-control__icon {
+  color: rgba(111,255,234,0.88);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.settings-audio .audio-volume {
+  width: min(12rem, 100%);
+}
 
 /* ===== Modals: Card Action ===== */
 .modal--card-action .modal__panel {

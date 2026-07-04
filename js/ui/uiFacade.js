@@ -15,7 +15,8 @@ const listeners = {
   turnOrderRemoveUnbind: null,
   audioMuteUnbind: null,
   audioVolumeInputHandler: null,
-  audioVolumeChangeHandler: null
+  audioVolumeChangeHandler: null,
+  bomburToggleChangeHandler: null
 };
 
 function getEl(id) {
@@ -254,6 +255,34 @@ export function getAudioVolumeValue() {
   const raw = Number.parseInt(slider.value, 10);
   if (!Number.isFinite(raw)) return 100;
   return Math.min(100, Math.max(0, raw));
+}
+
+export function bindBomburToggleChange(handler) {
+  const checkbox = getEl('bombur-toggle');
+  if (!checkbox || typeof handler !== 'function') return;
+
+  if (typeof listeners.bomburToggleChangeHandler === 'function') {
+    checkbox.removeEventListener('change', listeners.bomburToggleChangeHandler);
+  }
+
+  const onChange = (event) => handler(event);
+  checkbox.addEventListener('change', onChange);
+  listeners.bomburToggleChangeHandler = onChange;
+}
+
+export function setBomburToggleState(enabled) {
+  const checkbox = getEl('bombur-toggle');
+  if (!checkbox) return;
+
+  const isEnabled = Boolean(enabled);
+  checkbox.checked = isEnabled;
+  checkbox.setAttribute('aria-label', isEnabled ? 'Hide Bombur DVD icon' : 'Show Bombur DVD icon');
+}
+
+export function getBomburToggleState() {
+  const checkbox = getEl('bombur-toggle');
+  if (!checkbox) return true;
+  return checkbox.checked !== false;
 }
 
 // Optional: if you ever need to reset cached refs (rare)

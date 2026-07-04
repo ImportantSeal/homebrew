@@ -422,6 +422,21 @@
   box-shadow: none;
   touch-action: manipulation;
 }
+.settings-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+}
+.button-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.05rem;
+  height: 1.05rem;
+  color: rgba(53,224,199,0.95);
+  font-size: 1rem;
+  line-height: 1;
+}
 .rules-button:hover {
   transform: translateY(-1px);
   filter: brightness(1.08);

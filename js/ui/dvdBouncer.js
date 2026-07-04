@@ -123,11 +123,25 @@ export function createDvdBouncer({
     return el;
   }
 
+  function getElement() {
+    const container = getContainer();
+    return container?.querySelector?.('.dvd-bouncer') || null;
+  }
+
   function stop() {
     running = false;
     if (rafId) cancelAnimationFrame(rafId);
     rafId = 0;
     lastTimestamp = 0;
+
+    const el = getElement();
+    if (el) el.hidden = true;
+  }
+
+  function remove() {
+    stop();
+    lastCornerHitAt = 0;
+    getElement()?.remove?.();
   }
 
   function seedPosition(container, el) {
@@ -239,6 +253,7 @@ export function createDvdBouncer({
 
     const el = ensureElement(container);
     if (!el) return;
+    el.hidden = false;
 
     if (!running) {
       seedPosition(container, el);
@@ -253,6 +268,7 @@ export function createDvdBouncer({
 
   return {
     start,
-    stop
+    stop,
+    remove
   };
 }

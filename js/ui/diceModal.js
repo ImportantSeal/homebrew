@@ -1,6 +1,7 @@
 // js/ui/diceModal.js
 import { addHistoryEntry } from '../cardHistory.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
+import { openGameMenu } from './settingsMenu.js';
 import { bindTap } from '../utils/tap.js';
 import {
   clampInt,
@@ -30,6 +31,14 @@ import {
 // Roll cancellation pattern (can't cancel physics, but we can cancel UI updates safely)
 let rollToken = 0;
 
+function resolveReturnFocus(toggleBtn) {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body) {
+    return active;
+  }
+  return toggleBtn;
+}
+
 export function initDiceModal({ state } = {}) {
   if (!state || typeof state !== 'object') return;
 
@@ -38,6 +47,7 @@ export function initDiceModal({ state } = {}) {
   if (!toggleBtn || !modal) return;
 
   const panel = modal.querySelector('.modal__panel');
+  const backBtn = modal.querySelector('[data-back-menu]');
 
   const sidesSelect = document.getElementById('dice-sides');
   const qtyInput = document.getElementById('dice-qty');
@@ -47,6 +57,7 @@ export function initDiceModal({ state } = {}) {
   const trayEl = document.getElementById('dice-box');
 
   const quickButtons = Array.from(document.querySelectorAll('.dice-chip'));
+  let returnFocusEl = null;
 
   function setRollingUI(on) {
     if (rollBtn) rollBtn.disabled = on;
@@ -61,6 +72,7 @@ export function initDiceModal({ state } = {}) {
   const open = async () => {
     if (isDiceModalOpen()) return;
 
+    returnFocusEl = resolveReturnFocus(toggleBtn);
     setDiceModalOpen(true);
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
@@ -91,7 +103,7 @@ export function initDiceModal({ state } = {}) {
     panel?.focus?.();
   };
 
-  const close = () => {
+  const close = ({ restoreFocus = true } = {}) => {
     if (!isDiceModalOpen()) return;
 
     // Invalidate any in-flight roll so it can't overwrite UI later.
@@ -102,7 +114,9 @@ export function initDiceModal({ state } = {}) {
     modal.setAttribute('aria-hidden', 'true');
     toggleBtn.setAttribute('aria-expanded', 'false');
     unlockModalScroll();
-    toggleBtn.focus();
+    const focusTarget = restoreFocus ? (returnFocusEl || toggleBtn) : null;
+    returnFocusEl = null;
+    focusTarget?.focus?.();
 
     resetDiceUI();
     hideDiceBox();
@@ -111,6 +125,11 @@ export function initDiceModal({ state } = {}) {
   bindTap(toggleBtn, () => {
     if (isDiceModalOpen()) close();
     else open();
+  });
+
+  bindTap(backBtn, () => {
+    close({ restoreFocus: false });
+    openGameMenu();
   });
 
   // Close via backdrop or X.

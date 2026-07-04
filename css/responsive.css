@@ -139,7 +139,7 @@
 
   .header-row {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    grid-template-columns: minmax(0, 1fr) auto;
     align-items: center;
     gap: 0.45rem;
     margin-bottom: 0.45rem;
@@ -156,11 +156,6 @@
     min-width: 4.7rem;
     padding: 0.52rem 0.68rem;
     font-size: 0.9rem;
-  }
-
-  .audio-controls {
-    grid-column: 1 / -1;
-    justify-self: start;
   }
 
   .audio-volume {
@@ -475,17 +470,17 @@
   }
 
   .header-row {
-    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 0.4rem;
   }
 
   .header-row h1 {
-    grid-column: 1 / -1;
+    grid-column: auto;
     font-size: clamp(1.25rem, 7vw, 1.6rem);
   }
 
   .rules-button {
-    width: 100%;
+    width: auto;
     min-width: 0;
   }
 
@@ -570,6 +565,8 @@
 @media (hover: none), (pointer: coarse) {
   .btn,
   .rules-button,
+  .modal__back,
+  .settings-tool-button,
   .audio-volume,
   .dice-roll,
   .dice-chip,

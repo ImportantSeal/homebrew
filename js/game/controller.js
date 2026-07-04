@@ -46,9 +46,12 @@ import {
   bindTurnOrderRemoveClick,
   bindAudioMuteToggle,
   bindAudioVolumeChange,
+  bindBomburToggleChange,
   setAudioMuteState,
   setAudioVolumeValue,
   getAudioVolumeValue,
+  setBomburToggleState,
+  getBomburToggleState,
   getPenaltyDeckEl,
   setItemsPanelVisibility
 } from '../ui/uiFacade.js';
@@ -69,6 +72,7 @@ const AUDIO_STORAGE_KEYS = {
   muted: 'homebrew.audio.muted',
   volume: 'homebrew.audio.volume'
 };
+const BOMBUR_STORAGE_KEY = 'homebrew.bombur.enabled';
 
 function clamp01(value) {
   if (!Number.isFinite(value)) return 1;
@@ -97,6 +101,26 @@ function saveAudioPrefs({ muted, volume }) {
   try {
     localStorage.setItem(AUDIO_STORAGE_KEYS.muted, muted ? 'true' : 'false');
     localStorage.setItem(AUDIO_STORAGE_KEYS.volume, String(clamp01(volume)));
+  } catch {
+    // Ignore persistence failures (private mode, storage disabled, etc.)
+  }
+}
+
+function loadBomburEnabled() {
+  if (typeof localStorage === 'undefined') return true;
+
+  try {
+    return localStorage.getItem(BOMBUR_STORAGE_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+}
+
+function saveBomburEnabled(enabled) {
+  if (typeof localStorage === 'undefined') return;
+
+  try {
+    localStorage.setItem(BOMBUR_STORAGE_KEY, enabled ? 'true' : 'false');
   } catch {
     // Ignore persistence failures (private mode, storage disabled, etc.)
   }
@@ -441,6 +465,8 @@ uiSounds.setMuted(savedAudioPrefs.muted);
 uiSounds.setMasterVolume(savedAudioPrefs.volume);
 setAudioMuteState(savedAudioPrefs.muted);
 setAudioVolumeValue(savedAudioPrefs.volume * 100);
+let bomburEnabled = loadBomburEnabled();
+setBomburToggleState(bomburEnabled);
 
 const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } = createCardHandlers({
   state,
@@ -487,6 +513,16 @@ const dvdBouncer = createDvdBouncer({
   }
 });
 
+function syncBomburBouncer() {
+  setBomburToggleState(bomburEnabled);
+
+  if (bomburEnabled) {
+    dvdBouncer.start();
+  } else {
+    dvdBouncer.remove();
+  }
+}
+
 function startGame() {
   cancelTargetedEffectSelection(state);
   resetStateForNewGame(state);
@@ -505,7 +541,7 @@ function initGameView() {
   showGameContainer();
   initCards(onCardClick);
   syncBackgroundScene(state);
-  dvdBouncer.start();
+  syncBomburBouncer();
   bindPenaltyDeckSizeSync();
   schedulePenaltyDeckSizeSync();
   hidePenaltyCard(state);
@@ -538,6 +574,11 @@ function setupEventListeners() {
 
     setAudioMuteState(nextMuted);
     saveAudioPrefs({ muted: nextMuted, volume });
+  });
+  bindBomburToggleChange(() => {
+    bomburEnabled = getBomburToggleState();
+    saveBomburEnabled(bomburEnabled);
+    syncBomburBouncer();
   });
 }
 
