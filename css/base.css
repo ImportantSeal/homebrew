@@ -333,6 +333,7 @@ body::before {
 .modal__back:focus-visible,
 .settings-tool-button:focus-visible,
 .settings-switch:focus-visible,
+.spin-wheel-spin:focus-visible,
 .effect-remove:focus-visible,
 .status-chip:focus-visible,
 .card-action__button:focus-visible {
@@ -357,7 +358,8 @@ body::before {
 
 .btn--primary:hover,
 .dice-chip:hover,
-.dice-roll:hover {
+.dice-roll:hover,
+.spin-wheel-spin:hover {
   transform: translateY(-1px);
   filter: brightness(1.06);
   border-color: rgba(255,255,255,0.22);

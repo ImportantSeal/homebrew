@@ -353,7 +353,8 @@
   }
 
   .modal--card-action .modal__panel,
-  .modal--stats .modal__panel {
+  .modal--stats .modal__panel,
+  .modal--spin-wheel .modal__panel {
     width: calc(100vw - 1rem);
     margin-top: 0.4rem;
   }
@@ -441,6 +442,11 @@
     min-height: 3.7rem;
   }
 
+  .spin-wheel-stage,
+  .spin-wheel-actions {
+    width: min(100%, 22rem);
+  }
+
   .dice-controls label { min-width: 7.25rem; }
 
   .card .card__front {
@@ -510,7 +516,8 @@
   }
 
   .modal--card-action .modal__panel,
-  .modal--stats .modal__panel {
+  .modal--stats .modal__panel,
+  .modal--spin-wheel .modal__panel {
     width: calc(100vw - 0.6rem);
   }
 
@@ -559,6 +566,10 @@
   .stats-metric__value {
     font-size: 1.2rem;
   }
+
+  .spin-wheel-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ===== Responsive: Touch Targets ===== */
@@ -570,6 +581,7 @@
   .audio-volume,
   .dice-roll,
   .dice-chip,
+  .spin-wheel-spin,
   .card-action__button,
   .effect-remove {
     min-height: 44px;

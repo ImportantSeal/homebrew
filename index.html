@@ -199,6 +199,19 @@
             </button>
 
             <button
+              id="spin-wheel-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="spin-wheel-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              <span class="settings-tool-button__icon" aria-hidden="true">&#10227;</span>
+              <span class="settings-tool-button__label">Spin Wheel</span>
+            </button>
+
+            <button
               id="stats-toggle"
               class="settings-tool-button"
               type="button"
@@ -377,6 +390,34 @@
         <div id="dice-box" class="dice-box" aria-label="3D dice tray"></div>
 
         <div id="dice-result" class="dice-result">&mdash;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spin Wheel Modal -->
+  <div id="spin-wheel-modal" class="modal modal--spin-wheel" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close-spin-wheel></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2>Spin Wheel</h2>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu" title="Back to menu">&#x232B;</button>
+          <button class="modal__close" type="button" data-close-spin-wheel aria-label="Close spin wheel">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal__body spin-wheel-tool">
+        <div class="spin-wheel-stage">
+          <div id="spin-wheel-box" class="spin-wheel-box"></div>
+          <div class="spin-wheel-pointer" aria-hidden="true"></div>
+          <div class="spin-wheel-hub" aria-hidden="true"></div>
+        </div>
+
+        <div class="spin-wheel-actions">
+          <button id="spin-wheel-spin" class="spin-wheel-spin" type="button">Spin</button>
+          <div id="spin-wheel-result" class="spin-wheel-result" role="status" aria-live="polite">Ready</div>
+        </div>
       </div>
     </div>
   </div>
