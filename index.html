@@ -212,6 +212,19 @@
             </button>
 
             <button
+              id="timer-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="timer-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              <span class="settings-tool-button__icon" aria-hidden="true">00</span>
+              <span class="settings-tool-button__label">Timer</span>
+            </button>
+
+            <button
               id="stats-toggle"
               class="settings-tool-button"
               type="button"
@@ -417,6 +430,54 @@
         <div class="spin-wheel-actions">
           <button id="spin-wheel-spin" class="spin-wheel-spin" type="button">Spin</button>
           <div id="spin-wheel-result" class="spin-wheel-result" role="status" aria-live="polite">Ready</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Timer Modal -->
+  <div id="timer-modal" class="modal modal--timer" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close-timer></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2>Timer</h2>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu" title="Back to menu">&#x232B;</button>
+          <button class="modal__close" type="button" data-close-timer aria-label="Close timer">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal__body timer-tool">
+        <div class="timer-mode-toggle" role="group" aria-label="Timer mode">
+          <button class="timer-mode-button" type="button" data-timer-mode="stopwatch" aria-pressed="true">Stopwatch</button>
+          <button class="timer-mode-button" type="button" data-timer-mode="timer" aria-pressed="false">Timer</button>
+        </div>
+
+        <div id="timer-display" class="timer-display" role="timer" aria-live="polite">00:00:00</div>
+        <div id="timer-status" class="timer-status" role="status" aria-live="polite">Ready</div>
+
+        <div class="timer-duration" data-timer-duration-panel hidden>
+          <label class="timer-duration-field">
+            <span>Minutes</span>
+            <input id="timer-minutes" type="number" min="0" max="599" value="1" inputmode="numeric" />
+          </label>
+          <label class="timer-duration-field">
+            <span>Seconds</span>
+            <input id="timer-seconds" type="number" min="0" max="59" value="0" inputmode="numeric" />
+          </label>
+        </div>
+
+        <div class="timer-presets" data-timer-duration-panel hidden aria-label="Timer presets">
+          <button class="timer-chip" type="button" data-timer-duration="30">30s</button>
+          <button class="timer-chip" type="button" data-timer-duration="60">1m</button>
+          <button class="timer-chip" type="button" data-timer-duration="300">5m</button>
+          <button class="timer-chip" type="button" data-timer-duration="600">10m</button>
+        </div>
+
+        <div class="timer-actions">
+          <button id="timer-start" class="timer-action-button timer-action-button--primary" type="button">Start</button>
+          <button id="timer-reset" class="timer-action-button" type="button">Reset</button>
         </div>
       </div>
     </div>

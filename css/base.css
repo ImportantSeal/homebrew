@@ -334,6 +334,9 @@ body::before {
 .settings-tool-button:focus-visible,
 .settings-switch:focus-visible,
 .spin-wheel-spin:focus-visible,
+.timer-mode-button:focus-visible,
+.timer-action-button:focus-visible,
+.timer-chip:focus-visible,
 .effect-remove:focus-visible,
 .status-chip:focus-visible,
 .card-action__button:focus-visible {
@@ -350,7 +353,8 @@ body::before {
 
 #setup-container input[type="text"]:focus,
 .dice-controls select:focus,
-.dice-controls input:focus {
+.dice-controls input:focus,
+.timer-duration-field input:focus {
   border-color: rgba(53, 224, 199, 0.55);
   box-shadow: var(--ring);
   background: rgba(10, 14, 28, 0.7);
@@ -359,7 +363,10 @@ body::before {
 .btn--primary:hover,
 .dice-chip:hover,
 .dice-roll:hover,
-.spin-wheel-spin:hover {
+.spin-wheel-spin:hover,
+.timer-mode-button:hover,
+.timer-chip:hover,
+.timer-action-button:hover {
   transform: translateY(-1px);
   filter: brightness(1.06);
   border-color: rgba(255,255,255,0.22);

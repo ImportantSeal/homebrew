@@ -8,6 +8,7 @@ import { initDiceModal } from './ui/diceModal.js';
 import { initCardActionModal } from './ui/cardActionModal.js';
 import { initStatsModal } from './ui/statsModal.js';
 import { initSpinWheelModal } from './ui/spinWheelModal.js';
+import { initTimerModal } from './ui/timerModal.js';
 import { initReducedEffects } from './ui/effectsProfile.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,4 +23,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initCardActionModal();
   initStatsModal({ state });
   initSpinWheelModal({ state });
+  initTimerModal();
 });
