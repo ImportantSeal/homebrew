@@ -51,16 +51,18 @@
 }
 
 .modal__back {
+  width: 2.35rem;
   min-height: 2.35rem;
-  padding: 0 0.7rem;
+  padding: 0;
   border: 1px solid rgba(255,255,255,0.14);
   border-radius: 0.65rem;
   background: rgba(255,255,255,0.06);
   color: rgba(255,255,255,0.9);
   cursor: pointer;
   font-family: var(--font-display);
-  font-size: 0.9rem;
+  font-size: 1.18rem;
   font-weight: 800;
+  line-height: 1;
   letter-spacing: 0.01em;
   transition: transform 0.15s, filter 0.2s, border-color 0.2s;
   touch-action: manipulation;
@@ -156,6 +158,34 @@
   box-shadow:
     var(--elevation-surface),
     0 0 0 3px rgba(53,224,199,0.12);
+}
+
+.settings-toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 3rem;
+  padding: 0.58rem 0.65rem;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 0.5rem;
+  background: rgba(10, 14, 28, 0.48);
+  color: rgba(250,252,255,0.94);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.settings-toggle-row__text {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.settings-switch {
+  width: 1.15rem;
+  height: 1.15rem;
+  flex: 0 0 auto;
+  accent-color: rgba(53,224,199,0.9);
+  cursor: pointer;
 }
 
 .settings-audio {

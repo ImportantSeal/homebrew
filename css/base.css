@@ -332,6 +332,7 @@ body::before {
 .rules-button:focus-visible,
 .modal__back:focus-visible,
 .settings-tool-button:focus-visible,
+.settings-switch:focus-visible,
 .effect-remove:focus-visible,
 .status-chip:focus-visible,
 .card-action__button:focus-visible {
