@@ -1,10 +1,8 @@
 import { getCardDisplayValue } from '../../../utils/cardDisplay.js';
 import { resolveStatsLeaderboardTopic } from '../../../statsLeaderboard.js';
 import { runSpecialAction } from '../specialActions.js';
+import { drawObjectSubcard } from '../../../logic/objectCardCycle.js';
 import {
-  getBagKeyForObjectCard,
-  ensureBag,
-  getObjectCardPool,
   shouldTriggerPenaltyPreview,
   shouldWaitForPenaltyDeckRoll,
   queueManualPenaltyDraw,
@@ -71,15 +69,17 @@ export function createObjectCardFlow({
 }) {
   function handleObjectCardDraw(cardEl, parentCard) {
     const cardDrawerIndex = state.currentPlayerIndex;
-    const pool = getObjectCardPool(state, parentCard);
-    if (pool.length === 0) {
+    const draw = drawObjectSubcard(state, parentCard, (candidates) => {
+      const bag = createBag(candidates);
+      return bag?.next?.();
+    });
+    const event = draw?.event;
+    const drawnParentCard = draw?.parentCard || parentCard;
+
+    if (event === undefined) {
       log("No valid cards available in this deck.");
       return true;
     }
-
-    const bagKey = getBagKeyForObjectCard(state, parentCard);
-    const bag = ensureBag(state, bagKey, pool, createBag);
-    const event = bag.next();
 
     let subName = "";
     let subInstruction = "";
@@ -105,7 +105,7 @@ export function createObjectCardFlow({
 
     flipCardAnimation(cardEl, shownText);
 
-    const parentName = getCardDisplayValue(parentCard);
+    const parentName = getCardDisplayValue(drawnParentCard);
     const actionTitle = subName || parentName || "Card Action";
     const drawMessage = (subInstruction && subName)
       ? `${subName} - ${subInstruction}`

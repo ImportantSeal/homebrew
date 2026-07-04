@@ -1,6 +1,7 @@
 import { gameData } from './gameData.js';
 import { createMirrorState } from './logic/mirror.js';
 import { createFlowState } from './logic/flowMachine.js';
+import { createObjectCardCycleState } from './logic/objectCardCycle.js';
 
 function createEffectSelectionState() {
   return {
@@ -40,6 +41,7 @@ export function createInitialState() {
     includeItems: false,
     currentPlayerIndex: 0,
     bags: {},
+    objectCardCycle: createObjectCardCycleState(),
 
     // UI / flow guards
     uiLocked: false,
