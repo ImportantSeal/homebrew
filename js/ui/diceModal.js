@@ -30,6 +30,14 @@ import {
 // Roll cancellation pattern (can't cancel physics, but we can cancel UI updates safely)
 let rollToken = 0;
 
+function resolveReturnFocus(toggleBtn) {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body) {
+    return active;
+  }
+  return toggleBtn;
+}
+
 export function initDiceModal({ state } = {}) {
   if (!state || typeof state !== 'object') return;
 
@@ -47,6 +55,7 @@ export function initDiceModal({ state } = {}) {
   const trayEl = document.getElementById('dice-box');
 
   const quickButtons = Array.from(document.querySelectorAll('.dice-chip'));
+  let returnFocusEl = null;
 
   function setRollingUI(on) {
     if (rollBtn) rollBtn.disabled = on;
@@ -61,6 +70,7 @@ export function initDiceModal({ state } = {}) {
   const open = async () => {
     if (isDiceModalOpen()) return;
 
+    returnFocusEl = resolveReturnFocus(toggleBtn);
     setDiceModalOpen(true);
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
@@ -102,7 +112,9 @@ export function initDiceModal({ state } = {}) {
     modal.setAttribute('aria-hidden', 'true');
     toggleBtn.setAttribute('aria-expanded', 'false');
     unlockModalScroll();
-    toggleBtn.focus();
+    const focusTarget = returnFocusEl || toggleBtn;
+    returnFocusEl = null;
+    focusTarget.focus?.();
 
     resetDiceUI();
     hideDiceBox();

@@ -96,62 +96,15 @@
             <h1>Homebrew beta</h1>
 
             <button
-              id="dice-toggle"
-              class="rules-button"
+              id="settings-toggle"
+              class="rules-button settings-toggle"
               type="button"
               aria-haspopup="dialog"
-              aria-controls="dice-modal"
+              aria-controls="settings-modal"
               aria-expanded="false"
             >
-              Dice
+              Settings
             </button>
-
-            <button
-              id="stats-toggle"
-              class="rules-button"
-              type="button"
-              aria-haspopup="dialog"
-              aria-controls="stats-modal"
-              aria-expanded="false"
-            >
-              Stats
-            </button>
-
-            <button
-              id="rules-toggle"
-              class="rules-button"
-              type="button"
-              aria-haspopup="dialog"
-              aria-controls="rules-modal"
-              aria-expanded="false"
-            >
-              Rules
-            </button>
-
-            <div class="audio-controls" aria-label="Sound controls">
-              <button
-                id="audio-mute-toggle"
-                class="rules-button audio-toggle"
-                type="button"
-                aria-pressed="false"
-                aria-label="Mute sounds"
-              >
-                Sound: On
-              </button>
-              <label class="audio-volume-control" for="audio-volume-slider">
-                <span class="audio-volume-control__label">Vol</span>
-                <input
-                  id="audio-volume-slider"
-                  class="audio-volume"
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="1"
-                  value="100"
-                  aria-label="Sound volume"
-                />
-              </label>
-            </div>
           </div>
 
           <div id="turn-order" class="turn-order"></div>
@@ -215,6 +168,89 @@
       </aside>
 
     </main>
+  </div>
+
+  <!-- Settings Modal -->
+  <div id="settings-modal" class="modal modal--settings" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close-settings></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2>Menu</h2>
+        <button class="modal__close" type="button" data-close-settings aria-label="Close settings">&times;</button>
+      </div>
+
+      <div class="modal__body settings-menu">
+        <section class="settings-section" aria-labelledby="settings-tools-title">
+          <h3 id="settings-tools-title">Tools</h3>
+          <div class="settings-tools">
+            <button
+              id="dice-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="dice-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              Dice
+            </button>
+
+            <button
+              id="stats-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="stats-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              Stats
+            </button>
+
+            <button
+              id="rules-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="rules-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              Rules
+            </button>
+          </div>
+        </section>
+
+        <section class="settings-section settings-section--audio" aria-labelledby="settings-audio-title">
+          <h3 id="settings-audio-title">Audio</h3>
+          <div class="audio-controls settings-audio" aria-label="Sound controls">
+            <button
+              id="audio-mute-toggle"
+              class="rules-button audio-toggle"
+              type="button"
+              aria-pressed="false"
+              aria-label="Mute sounds"
+            >
+              Sound: On
+            </button>
+            <label class="audio-volume-control" for="audio-volume-slider">
+              <span class="audio-volume-control__label">Vol</span>
+              <input
+                id="audio-volume-slider"
+                class="audio-volume"
+                type="range"
+                min="0"
+                max="100"
+                step="1"
+                value="100"
+                aria-label="Sound volume"
+              />
+            </label>
+          </div>
+        </section>
+      </div>
+    </div>
   </div>
 
   <!-- Rules Modal -->

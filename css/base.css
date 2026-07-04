@@ -330,6 +330,7 @@ body::before {
 .btn:focus-visible,
 #setup-container .setup-arrow-button:focus-visible,
 .rules-button:focus-visible,
+.settings-tool-button:focus-visible,
 .effect-remove:focus-visible,
 .status-chip:focus-visible,
 .card-action__button:focus-visible {

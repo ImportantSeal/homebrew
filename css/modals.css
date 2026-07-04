@@ -67,6 +67,86 @@
 .modal__body ul { margin-left: 1.15rem; margin-bottom: 0.6rem; }
 .modal__body li { margin: 0.3rem 0; color: rgba(234,240,255,0.86); }
 
+/* ===== Modals: Settings ===== */
+.modal--settings .modal__panel {
+  width: min(30rem, 92vw);
+}
+
+.settings-menu {
+  display: grid;
+  gap: 0.95rem;
+}
+
+.settings-section {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.settings-section h3 {
+  margin: 0;
+  color: rgba(234,240,255,0.78);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 850;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-tools {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.8rem, 1fr));
+  gap: 0.5rem;
+}
+
+.settings-tool-button {
+  min-height: 3.1rem;
+  border: 1px solid rgba(255,255,255,0.14);
+  border-radius: 0.5rem;
+  background:
+    linear-gradient(135deg, rgba(53,224,199,0.15), rgba(168,85,247,0.13)),
+    rgba(10, 14, 28, 0.58);
+  color: rgba(250,252,255,0.95);
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  box-shadow: var(--elevation-surface);
+  transition: transform 0.15s, filter 0.2s, border-color 0.2s;
+  touch-action: manipulation;
+}
+
+.settings-tool-button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+  border-color: rgba(53,224,199,0.35);
+}
+
+.settings-tool-button[aria-expanded="true"] {
+  border-color: rgba(53,224,199,0.52);
+  box-shadow:
+    var(--elevation-surface),
+    0 0 0 3px rgba(53,224,199,0.12);
+}
+
+.settings-audio {
+  width: 100%;
+  justify-content: space-between;
+  gap: 0.65rem;
+  border-radius: 0.5rem;
+  padding: 0.58rem 0.65rem;
+}
+
+.settings-audio .audio-volume-control {
+  flex: 1 1 auto;
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.settings-audio .audio-volume {
+  width: min(12rem, 100%);
+}
+
 /* ===== Modals: Card Action ===== */
 .modal--card-action .modal__panel {
   width: min(36rem, 92vw);

@@ -1,15 +1,25 @@
 // js/ui/rulesModal.js
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 
+function resolveReturnFocus(toggleBtn) {
+  const active = document.activeElement;
+  if (active instanceof HTMLElement && active !== document.body) {
+    return active;
+  }
+  return toggleBtn;
+}
+
 export function initRulesModal() {
   const toggleBtn = document.getElementById('rules-toggle');
   const modal = document.getElementById('rules-modal');
   if (!toggleBtn || !modal) return;
 
   const panel = modal.querySelector('.modal__panel');
+  let returnFocusEl = null;
 
   const open = () => {
     if (modal.classList.contains('is-open')) return;
+    returnFocusEl = resolveReturnFocus(toggleBtn);
     modal.classList.add('is-open');
     modal.setAttribute('aria-hidden', 'false');
     toggleBtn.setAttribute('aria-expanded', 'true');
@@ -23,7 +33,9 @@ export function initRulesModal() {
     modal.setAttribute('aria-hidden', 'true');
     toggleBtn.setAttribute('aria-expanded', 'false');
     unlockModalScroll();
-    toggleBtn.focus();
+    const focusTarget = returnFocusEl || toggleBtn;
+    returnFocusEl = null;
+    focusTarget.focus?.();
   };
 
   toggleBtn.addEventListener('click', () => {

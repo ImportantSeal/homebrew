@@ -2,6 +2,7 @@ import { gameData } from './gameData.js';
 import { gameController } from './game.js';
 import { validateGameDataActionEffectCodes } from './logic/actionEffectRegistry.js';
 import { initSetup } from './setup.js';
+import { initSettingsMenu } from './ui/settingsMenu.js';
 import { initRulesModal } from './ui/rulesModal.js';
 import { initDiceModal } from './ui/diceModal.js';
 import { initCardActionModal } from './ui/cardActionModal.js';
@@ -14,6 +15,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initReducedEffects(state);
   validateGameDataActionEffectCodes(gameData);
   initSetup({ state, startGame });
+  initSettingsMenu();
   initRulesModal();
   initDiceModal({ state });
   initCardActionModal();
