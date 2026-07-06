@@ -70,9 +70,12 @@
   }
 
   body {
+    height: auto;
+    min-height: 100dvh;
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
+    overflow-y: auto;
     padding:
       max(0.5rem, env(safe-area-inset-top))
       0.5rem
@@ -100,6 +103,11 @@
   .container {
     width: 100%;
     border-radius: 0.8rem;
+  }
+
+  #game-container,
+  .game-main {
+    overflow: visible;
   }
 
   #setup-container {
@@ -210,6 +218,7 @@
 
   .history-section {
     max-height: 11rem;
+    -webkit-overflow-scrolling: touch;
   }
 
   .effect-card {
@@ -326,13 +335,15 @@
 
   .center-panel {
     order: 1;
-    overflow: hidden;
+    overflow: visible;
   }
 
   .right-panel {
     order: 3;
     width: 100%;
     min-width: 0;
+    height: auto;
+    overflow: visible;
     border-left: none;
     padding-left: 0;
     gap: 0.45rem;
