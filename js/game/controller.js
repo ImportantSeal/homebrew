@@ -29,7 +29,7 @@ import { initCards, renderCards } from '../ui/cards.js';
 import { renderTurnOrder } from '../ui/turnOrder.js';
 import { showCardActionModal } from '../ui/cardActionModal.js';
 import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundScene.js';
-import { createDvdBouncer } from '../ui/dvdBouncer.js';
+import { createDvdBouncer, isDvdBouncerAvailable } from '../ui/dvdBouncer.js';
 import { createUiSounds } from '../ui/sounds.js';
 
 import {
@@ -50,6 +50,7 @@ import {
   setAudioMuteState,
   setAudioVolumeValue,
   getAudioVolumeValue,
+  setBomburAvailability,
   setBomburToggleState,
   getBomburToggleState,
   getPenaltyDeckEl,
@@ -466,6 +467,7 @@ uiSounds.setMasterVolume(savedAudioPrefs.volume);
 setAudioMuteState(savedAudioPrefs.muted);
 setAudioVolumeValue(savedAudioPrefs.volume * 100);
 let bomburEnabled = loadBomburEnabled();
+setBomburAvailability(isDvdBouncerAvailable());
 setBomburToggleState(bomburEnabled);
 
 const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } = createCardHandlers({
@@ -514,6 +516,14 @@ const dvdBouncer = createDvdBouncer({
 });
 
 function syncBomburBouncer() {
+  if (!isDvdBouncerAvailable()) {
+    setBomburAvailability(false);
+    setBomburToggleState(false);
+    dvdBouncer.remove();
+    return;
+  }
+
+  setBomburAvailability(true);
   setBomburToggleState(bomburEnabled);
 
   if (bomburEnabled) {
@@ -576,6 +586,11 @@ function setupEventListeners() {
     saveAudioPrefs({ muted: nextMuted, volume });
   });
   bindBomburToggleChange(() => {
+    if (!isDvdBouncerAvailable()) {
+      syncBomburBouncer();
+      return;
+    }
+
     bomburEnabled = getBomburToggleState();
     saveBomburEnabled(bomburEnabled);
     syncBomburBouncer();

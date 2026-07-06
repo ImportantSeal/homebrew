@@ -9,8 +9,22 @@ const DEFAULTS = {
   cornerCooldownMs: 7000
 };
 
+const MOBILE_USER_AGENT_PATTERN = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile|Tablet/i;
+
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
+}
+
+function getNavigator() {
+  if (typeof window !== 'undefined' && window.navigator) return window.navigator;
+  if (typeof navigator !== 'undefined') return navigator;
+  return {};
+}
+
+function matchesMedia(query) {
+  return typeof window !== 'undefined'
+    && typeof window.matchMedia === 'function'
+    && window.matchMedia(query).matches === true;
 }
 
 function nowMs() {
@@ -47,6 +61,24 @@ function applyGradientFromHue(el, base) {
   el.style.setProperty('--dvd-grad-1', c1);
   el.style.setProperty('--dvd-grad-2', c2);
   el.style.setProperty('--dvd-grad-3', c3);
+}
+
+export function isDvdBouncerAvailable() {
+  if (typeof window === 'undefined') return false;
+
+  const nav = getNavigator();
+  const userAgent = String(nav.userAgent || '');
+  const platform = String(nav.platform || '');
+  const maxTouchPoints = Number(nav.maxTouchPoints || nav.msMaxTouchPoints || 0);
+  const mobileUserAgent = MOBILE_USER_AGENT_PATTERN.test(userAgent);
+  const macLikeTouchDevice = (/Mac/i.test(platform) || /Macintosh|Mac OS X/i.test(userAgent)) && maxTouchPoints > 1;
+  const coarsePointer = matchesMedia('(pointer: coarse)') || matchesMedia('(any-pointer: coarse)');
+  const finePointer = matchesMedia('(pointer: fine)') || matchesMedia('(any-pointer: fine)');
+  const noHover = matchesMedia('(hover: none)') || matchesMedia('(any-hover: none)');
+  const canHover = matchesMedia('(hover: hover)') || matchesMedia('(any-hover: hover)');
+  const touchOnlyPointer = (coarsePointer || noHover) && !finePointer && !canHover;
+
+  return !(mobileUserAgent || macLikeTouchDevice || touchOnlyPointer);
 }
 
 export function createDvdBouncer({
@@ -163,6 +195,11 @@ export function createDvdBouncer({
   function tick(timestamp) {
     if (!running) return;
 
+    if (!isDvdBouncerAvailable()) {
+      remove();
+      return;
+    }
+
     const container = getContainer();
     const el = ensureElement(container);
     if (!container || !el) {
@@ -248,6 +285,11 @@ export function createDvdBouncer({
   }
 
   function start() {
+    if (!isDvdBouncerAvailable()) {
+      remove();
+      return;
+    }
+
     const container = getContainer();
     if (!container || typeof requestAnimationFrame !== 'function') return;
 

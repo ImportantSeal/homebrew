@@ -270,9 +270,34 @@ export function bindBomburToggleChange(handler) {
   listeners.bomburToggleChangeHandler = onChange;
 }
 
+export function setBomburAvailability(available) {
+  const isAvailable = Boolean(available);
+  const section = document.querySelector('.settings-section--bombur');
+  const checkbox = getEl('bombur-toggle');
+
+  if (section) {
+    section.hidden = !isAvailable;
+    section.style.display = isAvailable ? '' : 'none';
+  }
+
+  if (!checkbox) return;
+
+  checkbox.disabled = !isAvailable;
+  if (!isAvailable) {
+    checkbox.checked = false;
+    checkbox.setAttribute('aria-label', 'Bombur DVD icon is unavailable on mobile');
+  }
+}
+
 export function setBomburToggleState(enabled) {
   const checkbox = getEl('bombur-toggle');
   if (!checkbox) return;
+
+  if (checkbox.disabled) {
+    checkbox.checked = false;
+    checkbox.setAttribute('aria-label', 'Bombur DVD icon is unavailable on mobile');
+    return;
+  }
 
   const isEnabled = Boolean(enabled);
   checkbox.checked = isEnabled;
@@ -282,6 +307,7 @@ export function setBomburToggleState(enabled) {
 export function getBomburToggleState() {
   const checkbox = getEl('bombur-toggle');
   if (!checkbox) return true;
+  if (checkbox.disabled) return false;
   return checkbox.checked !== false;
 }
 
