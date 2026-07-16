@@ -365,6 +365,7 @@
 
   .modal--card-action .modal__panel,
   .modal--stats .modal__panel,
+  .modal--coin-flip .modal__panel,
   .modal--spin-wheel .modal__panel,
   .modal--timer .modal__panel {
     width: calc(100vw - 1rem);
@@ -454,9 +455,16 @@
     min-height: 3.7rem;
   }
 
+  .coin-flip-stage,
+  .coin-flip-actions,
   .spin-wheel-stage,
   .spin-wheel-actions {
     width: min(100%, 22rem);
+  }
+
+  .coin-flip-stage {
+    --coin-size: clamp(8.6rem, 54vw, 13rem);
+    min-height: min(58vh, 20.5rem);
   }
 
   .timer-display {
@@ -534,6 +542,7 @@
 
   .modal--card-action .modal__panel,
   .modal--stats .modal__panel,
+  .modal--coin-flip .modal__panel,
   .modal--spin-wheel .modal__panel,
   .modal--timer .modal__panel {
     width: calc(100vw - 0.6rem);
@@ -585,8 +594,14 @@
     font-size: 1.2rem;
   }
 
+  .coin-flip-actions,
   .spin-wheel-actions {
     grid-template-columns: 1fr;
+  }
+
+  .coin-flip-stage {
+    --coin-size: clamp(7.7rem, 58vw, 11.2rem);
+    min-height: min(55vh, 18.5rem);
   }
 
   .timer-display {
@@ -609,6 +624,7 @@
   .audio-volume,
   .dice-roll,
   .dice-chip,
+  .coin-flip-button,
   .spin-wheel-spin,
   .timer-mode-button,
   .timer-action-button,

@@ -199,6 +199,19 @@
             </button>
 
             <button
+              id="coin-flip-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="coin-flip-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              <span class="settings-tool-button__icon" aria-hidden="true">&#162;</span>
+              <span class="settings-tool-button__label">Coin Flip</span>
+            </button>
+
+            <button
               id="spin-wheel-toggle"
               class="settings-tool-button"
               type="button"
@@ -403,6 +416,53 @@
         <div id="dice-box" class="dice-box" aria-label="3D dice tray"></div>
 
         <div id="dice-result" class="dice-result">&mdash;</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Coin Flip Modal -->
+  <div id="coin-flip-modal" class="modal modal--coin-flip" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close-coin-flip></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2>Coin Flip</h2>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to menu" title="Back to menu">&#x232B;</button>
+          <button class="modal__close" type="button" data-close-coin-flip aria-label="Close coin flip">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal__body coin-flip-tool">
+        <div class="coin-flip-stage" aria-label="3D coin flip stage">
+          <div id="coin-flip-shadow" class="coin-flip-shadow" aria-hidden="true"></div>
+          <div class="coin-flip-scene">
+            <div id="coin-flip-coin" class="coin-flip-coin" data-result="heads" aria-hidden="true">
+              <div id="coin-flip-edge" class="coin-flip-edge"></div>
+
+              <div class="coin-flip-face coin-flip-face--heads">
+                <span class="coin-flip-face__ring"></span>
+                <span class="coin-flip-face__image-frame">
+                  <img src="images/triplet.png" alt="" />
+                </span>
+                <span class="coin-flip-face__label">Heads</span>
+              </div>
+
+              <div class="coin-flip-face coin-flip-face--tails">
+                <span class="coin-flip-face__ring"></span>
+                <span class="coin-flip-face__emblem" aria-hidden="true">
+                  <span class="coin-flip-face__emblem-core"></span>
+                </span>
+                <span class="coin-flip-face__label">Tails</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="coin-flip-actions">
+          <button id="coin-flip-button" class="coin-flip-button" type="button">Flip</button>
+          <div id="coin-flip-result" class="coin-flip-result" role="status" aria-live="polite">Ready</div>
+        </div>
       </div>
     </div>
   </div>
