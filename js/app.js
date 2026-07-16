@@ -11,6 +11,7 @@ import { initSpinWheelModal } from './ui/spinWheelModal.js';
 import { initTimerModal } from './ui/timerModal.js';
 import { initCoinFlipModal } from './ui/coinFlipModal.js';
 import { initReducedEffects } from './ui/effectsProfile.js';
+import { initCommitBanner } from './ui/commitBanner.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const { state, startGame } = gameController;
@@ -26,4 +27,5 @@ document.addEventListener('DOMContentLoaded', () => {
   initSpinWheelModal({ state });
   initTimerModal();
   initCoinFlipModal({ state });
+  initCommitBanner();
 });
