@@ -1127,26 +1127,21 @@
     0 0 0 0.08rem rgba(255,255,255,0.16);
 }
 
-.coin-flip-face--heads {
+.coin-flip-face--heads,
+.coin-flip-face--tails {
   background:
     radial-gradient(circle at 34% 26%, #fff4b8, transparent 18%),
     radial-gradient(circle at 50% 52%, #ffc83d, #b66d11 72%),
     linear-gradient(145deg, #ffe28a, #a85b0c);
   color: #3a2105;
+}
+
+.coin-flip-face--heads {
   transform: rotateY(0deg) translateZ(calc(var(--coin-depth) / 2));
 }
 
 .coin-flip-face--tails {
-  background:
-    radial-gradient(circle at 32% 24%, #f7fbff, transparent 18%),
-    radial-gradient(circle at 52% 54%, #b9f4ff, #5577a7 66%, #2d315e),
-    linear-gradient(145deg, #eef7ff, #637ba7);
-  color: #081526;
   transform: rotateY(180deg) translateZ(calc(var(--coin-depth) / 2));
-  box-shadow:
-    inset 0 0 0 0.28rem rgba(255,255,255,0.17),
-    inset 0.45rem 0.55rem 0.9rem rgba(255,255,255,0.28),
-    inset -0.65rem -0.85rem 1rem rgba(8, 20, 42, 0.42);
 }
 
 .coin-flip-coin:not([data-flipping="true"])[data-result="heads"] .coin-flip-face--tails,
@@ -1206,6 +1201,12 @@
   object-fit: cover;
   object-position: 50% 48%;
   filter: saturate(1.08) contrast(1.05);
+}
+
+.coin-flip-face__image-frame--icon img {
+  object-fit: contain;
+  padding: 0.16rem;
+  background: rgba(8, 12, 25, 0.18);
 }
 
 .coin-flip-face__emblem {
