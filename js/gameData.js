@@ -81,6 +81,32 @@ export const gameData = {
         { name: "Real or Fake Opinion", instruction: "State one opinion. Everyone guesses whether you truly mean it. Anyone who guesses wrong drinks 1. You drink 1 for each player who guessed correctly." },
         { name: "Unnecessary Skill", instruction: "Share one useless skill you have. If anyone claims it is actually useful, you drink 1." },
         { name: "Deal or Steal", instruction: "Pick one player. You and that player secretly choose either 'Deal' or 'Steal' and reveal at the same time. If both choose Deal, both give 1 drink. If one chooses Steal and the other chooses Deal, the Steal player gives 3 drinks total. If both choose Steal, both drink 2." },
+        { name: "Borrowed Talent", instruction: "Pick a player and name one of their skills you would borrow." },
+        { name: "First Impression: Tonight", instruction: "Pick a player and describe the impression they would give if you met them for the first time tonight." },
+        { name: "Perfect Duo", instruction: "Pick a player and name an activity you would be unusually good at together. They choose whether to agree." },
+        { name: "Explain Yourself", instruction: "Share one strange personal rule or preference. Pick a player to explain why they think you have it." },
+        { name: "Business Partners", instruction: "Pick a player and pitch a business you would start together in 15 seconds. If the majority would invest, you both give 2. If not, you both drink 1." },
+        { name: "Alternate Career", instruction: "Give one player a surprising new career. They have 10 seconds to explain why they would be great at it. Convincing answer gives 2; unconvincing answer drinks 2." },
+        { name: "Chain Reaction", instruction: "Share a time you started something and left others to deal with the fallout." },
+        { name: "Dating Bio", instruction: "Write a new three-sentence dating bio for a player. If they would use it, give 2. If not, drink 2." },
+        { name: "Odd Habit", instruction: "Share something you do but are unsure whether anyone else does." },
+        { name: "Guilty Song", instruction: "Share a song you are embarrassed to admit you love." },
+        { name: "Still for Kids", instruction: "Name something intended for children that you will never outgrow. Anyone who also loves it drinks 1." },
+        { name: "Petty Protest", instruction: "Share a harmless act of petty protest from work, school, or everyday life." },
+        { name: "Style Regret", instruction: "Share an old style choice you are glad you stopped making. Anyone who thinks you should bring it back drinks 1." },
+        { name: "Instant Skill", instruction: "Name one skill you would instantly learn if you could." },
+        { name: "Useless Expertise", instruction: "Name a meaningless topic you could talk about for hours." },
+        { name: "Discontinued Favorite", instruction: "Name one discontinued product you would bring back. Anyone who remembers it drinks 1. If nobody does, drink 2." },
+        { name: "Loophole", instruction: "Share a loophole you exploited or would exploit. Anyone who would also use it drinks 1. If nobody would, drink 2." },
+        { name: "Body Snatcher", instruction: "Pick a player and ask one question that could prove they have not been replaced by an impostor." },
+        { name: "One-Day Trip", instruction: "Name a place you have never visited and plan your first 24 hours there. Anyone who would join you drinks 1. If nobody would, drink 2." },
+        { name: "One-Star Review", instruction: "Pick a player and review them as a roommate, coworker, or travel companion. They choose the category. If they disagree, drink 1." },
+        { name: "Character Build", instruction: "Give one player a character class, special ability, and weakness." },
+        { name: "Fake Sponsor", instruction: "Pick a player and name the brand that should sponsor them. Explain why. If they approve, give 2." },
+        { name: "Fortune Cookie", instruction: "Pick a player and give them a fortune for the rest of tonight." },
+        { name: "Useless Superpower", instruction: "Give one player a superpower with an inconvenient side effect. They decide whether to accept it." },
+        { name: "Exact Ten", instruction: "Close your eyes and say 'stop' when you think 10 seconds have passed. Another player times you. Within one second gives 2; otherwise, drink 2." },
+        { name: "Sound Detective", instruction: "Close your eyes. A chosen player makes a sound using an object nearby. Identify the object or drink 2." },
 
       ]
     }
@@ -169,6 +195,16 @@ export const gameData = {
         instruction: "Everyone points to who gave the most drinks. Check Stats. Wrong guess drinks 1.",
         leaderboardTopic: "drinks_given_max"
       },
+      { name: "Moral Dilemma", instruction: "Create a harmless moral dilemma with two choices. Everyone chooses at the same time; the minority drinks 1." },
+      { name: "Get Away With It", instruction: "Everyone names something you get away with that they never could. Choose the most accurate answer; that player gives 2." },
+      { name: "Underrated Trait", instruction: "Everyone names one thing they appreciate about you that others might overlook." },
+      { name: "Dream Headline", instruction: "Everyone invents a news alert that would make the player on their left extremely happy." },
+      { name: "Dating Warning", instruction: "Everyone gives one warning to someone considering dating you. Choose the most accurate answer; that player gives 2." },
+      { name: "Bad Influence", instruction: "Everyone names one habit, phrase, or interest they picked up from you. Choose the most accurate answer; that player gives 2." },
+      { name: "Mystery Trait", instruction: "Everyone names one thing about you they will never understand." },
+      { name: "Different Taste", instruction: "Everyone names something they love but expect you to hate. Anyone whose choice you actually like drinks 1." },
+      { name: "Fake Awards", instruction: "Everyone gives the player on their left an award based on tonight." },
+      { name: "Finger Gun", instruction: "First player to point at someone and shout 'Bang!' shoots them. The target drinks 3." },
 
 
 
@@ -212,10 +248,61 @@ export const gameData = {
         effect: { type: EFFECT_TYPES.KINGS_TAX, turns: 4, needsTarget: true }
       },
       {
+        name: "Third Person (4 Turns)",
+        instruction: "Choose a player. For 4 turns, they must refer to themselves in the third person. Fail = drink 3.",
+        effect: { type: EFFECT_TYPES.THIRD_PERSON, turns: 4, needsTarget: true }
+      },
+      {
+        name: "Whisper Mode (4 Turns)",
+        instruction: "Choose a player. For 4 turns, they may only whisper. Normal voice = drink 3.",
+        effect: { type: EFFECT_TYPES.WHISPER_MODE, turns: 4, needsTarget: true }
+      },
+      {
+        name: "No Pointing (6 Turns)",
+        instruction: "For 6 turns, anyone who points at something or someone drinks 6.",
+        effect: { type: EFFECT_TYPES.NO_POINTING, turns: 6 }
+      },
+      {
+        name: "One-Word Answers (4 Turns)",
+        instruction: "Choose a player. For 4 turns, they may answer questions using only one word. Fail = drink 4.",
+        effect: { type: EFFECT_TYPES.ONE_WORD_ANSWERS, turns: 4, needsTarget: true }
+      },
+      {
+        name: "Royal We (4 Turns)",
+        instruction: "Choose a player. For 4 turns, they must refer to themselves as 'we'. Fail = drink 3.",
+        effect: { type: EFFECT_TYPES.ROYAL_WE, turns: 4, needsTarget: true }
+      },
+      {
+        name: "Eye Contact Rule (6 Turns)",
+        instruction: "For 6 turns, anyone giving drinks must maintain eye contact with the target for as long as the target drinks. Break eye contact = drink 4.",
+        effect: { type: EFFECT_TYPES.EYE_CONTACT_RULE, turns: 6 }
+      },
+      {
+        name: "Invisible Microphone (4 Turns)",
+        instruction: "Choose a player. For 4 turns, they must hold an imaginary microphone whenever they speak. Fail = drink 3.",
+        effect: { type: EFFECT_TYPES.INVISIBLE_MICROPHONE, turns: 4, needsTarget: true }
+      },
+      {
+        name: "Slow Motion (4 Turns)",
+        instruction: "Choose a player. For 4 turns, they must move and speak entirely in slow motion. Break character = drink 3.",
+        effect: { type: EFFECT_TYPES.SLOW_MOTION, turns: 4, needsTarget: true }
+      },
+      {
+        name: "Pinky Rule (6 Turns)",
+        instruction: "For 6 turns, everyone must raise their pinky while drinking. Fail = drink 2.",
+        effect: { type: EFFECT_TYPES.PINKY_RULE, turns: 6 }
+      },
+      {
         name: "Table Referendum",
         instruction: "Group vote together: either everybody drinks 6 OR everybody takes a Penalty card.",
         action: ACTION_CODES.CHAOS_REFERENDUM_GROUP
       },
+      { name: "Wheel Gamble", instruction: "Spin once. Accept the result or spin again. The second result is doubled and cannot be refused." },
+      { name: "Wheel Dealer", instruction: "Spin twice. Assign the two results to two different players. One of them may be you." },
+      { name: "Wheel Mirror", instruction: "Pick a player, then spin. You both receive the same result." },
+      { name: "Wheel Choice", instruction: "Spin twice. Choose which result applies to you. The player on your left receives the other." },
+      { name: "Call Your Shot", instruction: "Call heads or tails, then flip the coin. Correct call: give 3. Wrong call: drink 3." },
+      { name: "Wheel Hijack", instruction: "Before spinning, any player may volunteer to take the result. If nobody volunteers, spin and double the result for yourself." },
       {
         name: "Most Generous Pays",
         instruction: "Player(s) with the most Drinks given drink 2.",

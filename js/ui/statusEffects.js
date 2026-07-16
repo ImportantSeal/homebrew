@@ -31,6 +31,15 @@ function effectIcon(type) {
     case EFFECT_TYPES.FORBIDDEN_WORD: return "\u{1F6AB}";
     case EFFECT_TYPES.QUESTION_MASTER: return "\u2753";
     case EFFECT_TYPES.NOTIFICATION_CURSE: return "\u{1F514}";
+    case EFFECT_TYPES.THIRD_PERSON: return "3P";
+    case EFFECT_TYPES.WHISPER_MODE: return "sh";
+    case EFFECT_TYPES.NO_POINTING: return "NP";
+    case EFFECT_TYPES.ONE_WORD_ANSWERS: return "1W";
+    case EFFECT_TYPES.ROYAL_WE: return "we";
+    case EFFECT_TYPES.EYE_CONTACT_RULE: return "EC";
+    case EFFECT_TYPES.INVISIBLE_MICROPHONE: return "mic";
+    case EFFECT_TYPES.SLOW_MOTION: return "SM";
+    case EFFECT_TYPES.PINKY_RULE: return "PK";
     default: return "\u2728";
   }
 }
@@ -105,6 +114,36 @@ function effectDescription(state, eff) {
         ? `${src} drinks 1 whenever their phone gets a notification.`
         : "If your phone gets a notification, drink 1.";
     }
+    case EFFECT_TYPES.THIRD_PERSON: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Chosen player";
+      return `${tgt} must refer to themselves in the third person. Fail means Drink 3.`;
+    }
+    case EFFECT_TYPES.WHISPER_MODE: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Chosen player";
+      return `${tgt} may only whisper. Normal voice means Drink 3.`;
+    }
+    case EFFECT_TYPES.NO_POINTING:
+      return "Anyone who points at something or someone drinks 6.";
+    case EFFECT_TYPES.ONE_WORD_ANSWERS: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Chosen player";
+      return `${tgt} may answer questions using only one word. Fail means Drink 4.`;
+    }
+    case EFFECT_TYPES.ROYAL_WE: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Chosen player";
+      return `${tgt} must refer to themselves as "we". Fail means Drink 3.`;
+    }
+    case EFFECT_TYPES.EYE_CONTACT_RULE:
+      return "Anyone giving drinks must keep eye contact while the target drinks. Break it and Drink 4.";
+    case EFFECT_TYPES.INVISIBLE_MICROPHONE: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Chosen player";
+      return `${tgt} must hold an imaginary microphone whenever they speak. Fail means Drink 3.`;
+    }
+    case EFFECT_TYPES.SLOW_MOTION: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Chosen player";
+      return `${tgt} must move and speak in slow motion. Break character and Drink 3.`;
+    }
+    case EFFECT_TYPES.PINKY_RULE:
+      return "Everyone must raise their pinky while drinking. Fail means Drink 2.";
     default:
       return "An effect is active.";
   }
@@ -168,6 +207,19 @@ function effectAppliesTo(state, eff) {
       const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
       return `Applies to: ${src}`;
     }
+    case EFFECT_TYPES.THIRD_PERSON:
+    case EFFECT_TYPES.WHISPER_MODE:
+    case EFFECT_TYPES.ONE_WORD_ANSWERS:
+    case EFFECT_TYPES.ROYAL_WE:
+    case EFFECT_TYPES.INVISIBLE_MICROPHONE:
+    case EFFECT_TYPES.SLOW_MOTION: {
+      const tgt = state.players?.[eff.targetIndex]?.name ?? "Player";
+      return `Target: ${tgt}`;
+    }
+    case EFFECT_TYPES.NO_POINTING:
+    case EFFECT_TYPES.EYE_CONTACT_RULE:
+    case EFFECT_TYPES.PINKY_RULE:
+      return "Applies to: Everyone";
     default:
       return "Applies to: \u2014";
   }
