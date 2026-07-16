@@ -1,0 +1,121 @@
+:root {
+  --commit-banner-bar-height: 2.45rem;
+  --commit-banner-total-height: calc(var(--commit-banner-bar-height) + env(safe-area-inset-bottom, 0px));
+}
+
+body.setup-banner-visible {
+  padding-bottom: calc(var(--commit-banner-total-height) + 3.55rem);
+}
+
+body.setup-banner-visible .site-footer {
+  position: fixed;
+  left: 50%;
+  right: auto;
+  bottom: calc(var(--commit-banner-total-height) + 0.62rem);
+  width: auto;
+  margin-top: 0;
+  padding-bottom: 0;
+  transform: translateX(-50%);
+  z-index: 34;
+}
+
+.commit-banner {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 32;
+  height: var(--commit-banner-total-height);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  overflow: hidden;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(90deg, rgba(53, 224, 199, 0.16), rgba(255, 79, 216, 0.13), rgba(168, 85, 247, 0.16)),
+    rgba(7, 10, 20, 0.94);
+  box-shadow: 0 -0.8rem 1.7rem rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.commit-banner[hidden] {
+  display: none;
+}
+
+.commit-banner__viewport {
+  height: var(--commit-banner-bar-height);
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+
+.commit-banner__track {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  will-change: transform;
+  animation: commit-banner-scroll var(--commit-banner-duration, 26s) linear infinite;
+}
+
+.commit-banner:hover .commit-banner__track,
+.commit-banner:focus-within .commit-banner__track {
+  animation-play-state: paused;
+}
+
+.commit-banner__segment {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+}
+
+.commit-banner__item {
+  flex: 0 0 auto;
+  margin-right: clamp(1.75rem, 5vw, 4rem);
+  color: rgba(250, 252, 255, 0.94);
+  font-family: var(--font-display);
+  font-size: clamp(0.82rem, 1vw, 0.98rem);
+  font-weight: 850;
+  letter-spacing: 0;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 0.08rem 0.45rem rgba(0, 0, 0, 0.42);
+}
+
+.commit-banner__item::before {
+  content: "//";
+  margin-right: 0.72rem;
+  color: rgba(53, 224, 199, 0.9);
+}
+
+@keyframes commit-banner-scroll {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@media (max-width: 900px) {
+  :root {
+    --commit-banner-bar-height: 2.35rem;
+  }
+
+  body.setup-banner-visible {
+    padding-bottom: calc(var(--commit-banner-total-height) + 4.4rem);
+  }
+
+  body.setup-banner-visible .site-footer {
+    bottom: calc(var(--commit-banner-total-height) + 0.55rem);
+  }
+
+  .commit-banner__item {
+    font-size: 0.82rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .commit-banner__track {
+    animation-duration: 90s;
+  }
+}
