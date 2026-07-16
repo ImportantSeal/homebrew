@@ -6,9 +6,26 @@ I am very lazy with documentation. This README will probably get nicer on some b
 
 ## Run
 
-Open `index.html` in a browser.
+Install dependencies once:
 
-No build step is needed for local play.
+```bash
+npm install
+```
+
+Run locally with Vite:
+
+```bash
+npm run dev
+```
+
+Production preview:
+
+```bash
+npm run build
+npm run preview
+```
+
+The source files are still plain HTML, CSS, and modular JavaScript. Vite is only used for local serving and production builds.
 
 ## Structure
 
@@ -21,7 +38,23 @@ No build step is needed for local play.
 - `js/game/controller.js` - main game controller
 - `js/game/controller/cardHandlers/` - card selection flows
 - `js/ui/` - DOM rendering and UI adapters
+- `vite.config.mjs` - Vite build config for GitHub Pages
+- `.github/workflows/pages.yml` - GitHub Pages deploy workflow
 - `tests/` - Node test suite with a lightweight DOM harness
+
+## Build and Deploy
+
+GitHub Pages deploys the generated `dist/` folder.
+
+Vite bundles the app and gives production CSS/JS files content hashes, so browsers pick up new versions without manually changing cache-busting query strings.
+
+The GitHub Pages base path is `/homebrew/`.
+
+Do not edit `dist/` by hand. Run:
+
+```bash
+npm run build
+```
 
 ## Runtime Flow
 
@@ -146,6 +179,7 @@ For action/effect cards, also run the automated tests before trusting the manual
 npm test
 npm run lint
 npm run typecheck
+npm run build
 npm run build:verify
 ```
 
@@ -158,7 +192,8 @@ npm run qa
 ## Notes
 
 - The project uses native ES modules.
+- Vite is used for build output and hashed production assets.
 - Tests run in Node with `node:test`.
 - DOM-heavy tests use `tests/domHarness.js`.
-- `build:verify` checks local imports and referenced assets.
+- `build:verify` checks local imports and the built `dist` assets.
 - `typecheck` validates game data contracts, not TypeScript types.
