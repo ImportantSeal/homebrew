@@ -150,3 +150,48 @@ test('coin flip uses RNG result, lands on the matching side, and logs history', 
     dom.cleanup();
   }
 });
+
+test('coin flip still animates when the mobile reduced-effects profile is active', async () => {
+  const dom = installDom();
+
+  try {
+    dom.document.body.dataset.reducedEffects = 'true';
+    dom.window.matchMedia = (query) => ({
+      matches: false,
+      media: String(query || ''),
+      addListener: () => {},
+      removeListener: () => {},
+      addEventListener: () => {},
+      removeEventListener: () => {}
+    });
+
+    const originalRequestAnimationFrame = dom.window.requestAnimationFrame;
+    let animationFrameCount = 0;
+    const countedRequestAnimationFrame = (callback) => {
+      animationFrameCount += 1;
+      return originalRequestAnimationFrame(callback);
+    };
+
+    dom.window.requestAnimationFrame = countedRequestAnimationFrame;
+    globalThis.requestAnimationFrame = countedRequestAnimationFrame;
+
+    const { initCoinFlipModal } = await importFresh('../js/ui/coinFlipModal.js', import.meta.url);
+    buildHistoryDom(dom.document);
+    const refs = buildCoinFlipModalDom(dom.document);
+    const state = createState([0.75]);
+
+    initCoinFlipModal({ state });
+    dom.click(refs.toggleBtn);
+    dom.click(refs.flipBtn);
+
+    assert.equal(refs.coin.dataset.flipping, 'true');
+    assert.equal(animationFrameCount, 1);
+
+    await dom.flush(2);
+
+    assert.equal(refs.flipBtn.disabled, false);
+    assert.ok(['Heads', 'Tails'].includes(refs.resultEl.textContent));
+  } finally {
+    dom.cleanup();
+  }
+});

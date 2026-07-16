@@ -42,6 +42,18 @@ The source files are still plain HTML, CSS, and modular JavaScript. Vite is only
 - `.github/workflows/pages.yml` - GitHub Pages deploy workflow
 - `tests/` - Node test suite with a lightweight DOM harness
 
+## Scrolling Banner Manual Text
+
+The setup-screen scrolling banner is the `<div id="commit-banner">` block in `index.html`.
+
+Add manual banner messages to its `data-manual-texts` attribute as a JSON array:
+
+```html
+data-manual-texts='["First message", "Second message"]'
+```
+
+The banner code also accepts `data-manual-text="First message | Second message"` for quick pipe-separated text. The parsing and rendering logic lives in `js/ui/commitBanner.js`.
+
 ## Build and Deploy
 
 GitHub Pages deploys the generated `dist/` folder.

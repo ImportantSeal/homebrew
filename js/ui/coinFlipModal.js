@@ -102,8 +102,7 @@ function randomFloat() {
   return cryptoValue === null ? Math.random() : clampUnitFloat(cryptoValue);
 }
 
-function isReducedMotion() {
-  if (document.body?.dataset?.reducedEffects === 'true') return true;
+function prefersReducedMotion() {
   return Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches);
 }
 
@@ -166,7 +165,7 @@ function animateCoin(resultKey, state, token) {
   const result = RESULTS[resultKey] || RESULTS.heads;
   coin.dataset.flipping = 'true';
 
-  if (isReducedMotion()) {
+  if (prefersReducedMotion()) {
     applyFinalPose(resultKey);
     return Promise.resolve(true);
   }
