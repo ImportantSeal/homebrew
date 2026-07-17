@@ -270,6 +270,12 @@ export function bindBomburToggleChange(handler) {
   listeners.bomburToggleChangeHandler = onChange;
 }
 
+export function flashToolsButton() {
+  const button = getEl('settings-toggle');
+  if (!button) return;
+  restartClassAnimation(button, 'settings-toggle--tool-hint');
+}
+
 export function setBomburAvailability(available) {
   const isAvailable = Boolean(available);
   const section = document.querySelector('.settings-section--bombur');

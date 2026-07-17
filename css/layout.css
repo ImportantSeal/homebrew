@@ -427,6 +427,26 @@
   align-items: center;
   gap: 0.42rem;
 }
+.settings-toggle--tool-hint {
+  animation: tools-button-hint 2s ease-out;
+}
+@keyframes tools-button-hint {
+  0%, 100% {
+    transform: scale(1);
+    border-color: rgba(255,255,255,0.18);
+    box-shadow: none;
+  }
+  18%, 48% {
+    transform: scale(1.08);
+    border-color: rgba(53,224,199,0.9);
+    box-shadow: 0 0 0 4px rgba(53,224,199,0.14), 0 0 22px rgba(53,224,199,0.5);
+  }
+  32%, 64% {
+    transform: scale(1.02);
+    border-color: rgba(255,198,72,0.72);
+    box-shadow: 0 0 0 2px rgba(255,198,72,0.1), 0 0 12px rgba(255,198,72,0.32);
+  }
+}
 .button-icon {
   display: inline-flex;
   align-items: center;
