@@ -108,12 +108,12 @@ function saveAudioPrefs({ muted, volume }) {
 }
 
 function loadBomburEnabled() {
-  if (typeof localStorage === 'undefined') return true;
+  if (typeof localStorage === 'undefined') return false;
 
   try {
-    return localStorage.getItem(BOMBUR_STORAGE_KEY) !== 'false';
+    return localStorage.getItem(BOMBUR_STORAGE_KEY) === 'true';
   } catch {
-    return true;
+    return false;
   }
 }
 
