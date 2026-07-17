@@ -16,6 +16,7 @@ import {
 
 import { computeKind, getCardElements, setCardKind } from '../../ui/cards.js';
 import { effectSelectionUi } from '../../ui/effectSelectionUi.js';
+import { flashToolsButton } from '../../ui/uiFacade.js';
 
 import {
   recordCardSelection,
@@ -121,7 +122,8 @@ export function createCardHandlers({
     createEffect: createEffectWithRng,
     startChoiceSelection,
     syncBackgroundScene,
-    flipCardAnimation
+    flipCardAnimation,
+    flashToolsButton
   });
 
   const { handlePlainCard } = createPlainCardFlow({

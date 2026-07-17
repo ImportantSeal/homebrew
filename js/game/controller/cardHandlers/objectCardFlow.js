@@ -77,7 +77,8 @@ export function createObjectCardFlow({
   createEffect,
   startChoiceSelection,
   syncBackgroundScene,
-  flipCardAnimation
+  flipCardAnimation,
+  flashToolsButton
 }) {
   function handleObjectCardDraw(cardEl, parentCard) {
     const cardDrawerIndex = state.currentPlayerIndex;
@@ -125,6 +126,7 @@ export function createObjectCardFlow({
     const actionMessage = subInstruction || shownText || subName || "";
     const explicitLeaderboardTopic = event?.leaderboardTopic || event?.statsTopic || event?.statsLeaderboardTopic;
     const leaderboardTopic = explicitLeaderboardTopic || resolveStatsLeaderboardTopic(subName, subInstruction);
+    const toolHint = toolHintForCard(subName, subInstruction);
 
     if (drawMessage) {
       if (leaderboardTopic) {
@@ -133,7 +135,6 @@ export function createObjectCardFlow({
         log(drawMessage);
       }
 
-      const toolHint = toolHintForCard(subName, subInstruction);
       if (toolHint) log(toolHint);
     }
 
@@ -214,7 +215,10 @@ export function createObjectCardFlow({
       return true;
     }
 
-    openActionScreen(actionTitle, actionMessage || drawMessage, { variant: "normal" });
+    openActionScreen(actionTitle, actionMessage || drawMessage, {
+      variant: "normal",
+      onClose: toolHint ? flashToolsButton : null
+    });
 
     if (actionResult?.refreshCards) {
       resetCards();
