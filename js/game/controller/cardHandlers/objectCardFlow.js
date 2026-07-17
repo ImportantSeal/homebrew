@@ -9,6 +9,18 @@ import {
   effectLabelForLog
 } from '../helpers.js';
 
+function toolHintForCard(...parts) {
+  const text = parts.filter(Boolean).join(' ').toLowerCase();
+
+  if (/\b(coin|heads|tails)\b/.test(text)) return 'Open Tools \u2192 Coin Flip.';
+  if (/\b(wheel|spin|spinning)\b/.test(text)) return 'Open Tools \u2192 Spin Wheel.';
+  if (/\b(roll|re-roll|d6|d20)\b|\b1\s*[-\u2013]\s*10\b/.test(text)) return 'Open Tools \u2192 Dice.';
+  if (/\bstats?\b|drinks (taken|given)/.test(text)) return 'Open Tools \u2192 Stats.';
+  if (/\b\d+\s*[- ]?seconds?\b|\b(stopwatch|timer|times you)\b/.test(text)) return 'Open Tools \u2192 Timer.';
+
+  return '';
+}
+
 function activateNonTargetedEffect(state, effectDef, log, renderEffectsPanel, addEffect, createEffect) {
   if (effectDef.type === "LEFT_HAND") {
     addEffect(state, createEffect("LEFT_HAND", effectDef.turns, { sourceIndex: state.currentPlayerIndex }));
@@ -120,6 +132,9 @@ export function createObjectCardFlow({
       } else {
         log(drawMessage);
       }
+
+      const toolHint = toolHintForCard(subName, subInstruction);
+      if (toolHint) log(toolHint);
     }
 
     const actionResolvesFlow = Boolean(action);
