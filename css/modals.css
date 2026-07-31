@@ -1585,32 +1585,6 @@
   font-size: 1.12rem;
 }
 
-.plinko-outcomes {
-  width: 100%;
-  min-height: 1.45rem;
-  display: flex;
-  gap: 0.35rem;
-  overflow-x: auto;
-  scrollbar-width: thin;
-}
-
-.plinko-outcomes:empty { display: none; }
-
-.plinko-outcome {
-  flex: 0 0 auto;
-  padding: 0.25rem 0.48rem;
-  border: 1px solid rgba(255,255,255,0.12);
-  border-radius: 999px;
-  background: rgba(10,14,28,0.48);
-  color: rgba(244,247,255,0.82);
-  font-size: 0.8rem;
-  font-weight: 750;
-  font-family: inherit;
-}
-
-button.plinko-outcome { cursor: pointer; }
-.plinko-outcome.is-counted { border-color: rgba(53,224,199,0.5); background: rgba(53,224,199,0.14); color: #dffffa; }
-
 .plinko-drop,
 .plinko-result {
   min-height: 2.9rem;
