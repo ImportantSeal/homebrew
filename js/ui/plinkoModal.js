@@ -90,8 +90,7 @@ function refs() {
     drop: document.getElementById('plinko-drop'),
     result: document.getElementById('plinko-result'),
     summary: document.getElementById('plinko-summary'),
-    cardRule: document.getElementById('plinko-card-rule'),
-    outcomes: document.getElementById('plinko-outcomes')
+    cardRule: document.getElementById('plinko-card-rule')
   };
 }
 
@@ -175,7 +174,6 @@ function resolveCollision(event, state) {
     const gives = (reward.give || 0) * (activeCardRule?.giveMultiplier || 1);
     outcomes.push({ label: reward.label, drinks, gives, shots: reward.shots || 0 });
     recomputeSummary();
-    renderOutcomes();
     if (refs().result) {
       const modifier = activeCardRule?.giveMultiplier > 1
         ? ` (Give ${gives})`
@@ -213,7 +211,6 @@ function resetSummary() {
   dropsStarted = 0;
   selectedOutcomeIndex = 0;
   renderSummary();
-  renderOutcomes();
 }
 
 function includedOutcomeIndexes() {
@@ -246,28 +243,6 @@ function logSummary(state) {
     ? activeCardRule?.mode === 'shared' ? `, shared with ${targetName}` : `, performed by ${targetName}`
     : '';
   addHistoryEntry(state, `${sessionPlayerName} played Plinko${card}${target}: ${sessionSummary.total} drops, Drink ${sessionSummary.drinks}, Give ${sessionSummary.gives}, Give a shot ${sessionSummary.shots}`);
-}
-
-function renderOutcomes() {
-  const { outcomes: container } = refs();
-  if (!container) return;
-  container.replaceChildren();
-  const included = includedOutcomeIndexes();
-  outcomes.forEach((outcome, index) => {
-    const chip = document.createElement(activeCardRule?.mode === 'choose-one' ? 'button' : 'span');
-    chip.className = 'plinko-outcome';
-    chip.textContent = `${index + 1}. ${outcome.label}`;
-    chip.classList.toggle('is-counted', included.has(index));
-    if (chip instanceof HTMLButtonElement) {
-      chip.type = 'button';
-      chip.addEventListener('click', () => {
-        selectedOutcomeIndex = index;
-        recomputeSummary();
-        renderOutcomes();
-      });
-    }
-    container.appendChild(chip);
-  });
 }
 
 function renderCardRule() {
