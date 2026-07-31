@@ -1,10 +1,9 @@
-import Matter from 'matter-js';
 import { addHistoryEntry } from '../cardHistory.js';
 import { bindTap } from '../utils/tap.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 import { openGameMenu } from './settingsMenu.js';
 
-const { Bodies, Composite, Engine, Events, Render, Runner } = Matter;
+const { Bodies, Composite, Engine, Events, Render, Runner } = globalThis.Matter;
 
 export const PLINKO_SLOTS = [
   { id: 'give-shot-left', label: 'Give a shot', shots: 1 },
