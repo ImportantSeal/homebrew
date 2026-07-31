@@ -3,7 +3,37 @@ import { bindTap } from '../utils/tap.js';
 import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
 import { openGameMenu } from './settingsMenu.js';
 
-const { Bodies, Composite, Engine, Events, Render, Runner } = globalThis.Matter;
+const MATTER_ASSET_URL = new URL('../matter.min.js', import.meta.url).href;
+let matterLoadPromise = null;
+let Bodies;
+let Composite;
+let Engine;
+let Events;
+let Render;
+let Runner;
+
+function loadMatter() {
+  if (globalThis.Matter) return Promise.resolve(globalThis.Matter);
+  if (matterLoadPromise) return matterLoadPromise;
+
+  matterLoadPromise = new Promise((resolve, reject) => {
+    const script = document.createElement('script');
+    script.src = MATTER_ASSET_URL;
+    script.async = true;
+    script.addEventListener('load', () => {
+      if (globalThis.Matter) resolve(globalThis.Matter);
+      else reject(new Error('Matter.js loaded without exposing the Matter API'));
+    }, { once: true });
+    script.addEventListener('error', () => reject(new Error('Failed to load Matter.js')), { once: true });
+    document.head.appendChild(script);
+  });
+
+  return matterLoadPromise;
+}
+
+function assignMatter(matter) {
+  ({ Bodies, Composite, Engine, Events, Render, Runner } = matter);
+}
 
 export const PLINKO_SLOTS = [
   { id: 'give-shot-left', label: 'Give a shot', shots: 1 },
@@ -256,8 +286,9 @@ function closeModal(state, restoreFocus = true) {
   returnFocusEl = null;
 }
 
-export function initPlinkoModal({ state } = {}) {
+export async function initPlinkoModal({ state } = {}) {
   if (initialized || !state) return;
+  assignMatter(await loadMatter());
   const { modal, toggle, back, drop } = refs();
   if (!modal || !toggle) return;
   bindTap(toggle, () => openModal(state));
@@ -276,6 +307,7 @@ export function initPlinkoModal({ state } = {}) {
 // board, start position, ball properties and collision sensors as the live game.
 export async function simulatePlinkoDrops(dropCount = 1000) {
   if (!Number.isInteger(dropCount) || dropCount < 1) throw new RangeError('dropCount must be a positive integer');
+  if (!Engine) assignMatter(await loadMatter());
   const counts = Array(PLINKO_SLOTS.length).fill(0);
   for (let drop = 0; drop < dropCount; drop += 1) {
     const engine = Engine.create();
