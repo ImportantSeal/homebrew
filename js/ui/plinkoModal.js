@@ -7,19 +7,19 @@ import { openGameMenu } from './settingsMenu.js';
 const { Bodies, Composite, Engine, Events, Render, Runner } = Matter;
 
 export const PLINKO_SLOTS = [
-  { id: 'give-shot-left', label: 'Give a shot' },
-  { id: 'give-5-drink-1-left', label: 'Give 5 and drink 1' },
-  { id: 'give-4-drink-1-left', label: 'Give 4 and drink 1' },
-  { id: 'give-3-drink-1-left', label: 'Give 3 and drink 1' },
-  { id: 'give-2-drink-1-left', label: 'Give 2 and drink 1' },
-  { id: 'give-1-drink-1-left', label: 'Give 1 and drink 1' },
-  { id: 'drink-2', label: 'Drink 2' },
-  { id: 'give-1-drink-1-right', label: 'Give 1 and drink 1' },
-  { id: 'give-2-drink-1-right', label: 'Give 2 and drink 1' },
-  { id: 'give-3-drink-1-right', label: 'Give 3 and drink 1' },
-  { id: 'give-4-drink-1-right', label: 'Give 4 and drink 1' },
-  { id: 'give-5-drink-1-right', label: 'Give 5 and drink 1' },
-  { id: 'give-shot-right', label: 'Give a shot' }
+  { id: 'give-shot-left', label: 'Give a shot', shots: 1 },
+  { id: 'give-4-drink-1-left', label: 'Give 4 and drink 1', give: 4, drink: 1 },
+  { id: 'give-3-drink-1-left', label: 'Give 3 and drink 1', give: 3, drink: 1 },
+  { id: 'give-2-drink-1-left', label: 'Give 2 and drink 1', give: 2, drink: 1 },
+  { id: 'give-1-drink-1-left', label: 'Give 1 and drink 1', give: 1, drink: 1 },
+  { id: 'drink-1-left', label: 'Drink 1', drink: 1 },
+  { id: 'drink-2', label: 'Drink 2', drink: 2 },
+  { id: 'drink-1-right', label: 'Drink 1', drink: 1 },
+  { id: 'give-1-drink-1-right', label: 'Give 1 and drink 1', give: 1, drink: 1 },
+  { id: 'give-2-drink-1-right', label: 'Give 2 and drink 1', give: 2, drink: 1 },
+  { id: 'give-3-drink-1-right', label: 'Give 3 and drink 1', give: 3, drink: 1 },
+  { id: 'give-4-drink-1-right', label: 'Give 4 and drink 1', give: 4, drink: 1 },
+  { id: 'give-shot-right', label: 'Give a shot', shots: 1 }
 ];
 
 const WIDTH = 780;
@@ -38,9 +38,10 @@ const RESULT_DELAY_MS = 450;
 
 let initialized = false;
 let runtime = null;
-let activeBall = null;
-let resultLocked = false;
-let resultTimer = null;
+const activeBalls = new Set();
+const resolvedBallIds = new Set();
+const removalTimers = new Map();
+let sessionSummary = { total: 0, drinks: 0, gives: 0, shots: 0 };
 let returnFocusEl = null;
 
 function refs() {
@@ -52,7 +53,8 @@ function refs() {
     back: modal?.querySelector('[data-back-menu]') || null,
     board: document.getElementById('plinko-board'),
     drop: document.getElementById('plinko-drop'),
-    result: document.getElementById('plinko-result')
+    result: document.getElementById('plinko-result'),
+    summary: document.getElementById('plinko-summary')
   };
 }
 
@@ -111,7 +113,7 @@ function drawSlotLabels(event) {
   PLINKO_SLOTS.forEach((slot, index) => {
     const x = BOARD_LEFT + (index + 0.5) * SLOT_WIDTH;
     context.fillStyle = index === 6 ? '#ffe09a' : '#edf4ff';
-    const lines = slot.label.replace(' and ', ' / ').split(/\s+/);
+    const lines = slot.label.split(/\s+/);
     const lineHeight = 14;
     const startY = SLOT_TOP + 18;
     lines.forEach((line, lineIndex) => {
@@ -122,26 +124,55 @@ function drawSlotLabels(event) {
 }
 
 function resolveCollision(event, state) {
-  if (!activeBall || resultLocked) return;
   for (const pair of event.pairs) {
-    const other = pair.bodyA === activeBall ? pair.bodyB : pair.bodyB === activeBall ? pair.bodyA : null;
-    const index = other?.plugin?.plinkoSlotIndex;
+    const ball = pair.bodyA.label === BALL_LABEL ? pair.bodyA : pair.bodyB.label === BALL_LABEL ? pair.bodyB : null;
+    const sensor = ball === pair.bodyA ? pair.bodyB : ball === pair.bodyB ? pair.bodyA : null;
+    const index = sensor?.plugin?.plinkoSlotIndex;
+    if (!ball || !activeBalls.has(ball) || resolvedBallIds.has(ball.id)) continue;
     if (!Number.isInteger(index)) continue;
 
     const reward = PLINKO_SLOTS[index];
-    resultLocked = true;
-    activeBall.isSleeping = true;
+    resolvedBallIds.add(ball.id);
+    ball.isSleeping = true;
+    sessionSummary.total += 1;
+    sessionSummary.drinks += reward.drink || 0;
+    sessionSummary.gives += reward.give || 0;
+    sessionSummary.shots += reward.shots || 0;
+    renderSummary();
     if (refs().result) refs().result.textContent = reward.label;
-    addHistoryEntry(state, `Plinko: ${reward.label}`);
-    resultTimer = window.setTimeout(() => {
-      if (runtime && activeBall) Composite.remove(runtime.engine.world, activeBall);
-      activeBall = null;
-      resultTimer = null;
-      const { drop } = refs();
-      if (drop) drop.disabled = false;
+    const timer = window.setTimeout(() => {
+      if (runtime) Composite.remove(runtime.engine.world, ball);
+      activeBalls.delete(ball);
+      resolvedBallIds.delete(ball.id);
+      removalTimers.delete(ball.id);
     }, RESULT_DELAY_MS);
-    break;
+    removalTimers.set(ball.id, timer);
   }
+}
+
+function renderSummary() {
+  const { summary } = refs();
+  if (!summary) return;
+  const values = {
+    total: sessionSummary.total,
+    drinks: sessionSummary.drinks,
+    gives: sessionSummary.gives,
+    shots: sessionSummary.shots
+  };
+  Object.entries(values).forEach(([key, value]) => {
+    const target = summary.querySelector(`[data-plinko-${key}]`);
+    if (target) target.textContent = String(value);
+  });
+}
+
+function resetSummary() {
+  sessionSummary = { total: 0, drinks: 0, gives: 0, shots: 0 };
+  renderSummary();
+}
+
+function logSummary(state) {
+  if (sessionSummary.total < 1) return;
+  addHistoryEntry(state, `Plinko summary: ${sessionSummary.total} drops, Drink ${sessionSummary.drinks}, Give ${sessionSummary.gives}, Give a shot ${sessionSummary.shots}`);
 }
 
 function createRuntime(state) {
@@ -164,8 +195,8 @@ function createRuntime(state) {
 }
 
 function destroyRuntime() {
-  if (resultTimer !== null) window.clearTimeout(resultTimer);
-  resultTimer = null;
+  removalTimers.forEach((timer) => window.clearTimeout(timer));
+  removalTimers.clear();
   if (runtime) {
     Events.off(runtime.engine, 'collisionStart', runtime.collisionHandler);
     Events.off(runtime.render, 'afterRender', drawSlotLabels);
@@ -177,16 +208,15 @@ function destroyRuntime() {
     runtime.render.textures = {};
   }
   runtime = null;
-  activeBall = null;
-  resultLocked = false;
+  activeBalls.clear();
+  resolvedBallIds.clear();
 }
 
 function dropBall() {
-  const { drop, result } = refs();
-  if (!runtime || activeBall) return;
-  resultLocked = false;
+  const { result } = refs();
+  if (!runtime) return;
   const startX = WIDTH / 2 + (Math.random() * 8 - 4);
-  activeBall = Bodies.circle(startX, 45, BALL_RADIUS, {
+  const ball = Bodies.circle(startX, 45, BALL_RADIUS, {
     restitution: 0.45,
     friction: 0.001,
     frictionAir: 0.0015,
@@ -194,9 +224,9 @@ function dropBall() {
     label: BALL_LABEL,
     render: { fillStyle: '#ff4fd8', strokeStyle: '#ffffff', lineWidth: 2 }
   });
-  Composite.add(runtime.engine.world, activeBall);
-  if (drop) drop.disabled = true;
-  if (result) result.textContent = 'Dropping...';
+  activeBalls.add(ball);
+  Composite.add(runtime.engine.world, ball);
+  if (result) result.textContent = `${activeBalls.size} ball${activeBalls.size === 1 ? '' : 's'} falling...`;
 }
 
 function openModal(state) {
@@ -209,13 +239,15 @@ function openModal(state) {
   lockModalScroll();
   if (drop) drop.disabled = false;
   if (result) result.textContent = 'Ready';
+  resetSummary();
   createRuntime(state);
   panel?.focus?.();
 }
 
-function closeModal(restoreFocus = true) {
+function closeModal(state, restoreFocus = true) {
   const { modal, toggle } = refs();
   if (!modal?.classList.contains('is-open')) return;
+  logSummary(state);
   destroyRuntime();
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
@@ -230,13 +262,13 @@ export function initPlinkoModal({ state } = {}) {
   const { modal, toggle, back, drop } = refs();
   if (!modal || !toggle) return;
   bindTap(toggle, () => openModal(state));
-  bindTap(back, () => { closeModal(false); openGameMenu(); });
+  bindTap(back, () => { closeModal(state, false); openGameMenu(); });
   bindTap(drop, dropBall);
   modal.addEventListener('click', (event) => {
-    if (event.target?.closest?.('[data-close-plinko]')) closeModal(true);
+    if (event.target?.closest?.('[data-close-plinko]')) closeModal(state, true);
   });
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal(true);
+    if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal(state, true);
   });
   initialized = true;
 }
