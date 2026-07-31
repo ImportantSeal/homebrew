@@ -301,6 +301,51 @@ export const gameData = {
       { name: "Wheel Dealer", instruction: "Spin twice. Assign the two results to two different players. One of them may be you." },
       { name: "Wheel Mirror", instruction: "Pick a player, then spin. You both receive the same result." },
       { name: "Wheel Choice", instruction: "Spin twice. Choose which result applies to you. The player on your left receives the other." },
+      {
+        name: "One Drop",
+        instruction: "Open Plinko and drop exactly one ball. You perform the result where it lands.",
+        plinko: { mode: "one", dropLimit: 1 }
+      },
+      {
+        name: "D8 Drop",
+        instruction: "Roll a d8, then open Plinko and drop that many balls. Perform every result.",
+        plinko: { mode: "d8", dropLimit: 8 }
+      },
+      {
+        name: "Second Chance",
+        instruction: "Open Plinko and drop two balls. After both land, choose one result to perform; ignore the other.",
+        plinko: { mode: "choose-one", dropLimit: 2 }
+      },
+      {
+        name: "Bounce Back",
+        instruction: "Choose another player, then drop one Plinko ball. The chosen player performs the result instead of you.",
+        plinko: { mode: "target", dropLimit: 1 }
+      },
+      {
+        name: "Shared Result",
+        instruction: "Choose another player, then drop one Plinko ball. You and that player both perform the full result.",
+        plinko: { mode: "shared", dropLimit: 1 }
+      },
+      {
+        name: "Double or Nothing",
+        instruction: "Drop one Plinko ball. Either accept that result, or reject it and drop two new balls. If you continue, perform both new results and ignore the first.",
+        plinko: { mode: "double-or-nothing", dropLimit: 3 }
+      },
+      {
+        name: "Ball Storm",
+        instruction: "Every player drops one Plinko ball. Each player performs the result of their own ball.",
+        plinko: { mode: "ball-storm" }
+      },
+      {
+        name: "Golden Ball",
+        instruction: "Drop one Plinko ball. Double only the Give amount of its result; Drink and shot amounts stay unchanged.",
+        plinko: { mode: "golden", dropLimit: 1, giveMultiplier: 2 }
+      },
+      {
+        name: "Cursed Ball",
+        instruction: "Drop one Plinko ball. Double only the Drink amount of its result; Give and shot amounts stay unchanged.",
+        plinko: { mode: "cursed", dropLimit: 1, drinkMultiplier: 2 }
+      },
       { name: "Call Your Shot", instruction: "Call heads or tails, then flip the coin. Correct call: give 3. Wrong call: drink 3." },
       { name: "Wheel Hijack", instruction: "Before spinning, any player may volunteer to take the result. If nobody volunteers, spin and double the result for yourself." },
       {

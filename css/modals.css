@@ -1498,10 +1498,25 @@
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto auto;
+  grid-template-rows: auto minmax(0, 1fr) auto auto auto;
   gap: 0.8rem;
   justify-items: center;
 }
+
+.plinko-card-rule {
+  width: min(100%, 48.75rem);
+  padding: 0.5rem 0.7rem;
+  border: 1px solid rgba(255,208,92,0.3);
+  border-radius: 0.7rem;
+  background: linear-gradient(135deg, rgba(255,208,92,0.12), rgba(255,79,216,0.08)), rgba(10,14,28,0.56);
+}
+.plinko-card-rule[hidden] { display: none; }
+.plinko-card-rule > span { display: block; color: rgba(255,224,154,0.82); font-size: 0.65rem; font-weight: 850; letter-spacing: 0.1em; text-transform: uppercase; }
+.plinko-card-rule strong { color: #ffe09a; font-family: var(--font-display); }
+.plinko-card-rule p { margin: 0.15rem 0 0; color: rgba(244,247,255,0.86); font-size: 0.76rem; line-height: 1.3; }
+.plinko-target { margin-top: 0.38rem; display: flex; align-items: center; gap: 0.45rem; color: rgba(244,247,255,0.78); font-size: 0.72rem; font-weight: 750; }
+.plinko-target[hidden] { display: none; }
+.plinko-target select { min-width: 0; border: 1px solid rgba(255,255,255,0.16); border-radius: 0.45rem; padding: 0.3rem 0.45rem; background: rgba(10,14,28,0.8); color: var(--text); font: inherit; }
 
 .plinko-board {
   width: auto;
@@ -1559,6 +1574,30 @@
   font-size: 1rem;
 }
 
+.plinko-outcomes {
+  width: min(100%, 48.75rem);
+  min-height: 1.45rem;
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.plinko-outcome {
+  flex: 0 0 auto;
+  padding: 0.25rem 0.48rem;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  background: rgba(10,14,28,0.48);
+  color: rgba(244,247,255,0.82);
+  font-size: 0.7rem;
+  font-weight: 750;
+  font-family: inherit;
+}
+
+button.plinko-outcome { cursor: pointer; }
+.plinko-outcome.is-counted { border-color: rgba(53,224,199,0.5); background: rgba(53,224,199,0.14); color: #dffffa; }
+
 .plinko-drop,
 .plinko-result {
   min-height: 2.9rem;
@@ -1609,6 +1648,8 @@
   .plinko-summary { gap: 0.3rem; }
   .plinko-summary span { padding: 0.3rem 0.2rem; font-size: 0.68rem; }
   .plinko-summary strong { font-size: 0.88rem; }
+  .plinko-card-rule { padding: 0.38rem 0.5rem; }
+  .plinko-card-rule p { font-size: 0.68rem; }
 }
 
 /* ===== Modals: Timer ===== */

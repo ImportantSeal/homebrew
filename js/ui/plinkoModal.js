@@ -72,6 +72,12 @@ const resolvedBallIds = new Set();
 const removalTimers = new Map();
 let sessionSummary = { total: 0, drinks: 0, gives: 0, shots: 0 };
 let returnFocusEl = null;
+let pendingCardRule = null;
+let activeCardRule = null;
+let sessionPlayerName = 'Someone';
+let dropsStarted = 0;
+let outcomes = [];
+let selectedOutcomeIndex = 0;
 
 function refs() {
   const modal = document.getElementById('plinko-modal');
@@ -83,7 +89,9 @@ function refs() {
     board: document.getElementById('plinko-board'),
     drop: document.getElementById('plinko-drop'),
     result: document.getElementById('plinko-result'),
-    summary: document.getElementById('plinko-summary')
+    summary: document.getElementById('plinko-summary'),
+    cardRule: document.getElementById('plinko-card-rule'),
+    outcomes: document.getElementById('plinko-outcomes')
   };
 }
 
@@ -163,12 +171,17 @@ function resolveCollision(event, state) {
     const reward = PLINKO_SLOTS[index];
     resolvedBallIds.add(ball.id);
     ball.isSleeping = true;
-    sessionSummary.total += 1;
-    sessionSummary.drinks += reward.drink || 0;
-    sessionSummary.gives += reward.give || 0;
-    sessionSummary.shots += reward.shots || 0;
-    renderSummary();
-    if (refs().result) refs().result.textContent = reward.label;
+    const drinks = (reward.drink || 0) * (activeCardRule?.drinkMultiplier || 1);
+    const gives = (reward.give || 0) * (activeCardRule?.giveMultiplier || 1);
+    outcomes.push({ label: reward.label, drinks, gives, shots: reward.shots || 0 });
+    recomputeSummary();
+    renderOutcomes();
+    if (refs().result) {
+      const modifier = activeCardRule?.giveMultiplier > 1
+        ? ` (Give ${gives})`
+        : activeCardRule?.drinkMultiplier > 1 ? ` (Drink ${drinks})` : '';
+      refs().result.textContent = `${reward.label}${modifier}`;
+    }
     const timer = window.setTimeout(() => {
       if (runtime) Composite.remove(runtime.engine.world, ball);
       activeBalls.delete(ball);
@@ -196,12 +209,104 @@ function renderSummary() {
 
 function resetSummary() {
   sessionSummary = { total: 0, drinks: 0, gives: 0, shots: 0 };
+  outcomes = [];
+  dropsStarted = 0;
+  selectedOutcomeIndex = 0;
+  renderSummary();
+  renderOutcomes();
+}
+
+function includedOutcomeIndexes() {
+  if (activeCardRule?.mode === 'choose-one') return new Set([selectedOutcomeIndex]);
+  if (activeCardRule?.mode === 'double-or-nothing' && outcomes.length > 1) {
+    return new Set(outcomes.map((_, index) => index).filter((index) => index > 0));
+  }
+  return new Set(outcomes.map((_, index) => index));
+}
+
+function recomputeSummary() {
+  const included = includedOutcomeIndexes();
+  sessionSummary = outcomes.reduce((summary, outcome, index) => {
+    if (included.has(index)) {
+      summary.drinks += outcome.drinks;
+      summary.gives += outcome.gives;
+      summary.shots += outcome.shots;
+    }
+    return summary;
+  }, { total: outcomes.length, drinks: 0, gives: 0, shots: 0 });
   renderSummary();
 }
 
 function logSummary(state) {
   if (sessionSummary.total < 1) return;
-  addHistoryEntry(state, `Plinko summary: ${sessionSummary.total} drops, Drink ${sessionSummary.drinks}, Give ${sessionSummary.gives}, Give a shot ${sessionSummary.shots}`);
+  const card = activeCardRule?.name ? ` [${activeCardRule.name}]` : '';
+  const targetSelect = refs().cardRule?.querySelector('[data-plinko-target-select]');
+  const targetName = targetSelect?.selectedOptions?.[0]?.textContent || '';
+  const target = targetName
+    ? activeCardRule?.mode === 'shared' ? `, shared with ${targetName}` : `, performed by ${targetName}`
+    : '';
+  addHistoryEntry(state, `${sessionPlayerName} played Plinko${card}${target}: ${sessionSummary.total} drops, Drink ${sessionSummary.drinks}, Give ${sessionSummary.gives}, Give a shot ${sessionSummary.shots}`);
+}
+
+function renderOutcomes() {
+  const { outcomes: container } = refs();
+  if (!container) return;
+  container.replaceChildren();
+  const included = includedOutcomeIndexes();
+  outcomes.forEach((outcome, index) => {
+    const chip = document.createElement(activeCardRule?.mode === 'choose-one' ? 'button' : 'span');
+    chip.className = 'plinko-outcome';
+    chip.textContent = `${index + 1}. ${outcome.label}`;
+    chip.classList.toggle('is-counted', included.has(index));
+    if (chip instanceof HTMLButtonElement) {
+      chip.type = 'button';
+      chip.addEventListener('click', () => {
+        selectedOutcomeIndex = index;
+        recomputeSummary();
+        renderOutcomes();
+      });
+    }
+    container.appendChild(chip);
+  });
+}
+
+function renderCardRule() {
+  const { cardRule, drop } = refs();
+  if (!cardRule) return;
+  cardRule.hidden = !activeCardRule;
+  if (activeCardRule) {
+    const name = cardRule.querySelector('[data-plinko-card-name]');
+    const instruction = cardRule.querySelector('[data-plinko-card-instruction]');
+    if (name) name.textContent = activeCardRule.name;
+    if (instruction) instruction.textContent = activeCardRule.instruction;
+  }
+  const targetField = cardRule.querySelector('[data-plinko-target]');
+  const targetSelect = cardRule.querySelector('[data-plinko-target-select]');
+  const needsTarget = activeCardRule?.mode === 'target' || activeCardRule?.mode === 'shared';
+  if (targetField) targetField.hidden = !needsTarget;
+  if (targetSelect) {
+    targetSelect.replaceChildren();
+    (activeCardRule?.players || [])
+      .filter((player) => player.index !== activeCardRule?.playerIndex)
+      .forEach((player) => {
+        const option = document.createElement('option');
+        option.value = String(player.index);
+        option.textContent = player.name;
+        targetSelect.appendChild(option);
+      });
+  }
+  if (drop) drop.textContent = activeCardRule?.mode === 'ball-storm' ? 'Drop all' : 'Drop';
+}
+
+function dropLimit() {
+  if (!activeCardRule) return Infinity;
+  if (activeCardRule.mode === 'ball-storm') return Math.max(1, Number(activeCardRule.playerCount) || 1);
+  return Number.isFinite(activeCardRule.dropLimit) ? activeCardRule.dropLimit : Infinity;
+}
+
+function syncDropButton() {
+  const { drop } = refs();
+  if (drop) drop.disabled = dropsStarted >= dropLimit();
 }
 
 function createRuntime(state) {
@@ -243,18 +348,23 @@ function destroyRuntime() {
 
 function dropBall() {
   const { result } = refs();
-  if (!runtime) return;
-  const startX = WIDTH / 2 + (Math.random() * 8 - 4);
-  const ball = Bodies.circle(startX, 45, BALL_RADIUS, {
-    restitution: 0.45,
-    friction: 0.001,
-    frictionAir: 0.0015,
-    density: 0.004,
-    label: BALL_LABEL,
-    render: { fillStyle: '#ff4fd8', strokeStyle: '#ffffff', lineWidth: 2 }
-  });
-  activeBalls.add(ball);
-  Composite.add(runtime.engine.world, ball);
+  if (!runtime || dropsStarted >= dropLimit()) return;
+  const batchSize = activeCardRule?.mode === 'ball-storm' ? dropLimit() - dropsStarted : 1;
+  for (let batchIndex = 0; batchIndex < batchSize; batchIndex += 1) {
+    const startX = WIDTH / 2 + (Math.random() * 8 - 4);
+    const ball = Bodies.circle(startX, 45 - batchIndex * (BALL_RADIUS * 2 + 3), BALL_RADIUS, {
+      restitution: 0.45,
+      friction: 0.001,
+      frictionAir: 0.0015,
+      density: 0.004,
+      label: BALL_LABEL,
+      render: { fillStyle: '#ff4fd8', strokeStyle: '#ffffff', lineWidth: 2 }
+    });
+    activeBalls.add(ball);
+    Composite.add(runtime.engine.world, ball);
+    dropsStarted += 1;
+  }
+  syncDropButton();
   if (result) result.textContent = `${activeBalls.size} ball${activeBalls.size === 1 ? '' : 's'} falling...`;
 }
 
@@ -266,9 +376,16 @@ function openModal(state) {
   modal.setAttribute('aria-hidden', 'false');
   toggle.setAttribute('aria-expanded', 'true');
   lockModalScroll();
+  activeCardRule = pendingCardRule;
+  pendingCardRule = null;
+  sessionPlayerName = activeCardRule?.playerName
+    || state.players?.[state.currentPlayerIndex]?.name
+    || 'Someone';
   if (drop) drop.disabled = false;
   if (result) result.textContent = 'Ready';
   resetSummary();
+  renderCardRule();
+  syncDropButton();
   createRuntime(state);
   panel?.focus?.();
 }
@@ -284,6 +401,7 @@ function closeModal(state, restoreFocus = true) {
   unlockModalScroll();
   if (restoreFocus) (returnFocusEl || toggle)?.focus?.();
   returnFocusEl = null;
+  activeCardRule = null;
 }
 
 export async function initPlinkoModal({ state } = {}) {
@@ -299,6 +417,9 @@ export async function initPlinkoModal({ state } = {}) {
   });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal(state, true);
+  });
+  window.addEventListener('plinko-card-activated', (event) => {
+    pendingCardRule = event.detail && typeof event.detail === 'object' ? { ...event.detail } : null;
   });
   initialized = true;
 }

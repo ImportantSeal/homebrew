@@ -14,6 +14,8 @@ function toolHintForCard(...parts) {
 
   if (/\b(coin|heads|tails)\b/.test(text)) return 'Open Tools \u2192 Coin Flip.';
   if (/\b(wheel|spin|spinning)\b/.test(text)) return 'Open Tools \u2192 Spin Wheel.';
+  if (/\bplinko\b/.test(text) && /\bd8\b/.test(text)) return 'Open Tools \u2192 Dice, then Tools \u2192 Plinko.';
+  if (/\bplinko\b/.test(text)) return 'Open Tools \u2192 Plinko.';
   if (/\b(roll|re-roll|d6|d20)\b|\b1\s*[-\u2013]\s*10\b/.test(text)) return 'Open Tools \u2192 Dice.';
   if (/\bstats?\b|drinks (taken|given)/.test(text)) return 'Open Tools \u2192 Stats.';
   if (/\b\d+\s*[- ]?seconds?\b|\b(stopwatch|timer|times you)\b/.test(text)) return 'Open Tools \u2192 Timer.';
@@ -127,6 +129,20 @@ export function createObjectCardFlow({
     const explicitLeaderboardTopic = event?.leaderboardTopic || event?.statsTopic || event?.statsLeaderboardTopic;
     const leaderboardTopic = explicitLeaderboardTopic || resolveStatsLeaderboardTopic(subName, subInstruction);
     const toolHint = toolHintForCard(subName, subInstruction);
+
+    if (event?.plinko && typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('plinko-card-activated', {
+        detail: {
+          name: subName || 'Plinko',
+          instruction: subInstruction,
+          playerName: state.players?.[cardDrawerIndex]?.name || 'Someone',
+          playerCount: state.players?.length || 1,
+          players: (state.players || []).map((player, index) => ({ index, name: player.name })),
+          playerIndex: cardDrawerIndex,
+          ...event.plinko
+        }
+      }));
+    }
 
     if (drawMessage) {
       if (leaderboardTopic) {
