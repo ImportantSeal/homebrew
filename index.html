@@ -569,6 +569,15 @@
       </div>
 
       <div class="modal__body plinko-tool">
+        <section id="plinko-card-rule" class="plinko-card-rule" hidden>
+          <span>Active card</span>
+          <strong data-plinko-card-name>Plinko</strong>
+          <p data-plinko-card-instruction></p>
+          <label class="plinko-target" data-plinko-target hidden>
+            <span>Chosen player</span>
+            <select data-plinko-target-select aria-label="Choose player for Plinko result"></select>
+          </label>
+        </section>
         <div id="plinko-board" class="plinko-board" role="img" aria-label="Plinko board with thirteen reward slots"></div>
         <div class="plinko-actions">
           <button id="plinko-drop" class="plinko-drop" type="button">Drop</button>
@@ -580,6 +589,7 @@
           <span>Give <strong data-plinko-gives>0</strong></span>
           <span>Give a shot <strong data-plinko-shots>0</strong></span>
         </div>
+        <div id="plinko-outcomes" class="plinko-outcomes" aria-label="Plinko ball results"></div>
       </div>
     </div>
   </div>
