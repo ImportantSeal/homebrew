@@ -146,13 +146,13 @@ function drawSlotLabels(event) {
   context.save();
   context.textAlign = 'center';
   context.textBaseline = 'middle';
-  context.font = '700 10px Montserrat, sans-serif';
+  context.font = '800 13px Montserrat, sans-serif';
   PLINKO_SLOTS.forEach((slot, index) => {
     const x = BOARD_LEFT + (index + 0.5) * SLOT_WIDTH;
     context.fillStyle = index === 6 ? '#ffe09a' : '#edf4ff';
     const lines = slot.label.split(/\s+/);
-    const lineHeight = 14;
-    const startY = SLOT_TOP + 18;
+    const lineHeight = 17;
+    const startY = SLOT_TOP + 17;
     lines.forEach((line, lineIndex) => {
       context.fillText(line, x, startY + lineIndex * lineHeight, SLOT_WIDTH - 8);
     });
