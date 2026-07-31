@@ -579,17 +579,19 @@
           </label>
         </section>
         <div id="plinko-board" class="plinko-board" role="img" aria-label="Plinko board with thirteen reward slots"></div>
-        <div class="plinko-actions">
-          <button id="plinko-drop" class="plinko-drop" type="button">Drop</button>
-          <div id="plinko-result" class="plinko-result" role="status" aria-live="polite">Ready</div>
+        <div class="plinko-controls">
+          <div class="plinko-actions">
+            <button id="plinko-drop" class="plinko-drop" type="button">Drop</button>
+            <div id="plinko-result" class="plinko-result" role="status" aria-live="polite">Ready</div>
+          </div>
+          <div id="plinko-summary" class="plinko-summary" aria-live="polite">
+            <span>Drops <strong data-plinko-total>0</strong></span>
+            <span>Drink <strong data-plinko-drinks>0</strong></span>
+            <span>Give <strong data-plinko-gives>0</strong></span>
+            <span>Give a shot <strong data-plinko-shots>0</strong></span>
+          </div>
+          <div id="plinko-outcomes" class="plinko-outcomes" aria-label="Plinko ball results"></div>
         </div>
-        <div id="plinko-summary" class="plinko-summary" aria-live="polite">
-          <span>Drops <strong data-plinko-total>0</strong></span>
-          <span>Drink <strong data-plinko-drinks>0</strong></span>
-          <span>Give <strong data-plinko-gives>0</strong></span>
-          <span>Give a shot <strong data-plinko-shots>0</strong></span>
-        </div>
-        <div id="plinko-outcomes" class="plinko-outcomes" aria-label="Plinko ball results"></div>
       </div>
     </div>
   </div>
