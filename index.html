@@ -238,6 +238,19 @@
             </button>
 
             <button
+              id="plinko-toggle"
+              class="settings-tool-button"
+              type="button"
+              aria-haspopup="dialog"
+              aria-controls="plinko-modal"
+              aria-expanded="false"
+              data-settings-tool
+            >
+              <span class="settings-tool-button__icon" aria-hidden="true">&#8759;</span>
+              <span class="settings-tool-button__label">Plinko</span>
+            </button>
+
+            <button
               id="stats-toggle"
               class="settings-tool-button"
               type="button"
@@ -537,6 +550,35 @@
         <div class="timer-actions">
           <button id="timer-start" class="timer-action-button timer-action-button--primary" type="button">Start</button>
           <button id="timer-reset" class="timer-action-button" type="button">Reset</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plinko Modal -->
+  <div id="plinko-modal" class="modal modal--plinko" aria-hidden="true" role="dialog" aria-modal="true">
+    <div class="modal__backdrop" data-close-plinko></div>
+
+    <div class="modal__panel" role="document" tabindex="-1">
+      <div class="modal__header">
+        <h2>Plinko</h2>
+        <div class="modal__header-actions">
+          <button class="modal__back" type="button" data-back-menu aria-label="Back to tools" title="Back to tools">&#x232B;</button>
+          <button class="modal__close" type="button" data-close-plinko aria-label="Close Plinko">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal__body plinko-tool">
+        <div id="plinko-board" class="plinko-board" role="img" aria-label="Plinko board with thirteen reward slots"></div>
+        <div class="plinko-actions">
+          <button id="plinko-drop" class="plinko-drop" type="button">Drop</button>
+          <div id="plinko-result" class="plinko-result" role="status" aria-live="polite">Ready</div>
+        </div>
+        <div id="plinko-summary" class="plinko-summary" aria-live="polite">
+          <span>Drops <strong data-plinko-total>0</strong></span>
+          <span>Drink <strong data-plinko-drinks>0</strong></span>
+          <span>Give <strong data-plinko-gives>0</strong></span>
+          <span>Give a shot <strong data-plinko-shots>0</strong></span>
         </div>
       </div>
     </div>

@@ -10,6 +10,7 @@ import { initStatsModal } from './ui/statsModal.js';
 import { initSpinWheelModal } from './ui/spinWheelModal.js';
 import { initTimerModal } from './ui/timerModal.js';
 import { initCoinFlipModal } from './ui/coinFlipModal.js';
+import { initPlinkoModal } from './ui/plinkoModal.js';
 import { initReducedEffects } from './ui/effectsProfile.js';
 import { initCommitBanner } from './ui/commitBanner.js';
 
@@ -27,5 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initSpinWheelModal({ state });
   initTimerModal();
   initCoinFlipModal({ state });
+  initPlinkoModal({ state });
   initCommitBanner();
 });
