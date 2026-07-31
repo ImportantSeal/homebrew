@@ -367,7 +367,8 @@
   .modal--stats .modal__panel,
   .modal--coin-flip .modal__panel,
   .modal--spin-wheel .modal__panel,
-  .modal--timer .modal__panel {
+  .modal--timer .modal__panel,
+  .modal--plinko .modal__panel {
     width: calc(100vw - 1rem);
     margin-top: 0.4rem;
   }
@@ -544,7 +545,8 @@
   .modal--stats .modal__panel,
   .modal--coin-flip .modal__panel,
   .modal--spin-wheel .modal__panel,
-  .modal--timer .modal__panel {
+  .modal--timer .modal__panel,
+  .modal--plinko .modal__panel {
     width: calc(100vw - 0.6rem);
   }
 

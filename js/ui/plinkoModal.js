@@ -1,0 +1,275 @@
+import Matter from 'matter-js';
+import { addHistoryEntry } from '../cardHistory.js';
+import { bindTap } from '../utils/tap.js';
+import { lockModalScroll, unlockModalScroll } from './modalScrollLock.js';
+import { openGameMenu } from './settingsMenu.js';
+
+const { Bodies, Composite, Engine, Events, Render, Runner } = Matter;
+
+export const PLINKO_SLOTS = [
+  { id: 'give-shot-left', label: 'Give a shot' },
+  { id: 'give-5-drink-1-left', label: 'Give 5 and drink 1' },
+  { id: 'give-4-drink-1-left', label: 'Give 4 and drink 1' },
+  { id: 'give-3-drink-1-left', label: 'Give 3 and drink 1' },
+  { id: 'give-2-drink-1-left', label: 'Give 2 and drink 1' },
+  { id: 'give-1-drink-1-left', label: 'Give 1 and drink 1' },
+  { id: 'drink-2', label: 'Drink 2' },
+  { id: 'give-1-drink-1-right', label: 'Give 1 and drink 1' },
+  { id: 'give-2-drink-1-right', label: 'Give 2 and drink 1' },
+  { id: 'give-3-drink-1-right', label: 'Give 3 and drink 1' },
+  { id: 'give-4-drink-1-right', label: 'Give 4 and drink 1' },
+  { id: 'give-5-drink-1-right', label: 'Give 5 and drink 1' },
+  { id: 'give-shot-right', label: 'Give a shot' }
+];
+
+const WIDTH = 780;
+const HEIGHT = 650;
+const SLOT_WIDTH = 60;
+const BOARD_LEFT = (WIDTH - SLOT_WIDTH * PLINKO_SLOTS.length) / 2;
+const SLOT_TOP = 455;
+const FLOOR_Y = 640;
+const BALL_RADIUS = 10;
+const PEG_RADIUS = 6;
+const ROW_COUNT = 12;
+const ROW_GAP = 30;
+const PEG_GAP = 58;
+const BALL_LABEL = 'plinko-ball';
+const RESULT_DELAY_MS = 450;
+
+let initialized = false;
+let runtime = null;
+let activeBall = null;
+let resultLocked = false;
+let resultTimer = null;
+let returnFocusEl = null;
+
+function refs() {
+  const modal = document.getElementById('plinko-modal');
+  return {
+    toggle: document.getElementById('plinko-toggle'),
+    modal,
+    panel: modal?.querySelector('.modal__panel') || null,
+    back: modal?.querySelector('[data-back-menu]') || null,
+    board: document.getElementById('plinko-board'),
+    drop: document.getElementById('plinko-drop'),
+    result: document.getElementById('plinko-result')
+  };
+}
+
+function createBoard(engine) {
+  const bodies = [];
+  const staticStyle = { fillStyle: '#b8f7ee', strokeStyle: '#ffffff', lineWidth: 1 };
+  const wallStyle = { fillStyle: '#34415d', strokeStyle: '#8191b3', lineWidth: 1 };
+  const pegOptions = { isStatic: true, restitution: 0.55, friction: 0, render: staticStyle };
+
+  bodies.push(
+    Bodies.rectangle(BOARD_LEFT - 8, HEIGHT / 2, 16, HEIGHT, { isStatic: true, render: wallStyle }),
+    Bodies.rectangle(WIDTH - BOARD_LEFT + 8, HEIGHT / 2, 16, HEIGHT, { isStatic: true, render: wallStyle }),
+    Bodies.rectangle(WIDTH / 2, FLOOR_Y + 8, SLOT_WIDTH * PLINKO_SLOTS.length + 16, 16, { isStatic: true, restitution: 0, render: wallStyle })
+  );
+
+  for (let row = 0; row < ROW_COUNT; row += 1) {
+    const count = row % 2 === 0 ? 13 : 12;
+    const startX = WIDTH / 2 - ((count - 1) * PEG_GAP) / 2;
+    const y = 82 + row * ROW_GAP;
+    for (let column = 0; column < count; column += 1) {
+      bodies.push(Bodies.circle(startX + column * PEG_GAP, y, PEG_RADIUS, pegOptions));
+    }
+  }
+
+  for (let index = 0; index <= PLINKO_SLOTS.length; index += 1) {
+    const x = BOARD_LEFT + index * SLOT_WIDTH;
+    bodies.push(Bodies.rectangle(x, (SLOT_TOP + FLOOR_Y) / 2, 5, FLOOR_Y - SLOT_TOP, {
+      isStatic: true,
+      restitution: 0.05,
+      friction: 0.1,
+      render: wallStyle
+    }));
+  }
+
+  PLINKO_SLOTS.forEach((slot, index) => {
+    const sensor = Bodies.rectangle(BOARD_LEFT + (index + 0.5) * SLOT_WIDTH, FLOOR_Y - 18, SLOT_WIDTH - 7, 22, {
+      isStatic: true,
+      isSensor: true,
+      label: `plinko-slot-${slot.id}`,
+      render: { visible: false }
+    });
+    sensor.plugin.plinkoSlotIndex = index;
+    sensor.plugin.plinkoSlotId = slot.id;
+    bodies.push(sensor);
+  });
+
+  Composite.add(engine.world, bodies);
+}
+
+function drawSlotLabels(event) {
+  const context = event.source.context;
+  context.save();
+  context.textAlign = 'center';
+  context.textBaseline = 'middle';
+  context.font = '700 10px Montserrat, sans-serif';
+  PLINKO_SLOTS.forEach((slot, index) => {
+    const x = BOARD_LEFT + (index + 0.5) * SLOT_WIDTH;
+    context.fillStyle = index === 6 ? '#ffe09a' : '#edf4ff';
+    const lines = slot.label.replace(' and ', ' / ').split(/\s+/);
+    const lineHeight = 14;
+    const startY = SLOT_TOP + 18;
+    lines.forEach((line, lineIndex) => {
+      context.fillText(line, x, startY + lineIndex * lineHeight, SLOT_WIDTH - 8);
+    });
+  });
+  context.restore();
+}
+
+function resolveCollision(event, state) {
+  if (!activeBall || resultLocked) return;
+  for (const pair of event.pairs) {
+    const other = pair.bodyA === activeBall ? pair.bodyB : pair.bodyB === activeBall ? pair.bodyA : null;
+    const index = other?.plugin?.plinkoSlotIndex;
+    if (!Number.isInteger(index)) continue;
+
+    const reward = PLINKO_SLOTS[index];
+    resultLocked = true;
+    activeBall.isSleeping = true;
+    if (refs().result) refs().result.textContent = reward.label;
+    addHistoryEntry(state, `Plinko: ${reward.label}`);
+    resultTimer = window.setTimeout(() => {
+      if (runtime && activeBall) Composite.remove(runtime.engine.world, activeBall);
+      activeBall = null;
+      resultTimer = null;
+      const { drop } = refs();
+      if (drop) drop.disabled = false;
+    }, RESULT_DELAY_MS);
+    break;
+  }
+}
+
+function createRuntime(state) {
+  const { board } = refs();
+  if (!board || runtime) return;
+  const engine = Engine.create({ gravity: { x: 0, y: 1, scale: 0.001 } });
+  createBoard(engine);
+  const render = Render.create({
+    element: board,
+    engine,
+    options: { width: WIDTH, height: HEIGHT, wireframes: false, background: 'transparent', pixelRatio: Math.min(window.devicePixelRatio || 1, 2) }
+  });
+  const runner = Runner.create();
+  const collisionHandler = (event) => resolveCollision(event, state);
+  Events.on(engine, 'collisionStart', collisionHandler);
+  Events.on(render, 'afterRender', drawSlotLabels);
+  Render.run(render);
+  Runner.run(runner, engine);
+  runtime = { engine, render, runner, collisionHandler };
+}
+
+function destroyRuntime() {
+  if (resultTimer !== null) window.clearTimeout(resultTimer);
+  resultTimer = null;
+  if (runtime) {
+    Events.off(runtime.engine, 'collisionStart', runtime.collisionHandler);
+    Events.off(runtime.render, 'afterRender', drawSlotLabels);
+    Runner.stop(runtime.runner);
+    Render.stop(runtime.render);
+    Composite.clear(runtime.engine.world, false, true);
+    Engine.clear(runtime.engine);
+    runtime.render.canvas.remove();
+    runtime.render.textures = {};
+  }
+  runtime = null;
+  activeBall = null;
+  resultLocked = false;
+}
+
+function dropBall() {
+  const { drop, result } = refs();
+  if (!runtime || activeBall) return;
+  resultLocked = false;
+  const startX = WIDTH / 2 + (Math.random() * 8 - 4);
+  activeBall = Bodies.circle(startX, 45, BALL_RADIUS, {
+    restitution: 0.45,
+    friction: 0.001,
+    frictionAir: 0.0015,
+    density: 0.004,
+    label: BALL_LABEL,
+    render: { fillStyle: '#ff4fd8', strokeStyle: '#ffffff', lineWidth: 2 }
+  });
+  Composite.add(runtime.engine.world, activeBall);
+  if (drop) drop.disabled = true;
+  if (result) result.textContent = 'Dropping...';
+}
+
+function openModal(state) {
+  const { modal, panel, toggle, drop, result } = refs();
+  if (!modal || !toggle || modal.classList.contains('is-open')) return;
+  returnFocusEl = document.activeElement instanceof HTMLElement ? document.activeElement : toggle;
+  modal.classList.add('is-open');
+  modal.setAttribute('aria-hidden', 'false');
+  toggle.setAttribute('aria-expanded', 'true');
+  lockModalScroll();
+  if (drop) drop.disabled = false;
+  if (result) result.textContent = 'Ready';
+  createRuntime(state);
+  panel?.focus?.();
+}
+
+function closeModal(restoreFocus = true) {
+  const { modal, toggle } = refs();
+  if (!modal?.classList.contains('is-open')) return;
+  destroyRuntime();
+  modal.classList.remove('is-open');
+  modal.setAttribute('aria-hidden', 'true');
+  toggle?.setAttribute('aria-expanded', 'false');
+  unlockModalScroll();
+  if (restoreFocus) (returnFocusEl || toggle)?.focus?.();
+  returnFocusEl = null;
+}
+
+export function initPlinkoModal({ state } = {}) {
+  if (initialized || !state) return;
+  const { modal, toggle, back, drop } = refs();
+  if (!modal || !toggle) return;
+  bindTap(toggle, () => openModal(state));
+  bindTap(back, () => { closeModal(false); openGameMenu(); });
+  bindTap(drop, dropBall);
+  modal.addEventListener('click', (event) => {
+    if (event.target?.closest?.('[data-close-plinko]')) closeModal(true);
+  });
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal(true);
+  });
+  initialized = true;
+}
+
+// Development-only, headless physical simulation. It deliberately uses the same
+// board, start position, ball properties and collision sensors as the live game.
+export async function simulatePlinkoDrops(dropCount = 1000) {
+  if (!Number.isInteger(dropCount) || dropCount < 1) throw new RangeError('dropCount must be a positive integer');
+  const counts = Array(PLINKO_SLOTS.length).fill(0);
+  for (let drop = 0; drop < dropCount; drop += 1) {
+    const engine = Engine.create();
+    createBoard(engine);
+    const ball = Bodies.circle(WIDTH / 2 + (Math.random() * 8 - 4), 45, BALL_RADIUS, {
+      restitution: 0.45, friction: 0.001, frictionAir: 0.0015, density: 0.004, label: BALL_LABEL
+    });
+    Composite.add(engine.world, ball);
+    let landed = -1;
+    const onCollision = (event) => {
+      event.pairs.forEach((pair) => {
+        const other = pair.bodyA === ball ? pair.bodyB : pair.bodyB === ball ? pair.bodyA : null;
+        if (Number.isInteger(other?.plugin?.plinkoSlotIndex)) landed = other.plugin.plinkoSlotIndex;
+      });
+    };
+    Events.on(engine, 'collisionStart', onCollision);
+    for (let step = 0; step < 1200 && landed < 0; step += 1) Engine.update(engine, 1000 / 60);
+    Events.off(engine, 'collisionStart', onCollision);
+    if (landed >= 0) counts[landed] += 1;
+    Engine.clear(engine);
+    if (drop % 50 === 49) await new Promise((resolve) => globalThis.setTimeout(resolve, 0));
+  }
+  return Object.fromEntries(PLINKO_SLOTS.map((slot, index) => [slot.id, counts[index]]));
+}
+
+if (import.meta.env?.DEV && typeof window !== 'undefined') {
+  window.simulatePlinkoDrops = simulatePlinkoDrops;
+}
