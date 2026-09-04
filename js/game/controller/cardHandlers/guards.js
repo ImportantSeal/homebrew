@@ -22,6 +22,13 @@ export function isGroupPenaltyPending(state) {
   return isGroupPenaltyPendingFlow(state);
 }
 
+export function guardPendingPlinko(state, log) {
+  if (!state?.plinkoPending) return false;
+
+  log("Complete the card's Plinko action first.");
+  return true;
+}
+
 export function guardPendingPenaltyRoll(state, log) {
   const cardPending = isCardPenaltyPending(state);
   const groupPending = isGroupPenaltyPendingFlow(state);

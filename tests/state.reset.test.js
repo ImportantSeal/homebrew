@@ -47,6 +47,7 @@ test('resetStateForNewGame recreates fresh runtime state for a new game', () => 
   state.effects = [{ id: 'eff_1', type: 'TEST', remainingTurns: 3 }];
   state.effectSelection = { active: true, pending: { type: 'TEST' }, cleanup: () => {} };
   state.choiceSelection = { active: true, pending: { id: 'choice' } };
+  state.plinkoPending = { playerIndex: 1, cardName: 'Stale Plinko' };
   state.currentCards = ['card'];
   state.revealed = [false, true, false];
   state.hiddenIndex = 2;
@@ -89,6 +90,7 @@ test('resetStateForNewGame recreates fresh runtime state for a new game', () => 
   assert.deepEqual(state.effects, []);
   assert.deepEqual(state.effectSelection, { active: false, pending: null, cleanup: null, ui: null });
   assert.deepEqual(state.choiceSelection, { active: false, pending: null });
+  assert.equal(state.plinkoPending, null);
   assert.deepEqual(state.currentCards, []);
   assert.deepEqual(state.revealed, [true, true, true]);
   assert.equal(state.hiddenIndex, null);

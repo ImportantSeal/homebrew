@@ -63,8 +63,8 @@ export const gameData = {
         { name: "5-Second Flex", instruction: "Name 3 things in a category in 5 seconds. Fail = drink 2." },
         { name: "Reverse Compliment", instruction: "Compliment the player on your left. If they laugh or smile, they drink 1. If they keep a straight face, you drink 1." },
         { name: "One Breath Story", instruction: "Tell a short story in one breath. If you pause for air, drink 2." },
-        { name: "Instant Nickname", instruction: "Give one player a nickname for this round. If the group votes it weak, you drink 1." },
-        { name: "Two-Line Pitch", instruction: "Pitch yourself in exactly two sentences. If anyone says 'meh', drink 1." },
+        { name: "Instant Nickname", instruction: "Give one player a nickname. If the group votes it weak, you drink 2." },
+        { name: "Two-Line Pitch", instruction: "Pitch yourself in exactly two sentences. If anyone says 'meh', drink 2." },
         {
           name: "Drinks Taken Guess",
           instruction: "Guess your own Drinks taken from Stats. Exact guess gives 3. Wrong guess drinks 2.",

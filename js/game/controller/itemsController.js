@@ -7,6 +7,7 @@ import {
   isChoiceSelectionActive,
   isEffectSelectionActive
 } from '../../logic/flowMachine.js';
+import { guardPendingPlinko } from './cardHandlers/guards.js';
 
 function revealHiddenCard(state, index) {
   const cards = getCardElements();
@@ -28,6 +29,9 @@ export function createItemsController({
     if (!state.includeItems) return;
 
     renderItemsBoard(state, (playerIndex, itemIndex, itemName) => {
+      const isImmunity = String(itemName || '').trim() === 'Immunity';
+      if (!isImmunity && guardPendingPlinko(state, log)) return;
+
       if (isChoiceSelectionActive(state)) {
         log("Resolve the current card choice first.");
         return;
@@ -38,7 +42,6 @@ export function createItemsController({
         return;
       }
 
-      const isImmunity = String(itemName || '').trim() === 'Immunity';
       const isCurrentPlayersItem = playerIndex === state.currentPlayerIndex;
 
       if (!isCurrentPlayersItem && !isImmunity) {

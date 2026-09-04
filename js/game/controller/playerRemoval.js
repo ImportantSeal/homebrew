@@ -9,6 +9,7 @@ import {
   isEffectSelectionActive,
   isGroupPenaltyPending
 } from '../../logic/flowMachine.js';
+import { guardPendingPlinko } from './cardHandlers/guards.js';
 
 function remapPlayerIndexAfterRemoval(index, removedIndex) {
   if (!Number.isInteger(index)) return index;
@@ -169,6 +170,8 @@ export function createPlayerRemovalController({
     if (event?.preventDefault) event.preventDefault();
     if (event?.stopPropagation) event.stopPropagation();
     if (event?.stopImmediatePropagation) event.stopImmediatePropagation();
+
+    if (guardPendingPlinko(state, log)) return;
 
     if (isChoiceSelectionActive(state)) {
       log("Resolve the current card choice before removing a player.");

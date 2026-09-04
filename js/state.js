@@ -83,6 +83,9 @@ export function createInitialState() {
     // when a card action needs a forced option pick
     choiceSelection: createChoiceSelectionState(),
 
+    // card-bound Plinko keeps the current turn active until its session completes
+    plinkoPending: null,
+
     // static game data
     ...gameData,
 

@@ -111,6 +111,7 @@ export function createCardHandlers({
     currentPlayer,
     playerName,
     nextPlayer,
+    unlockUI,
     renderEffectsPanel,
     resetCards,
     openActionScreen,
@@ -282,7 +283,9 @@ export function createCardHandlers({
           nextPlayer();
         }
 
-        unlockUI();
+        if (!state.plinkoPending) {
+          unlockUI();
+        }
         renderEffectsPanel();
         return;
       }

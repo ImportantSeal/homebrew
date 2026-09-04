@@ -284,6 +284,24 @@ function syncDropButton() {
   if (drop) drop.disabled = dropsStarted >= dropLimit();
 }
 
+function requiredDropsForCompletion() {
+  if (!activeCardRule) return 0;
+  if (activeCardRule.mode === 'd8') return 1;
+  if (activeCardRule.mode === 'double-or-nothing') return dropsStarted === 2 ? 3 : 1;
+  if (activeCardRule.mode === 'ball-storm') {
+    return Math.max(1, Number(activeCardRule.playerCount) || 1);
+  }
+
+  const configuredLimit = Number(activeCardRule.dropLimit);
+  return Number.isFinite(configuredLimit) ? Math.max(1, Math.floor(configuredLimit)) : 1;
+}
+
+function isCardSessionComplete() {
+  if (!activeCardRule) return true;
+  const requiredDrops = requiredDropsForCompletion();
+  return dropsStarted >= requiredDrops && outcomes.length === dropsStarted;
+}
+
 function createRuntime(state) {
   const { board } = refs();
   if (!board || runtime) return;
@@ -346,6 +364,9 @@ function dropBall() {
 function openModal(state) {
   const { modal, panel, toggle, drop, result } = refs();
   if (!modal || !toggle || modal.classList.contains('is-open')) return;
+  if (pendingCardRule?.flowToken && state.plinkoPending !== pendingCardRule.flowToken) {
+    pendingCardRule = null;
+  }
   returnFocusEl = document.activeElement instanceof HTMLElement ? document.activeElement : toggle;
   modal.classList.add('is-open');
   modal.setAttribute('aria-hidden', 'false');
@@ -367,8 +388,19 @@ function openModal(state) {
 
 function closeModal(state, restoreFocus = true) {
   const { modal, toggle } = refs();
-  if (!modal?.classList.contains('is-open')) return;
-  logSummary(state);
+  if (!modal?.classList.contains('is-open')) return false;
+
+  const completedCardSession = isCardSessionComplete();
+  const completionHandler = completedCardSession && typeof activeCardRule?.onComplete === 'function'
+    ? activeCardRule.onComplete
+    : null;
+
+  if (activeCardRule && !completedCardSession) {
+    pendingCardRule = activeCardRule;
+  } else {
+    logSummary(state);
+  }
+
   destroyRuntime();
   modal.classList.remove('is-open');
   modal.setAttribute('aria-hidden', 'true');
@@ -377,15 +409,33 @@ function closeModal(state, restoreFocus = true) {
   if (restoreFocus) (returnFocusEl || toggle)?.focus?.();
   returnFocusEl = null;
   activeCardRule = null;
+  completionHandler?.();
+  return true;
 }
 
 export async function initPlinkoModal({ state } = {}) {
   if (initialized || !state) return;
-  assignMatter(await loadMatter());
   const { modal, toggle, back, drop } = refs();
   if (!modal || !toggle) return;
+
+  const onPlinkoCardActivated = (event) => {
+    pendingCardRule = event.detail && typeof event.detail === 'object' ? { ...event.detail } : null;
+  };
+  window.addEventListener('plinko-card-activated', onPlinkoCardActivated);
+  initialized = true;
+
+  try {
+    assignMatter(await loadMatter());
+  } catch (error) {
+    window.removeEventListener('plinko-card-activated', onPlinkoCardActivated);
+    initialized = false;
+    throw error;
+  }
+
   bindTap(toggle, () => openModal(state));
-  bindTap(back, () => { closeModal(state, false); openGameMenu(); });
+  bindTap(back, () => {
+    if (closeModal(state, false)) openGameMenu();
+  });
   bindTap(drop, dropBall);
   modal.addEventListener('click', (event) => {
     if (event.target?.closest?.('[data-close-plinko]')) closeModal(state, true);
@@ -393,10 +443,6 @@ export async function initPlinkoModal({ state } = {}) {
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape' && modal.classList.contains('is-open')) closeModal(state, true);
   });
-  window.addEventListener('plinko-card-activated', (event) => {
-    pendingCardRule = event.detail && typeof event.detail === 'object' ? { ...event.detail } : null;
-  });
-  initialized = true;
 }
 
 // Development-only, headless physical simulation. It deliberately uses the same

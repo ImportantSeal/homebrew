@@ -1,7 +1,8 @@
 import {
   isChoiceSelectionActive,
   clearSharePenaltyState,
-  isGroupPenaltyPending
+  isGroupPenaltyPending,
+  guardPendingPlinko
 } from './guards.js';
 import { isRedrawLockedPenaltyOpen } from '../helpers.js';
 import {
@@ -57,6 +58,8 @@ export function createPenaltyFlow({
   });
 
   function blockIfSelectionInProgress() {
+    if (guardPendingPlinko(state, log)) return true;
+
     if (isChoiceSelectionActive(state)) {
       log('Resolve the current card choice first.');
       return true;

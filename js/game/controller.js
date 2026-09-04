@@ -279,6 +279,14 @@ function getNextActionNotification(penaltyDraw = null) {
     };
   }
 
+  if (state.plinkoPending) {
+    return {
+      meta: 'Next action',
+      message: 'Complete the card\'s Plinko action to continue.',
+      variant: 'choice'
+    };
+  }
+
   if (isRedrawHoldPenaltyOpen(state)) {
     return {
       meta: 'Next action',

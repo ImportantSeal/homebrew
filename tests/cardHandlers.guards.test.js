@@ -6,6 +6,7 @@ import {
   clearChoiceSelection,
   clearSharePenaltyState,
   isGroupPenaltyPending,
+  guardPendingPlinko,
   guardPendingPenaltyRoll
 } from '../js/game/controller/cardHandlers/guards.js';
 
@@ -49,4 +50,16 @@ test('guardPendingPenaltyRoll logs hint for pending penalties', () => {
   const groupPending = guardPendingPenaltyRoll(groupState, (line) => groupLogs.push(String(line)));
   assert.equal(groupPending, true);
   assert.ok(groupLogs.some((line) => line.includes('Group penalty is active. Roll the Penalty Deck to continue.')));
+});
+
+test('guardPendingPlinko blocks other turn actions until Plinko completes', () => {
+  const logs = [];
+  const state = { plinkoPending: { playerIndex: 0, cardName: 'One Ball Wonder' } };
+
+  assert.equal(guardPendingPlinko(state, (line) => logs.push(String(line))), true);
+  assert.deepEqual(logs, ["Complete the card's Plinko action first."]);
+
+  state.plinkoPending = null;
+  assert.equal(guardPendingPlinko(state, (line) => logs.push(String(line))), false);
+  assert.equal(logs.length, 1);
 });

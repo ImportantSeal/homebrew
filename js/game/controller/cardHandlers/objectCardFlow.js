@@ -68,6 +68,7 @@ export function createObjectCardFlow({
   currentPlayer,
   playerName,
   nextPlayer,
+  unlockUI,
   renderEffectsPanel,
   resetCards,
   openActionScreen,
@@ -84,6 +85,7 @@ export function createObjectCardFlow({
 }) {
   function handleObjectCardDraw(cardEl, parentCard) {
     const cardDrawerIndex = state.currentPlayerIndex;
+    let waitsForPlinko = false;
     const draw = drawObjectSubcard(state, parentCard, (candidates) => {
       const bag = createBag(candidates);
       return bag?.next?.();
@@ -131,6 +133,13 @@ export function createObjectCardFlow({
     const toolHint = toolHintForCard(subName, subInstruction);
 
     if (event?.plinko && typeof window !== 'undefined') {
+      const pendingPlinko = {
+        playerIndex: cardDrawerIndex,
+        cardName: subName || 'Plinko'
+      };
+      state.plinkoPending = pendingPlinko;
+      waitsForPlinko = true;
+
       window.dispatchEvent(new CustomEvent('plinko-card-activated', {
         detail: {
           name: subName || 'Plinko',
@@ -139,7 +148,16 @@ export function createObjectCardFlow({
           playerCount: state.players?.length || 1,
           players: (state.players || []).map((player, index) => ({ index, name: player.name })),
           playerIndex: cardDrawerIndex,
-          ...event.plinko
+          ...event.plinko,
+          flowToken: pendingPlinko,
+          onComplete: () => {
+            if (state.plinkoPending !== pendingPlinko) return false;
+
+            state.plinkoPending = null;
+            unlockUI();
+            nextPlayer();
+            return true;
+          }
         }
       }));
     }
@@ -239,6 +257,10 @@ export function createObjectCardFlow({
     if (actionResult?.refreshCards) {
       resetCards();
       renderEffectsPanel();
+    }
+
+    if (waitsForPlinko) {
+      return false;
     }
 
     if (waitsForPenaltyDeckRoll) {
