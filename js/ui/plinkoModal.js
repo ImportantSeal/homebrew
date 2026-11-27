@@ -37,17 +37,17 @@ function assignMatter(matter) {
 
 export const PLINKO_SLOTS = [
   { id: 'give-shot-left', label: 'Give a shot', shots: 1 },
-  { id: 'give-4-drink-1-left', label: 'Give 4 and drink 1', give: 4, drink: 1 },
-  { id: 'give-3-drink-1-left', label: 'Give 3 and drink 1', give: 3, drink: 1 },
-  { id: 'give-2-drink-1-left', label: 'Give 2 and drink 1', give: 2, drink: 1 },
-  { id: 'give-1-drink-1-left', label: 'Give 1 and drink 1', give: 1, drink: 1 },
-  { id: 'drink-1-left', label: 'Drink 1', drink: 1 },
-  { id: 'drink-2', label: 'Drink 2', drink: 2 },
-  { id: 'drink-1-right', label: 'Drink 1', drink: 1 },
-  { id: 'give-1-drink-1-right', label: 'Give 1 and drink 1', give: 1, drink: 1 },
-  { id: 'give-2-drink-1-right', label: 'Give 2 and drink 1', give: 2, drink: 1 },
-  { id: 'give-3-drink-1-right', label: 'Give 3 and drink 1', give: 3, drink: 1 },
-  { id: 'give-4-drink-1-right', label: 'Give 4 and drink 1', give: 4, drink: 1 },
+  { id: 'drink-8-left', label: 'Drink 8', drink: 8 },
+  { id: 'give-4-left', label: 'Give 4', give: 4 },
+  { id: 'drink-6-left', label: 'Drink 6', drink: 6 },
+  { id: 'give-2-left', label: 'Give 2', give: 2 },
+  { id: 'drink-4-left', label: 'Drink 4', drink: 4 },
+  { id: 'drink-3', label: 'Drink 3', drink: 3 },
+  { id: 'drink-5-right', label: 'Drink 5', drink: 5 },
+  { id: 'give-3-right', label: 'Give 3', give: 3 },
+  { id: 'drink-7-right', label: 'Drink 7', drink: 7 },
+  { id: 'give-5-right', label: 'Give 5', give: 5 },
+  { id: 'drink-9-right', label: 'Drink 9', drink: 9 },
   { id: 'give-shot-right', label: 'Give a shot', shots: 1 }
 ];
 
