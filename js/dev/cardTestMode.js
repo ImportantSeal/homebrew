@@ -1,6 +1,12 @@
-import { testCard, testSubcard } from './testCard.js';
+import { testCard, testSubcard, testDrawTwist } from './testCard.js';
 
 const TEST_CARD_COUNT = 3;
+const DRAW_TWIST_VALUES = new Set(["savior", "ditto"]);
+
+export function getForcedDrawTwist(value = testDrawTwist) {
+  const normalized = String(value ?? "").trim().toLowerCase();
+  return DRAW_TWIST_VALUES.has(normalized) ? normalized : null;
+}
 const TEST_PARENT_ID = "__test_card_mode_parent__";
 const DEFAULT_CONFIG = Object.freeze({ testCard, testSubcard });
 
