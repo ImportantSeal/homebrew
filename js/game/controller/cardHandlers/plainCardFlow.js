@@ -6,6 +6,13 @@ import {
 } from '../helpers.js';
 import { recordGiveDrinks } from '../../../stats.js';
 import { resolveRng } from '../../../utils/rng.js';
+import {
+  DRAW_TWISTS,
+  describeSavedCard,
+  resolveDrawTwist,
+  rollsSavior
+} from '../../../logic/savior.js';
+import { getForcedDrawTwist } from '../../../dev/cardTestMode.js';
 
 export function createPlainCardFlow({
   state,
@@ -22,17 +29,69 @@ export function createPlainCardFlow({
   activateDitto,
   onDittoActivated,
   onDittoTriggered = null,
+  onSaviorTriggered = null,
   replaceCardSelectionKind,
   setBaseBackgroundScene,
   flashElement,
   syncBackgroundScene
 }) {
+  function rollTwist(activeRng, spec, options = {}) {
+    const roll = activeRng.nextFloat();
+    const forced = getForcedDrawTwist();
+    if (forced === DRAW_TWISTS.SAVIOR && rollsSavior(1, spec)) return DRAW_TWISTS.SAVIOR;
+    if (forced === DRAW_TWISTS.DITTO && options.allowDitto !== false) return DRAW_TWISTS.DITTO;
+    return resolveDrawTwist(roll, spec, options);
+  }
+
+  function openSaviorScreen(message) {
+    openActionScreen("Savior", message, { variant: "savior", closeLabel: "Amen" });
+  }
+
+  /**
+   * Savior on a Shot / Shotgun / Shot + Shotgun card.
+   * - self card: the drawing player does not drink.
+   * - everybody card: nobody drinks.
+   * The turn advances exactly once, same as the normal card.
+   */
+  function resolveSavior(cardEl, spec, value, triggerEvent) {
+    const p = currentPlayer();
+    const playerIndex = state.currentPlayerIndex;
+    const savedText = describeSavedCard(spec, value);
+    const everybody = spec.drink?.scope === "all";
+    const messageParts = [everybody
+      ? `An angel descends! Nobody has to take ${savedText}.`
+      : `An angel descends! ${p.name} is saved and does not have to take ${savedText}.`];
+
+    log(everybody
+      ? `Savior! Everybody is saved from ${savedText}.`
+      : `Savior! ${p.name} is saved from ${savedText}.`, { kind: "savior" });
+    flashElement(cardEl, undefined, undefined, triggerEvent);
+
+    if (typeof onSaviorTriggered === "function") {
+      onSaviorTriggered({ playerIndex: everybody ? null : playerIndex, everybody, cardData: value });
+    }
+
+    // Drink + Give: the blessing only cancels the drinking part.
+    if (spec.give) {
+      recordGiveDrinks(state, playerIndex, spec.give.amount);
+      log(`${p.name} gives ${spec.give.amount}.`);
+      messageParts.push(`${p.name} still gives ${spec.give.amount}.`);
+    }
+
+    openSaviorScreen(messageParts.join(" "));
+
+    nextPlayer();
+    unlockUI();
+    renderEffectsPanel();
+  }
+
   function handlePlainCard(cardEl, cardData, selectedKind, triggerEvent = null) {
     const p = currentPlayer();
     const value = getCardDisplayValue(cardData);
     const txt = String(value).trim();
     const spec = getPlainCardSpec(cardData);
     const requiresActionScreen = spec.requiresActionScreen;
+    const activeRng = resolveRng(rng ?? state?.rng);
 
     // Penalty card (must confirm via penalty deck click).
     if (spec.penaltyCall === "single") {
@@ -84,9 +143,15 @@ export function createPlainCardFlow({
       return;
     }
 
-    // Ditto activation chance.
-    const activeRng = resolveRng(rng ?? state?.rng);
-    if (activeRng.nextFloat() < 0.16) { //16% chance to activate Ditto on any plain card
+    // Savior (Shot / Shotgun / combo cards only) and Ditto (any plain card)
+    // are resolved from the same roll, so they can never both trigger.
+    const twist = rollTwist(activeRng, spec);
+    if (twist === DRAW_TWISTS.SAVIOR) {
+      resolveSavior(cardEl, spec, txt, triggerEvent);
+      return;
+    }
+
+    if (twist === DRAW_TWISTS.DITTO) {
       const idx = parseInt(cardEl.dataset.index || "0", 10);
       activateDitto(state, cardEl, idx, log, cardData);
       if (typeof onDittoTriggered === 'function') {

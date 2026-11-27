@@ -31,6 +31,7 @@ import { showCardActionModal } from '../ui/cardActionModal.js';
 import { setBaseBackgroundScene, syncBackgroundScene } from '../ui/backgroundScene.js';
 import { createDvdBouncer, isDvdBouncerAvailable } from '../ui/dvdBouncer.js';
 import { createUiSounds } from '../ui/sounds.js';
+import { playSaviorEffect } from '../ui/saviorEffect.js';
 
 import {
   showGameContainer,
@@ -496,7 +497,14 @@ const { onRedrawClick, onPenaltyRefreshClick, onPenaltyDeckClick, onCardClick } 
   resetCards,
   openActionScreen,
   onCardSelected: () => uiSounds.playSelect(),
-  onDittoTriggered: () => uiSounds.playDitto()
+  onDittoTriggered: () => uiSounds.playDitto(),
+  onSaviorTriggered: ({ playerIndex, everybody = false } = {}) => {
+    playSaviorEffect({
+      playerName: everybody || !Number.isInteger(playerIndex) ? '' : playerName(playerIndex),
+      everybody
+    });
+    uiSounds.playSavior();
+  }
 });
 
 const dvdBouncer = createDvdBouncer({

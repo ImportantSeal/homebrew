@@ -61,6 +61,7 @@ export function createCardHandlers({
   openActionScreen,
   onCardSelected = null,
   onDittoTriggered = null,
+  onSaviorTriggered = null,
   rng = systemRng,
   effectUi = effectSelectionUi
 }) {
@@ -101,7 +102,8 @@ export function createCardHandlers({
     applyDrinkEvent,
     rollPenaltyCard,
     hidePenaltyCard,
-    syncBackgroundScene
+    syncBackgroundScene,
+    onSaviorTriggered
   });
 
   const { handleObjectCardDraw } = createObjectCardFlow({
@@ -142,6 +144,7 @@ export function createCardHandlers({
     activateDitto,
     onDittoActivated,
     onDittoTriggered,
+    onSaviorTriggered,
     replaceCardSelectionKind,
     setBaseBackgroundScene,
     flashElement,

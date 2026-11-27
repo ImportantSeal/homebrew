@@ -219,3 +219,12 @@
                        linear-gradient(145deg, rgba(7,10,20,0.92), rgba(26,10,40,0.90));
   --history-active-strip: linear-gradient(90deg, rgba(168,85,247,0.80), rgba(255,79,216,0.20));
 }
+.history-entry.is-latest[data-kind="savior"] {
+  --history-active-glow: rgba(255,222,128,0.20);
+  --history-active-border: rgba(255,222,128,0.42);
+  --history-active-ring: rgba(255,222,128,0.14);
+  --history-active-bg: radial-gradient(220px 170px at 30% 25%, rgba(255,222,128,0.24), transparent 62%),
+                       radial-gradient(220px 170px at 75% 70%, rgba(255,255,255,0.10), transparent 65%),
+                       linear-gradient(145deg, rgba(7,10,20,0.92), rgba(40,34,14,0.90));
+  --history-active-strip: linear-gradient(90deg, rgba(255,222,128,0.90), rgba(255,255,255,0.25));
+}

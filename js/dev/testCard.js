@@ -48,6 +48,12 @@ export const testCard = null;
 // testSubcard: "Drink and Draw Again"
 export const testSubcard = null;
 
+// Optional: force the random twist on plain card picks while testing.
+// null = normal odds, "savior" = Savior on every Shot/Shotgun/combo card
+// and for every player in "Everybody takes a Penalty card",
+// "ditto" = Ditto on every plain card that can become Ditto.
+export const testDrawTwist = null;
+
 export const testCardHelpers = Object.freeze({
   ACTION_CODES,
   EFFECT_TYPES,

@@ -19,7 +19,7 @@ let closeHandler = null;
 let actionHandler = null;
 let actionButtonUnbinds = [];
 let dismissible = true;
-const VALID_VARIANTS = new Set(['normal', 'ditto', 'penalty', 'choice']);
+const VALID_VARIANTS = new Set(['normal', 'ditto', 'penalty', 'choice', 'savior']);
 const VALID_ACTION_VARIANTS = new Set(['primary', 'secondary', 'danger']);
 
 function escapeRegExp(value) {
