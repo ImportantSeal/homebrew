@@ -33,7 +33,8 @@ export function createPenaltyFlow({
   applyDrinkEvent,
   rollPenaltyCard,
   hidePenaltyCard,
-  syncBackgroundScene
+  syncBackgroundScene,
+  onSaviorTriggered = null
 }) {
   const sharePenaltyFlow = createSharePenaltyFlow({
     state,
@@ -54,7 +55,9 @@ export function createPenaltyFlow({
     playerName,
     syncBackgroundScene,
     rollPenaltyCard,
-    applyDrinkEvent
+    applyDrinkEvent,
+    openActionScreen,
+    onSaviorTriggered
   });
 
   function blockIfSelectionInProgress() {

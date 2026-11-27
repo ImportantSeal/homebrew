@@ -1,0 +1,258 @@
+/* ===== Savior blessing overlay ===== */
+.savior-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 20050; /* above the card action modal (20000), never blocks input */
+  pointer-events: none;
+  overflow: hidden;
+  animation: savior-overlay-fade 3200ms ease-out forwards;
+}
+
+.savior-overlay__glow {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(48% 42% at 50% 18%, rgba(255, 246, 214, 0.62), transparent 70%),
+    radial-gradient(80% 70% at 50% 30%, rgba(255, 214, 102, 0.22), transparent 78%);
+  mix-blend-mode: screen;
+  animation: savior-glow 3200ms ease-out forwards;
+}
+
+.savior-overlay__rays {
+  position: absolute;
+  left: 50%;
+  top: 18%;
+  width: 180vmax;
+  height: 180vmax;
+  margin: -90vmax 0 0 -90vmax;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 240, 190, 0.2) 0deg 6deg,
+    transparent 6deg 18deg
+  );
+  -webkit-mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 22%, transparent 48%);
+  mask-image: radial-gradient(circle, #000 0%, rgba(0, 0, 0, 0.6) 22%, transparent 48%);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: savior-rays 3200ms ease-out forwards;
+}
+
+.savior-overlay__beam {
+  position: absolute;
+  left: 50%;
+  top: -10%;
+  width: min(38rem, 80vw);
+  height: 120%;
+  transform: translateX(-50%);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 250, 230, 0.75) 0%,
+    rgba(255, 232, 160, 0.32) 45%,
+    transparent 100%
+  );
+  -webkit-clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  clip-path: polygon(38% 0, 62% 0, 100% 100%, 0 100%);
+  filter: blur(14px);
+  mix-blend-mode: screen;
+  opacity: 0;
+  animation: savior-beam 3200ms ease-out forwards;
+}
+
+.savior-overlay__angel {
+  position: absolute;
+  left: 50%;
+  top: 9%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+  transform: translate(-50%, -3rem);
+  opacity: 0;
+  animation: savior-angel 3200ms cubic-bezier(0.2, 0.8, 0.25, 1) forwards;
+}
+
+.savior-overlay__halo {
+  width: 5.5rem;
+  height: 1.4rem;
+  border-radius: 50%;
+  border: 0.32rem solid rgba(255, 228, 140, 0.98);
+  box-shadow:
+    0 0 14px rgba(255, 228, 140, 0.95),
+    0 0 36px rgba(255, 214, 102, 0.7),
+    inset 0 0 10px rgba(255, 246, 214, 0.8);
+  animation: savior-halo-bob 1600ms ease-in-out infinite;
+}
+
+.savior-overlay__wings {
+  position: relative;
+  width: 12rem;
+  height: 4.5rem;
+  margin-top: -0.2rem;
+}
+
+.savior-overlay__wing {
+  position: absolute;
+  top: 0;
+  width: 5.6rem;
+  height: 4.2rem;
+  background:
+    radial-gradient(120% 90% at 100% 20%, rgba(255, 255, 255, 0.98), rgba(255, 244, 214, 0.85) 45%, rgba(255, 226, 150, 0.15) 80%, transparent 82%);
+  filter: drop-shadow(0 0 10px rgba(255, 236, 170, 0.85));
+}
+
+.savior-overlay__wing--left {
+  right: 50%;
+  border-radius: 100% 10% 60% 90% / 90% 10% 90% 60%;
+  transform-origin: 100% 30%;
+  animation: savior-wing-left 900ms ease-in-out infinite alternate;
+}
+
+.savior-overlay__wing--right {
+  left: 50%;
+  border-radius: 10% 100% 90% 60% / 10% 90% 60% 90%;
+  background:
+    radial-gradient(120% 90% at 0% 20%, rgba(255, 255, 255, 0.98), rgba(255, 244, 214, 0.85) 45%, rgba(255, 226, 150, 0.15) 80%, transparent 82%);
+  transform-origin: 0% 30%;
+  animation: savior-wing-right 900ms ease-in-out infinite alternate;
+}
+
+.savior-overlay__title {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 6vw, 3.6rem);
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(255, 250, 230, 0.98);
+  text-shadow:
+    0 0 12px rgba(255, 228, 140, 0.95),
+    0 0 32px rgba(255, 214, 102, 0.7),
+    0 2px 0 rgba(120, 90, 20, 0.45);
+}
+
+.savior-overlay__subtitle {
+  font-family: var(--font-ui);
+  font-size: clamp(0.95rem, 2.4vw, 1.25rem);
+  font-weight: 700;
+  color: rgba(255, 246, 214, 0.95);
+  text-shadow: 0 0 10px rgba(255, 214, 102, 0.75);
+}
+
+.savior-overlay__feather {
+  position: absolute;
+  top: -3rem;
+  left: var(--x, 50vw);
+  width: calc(0.7rem * var(--size, 1));
+  height: calc(1.9rem * var(--size, 1));
+  border-radius: 50% 50% 50% 50% / 70% 70% 30% 30%;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.95), rgba(255, 244, 214, 0.75) 48%, rgba(255, 255, 255, 0.95) 52%, rgba(255, 244, 214, 0.6));
+  box-shadow: 0 0 8px rgba(255, 240, 190, 0.7);
+  opacity: 0;
+  animation: savior-feather var(--dur, 2400ms) ease-in var(--delay, 0ms) forwards;
+}
+
+.savior-overlay__sparkle {
+  position: absolute;
+  left: var(--x, 50%);
+  top: var(--y, 40%);
+  width: 0.5rem;
+  height: 0.5rem;
+  background: rgba(255, 250, 230, 0.98);
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  filter: drop-shadow(0 0 6px rgba(255, 228, 140, 0.95));
+  opacity: 0;
+  animation: savior-sparkle 900ms ease-out var(--delay, 0ms) forwards;
+}
+
+/* Lighter variant for mobile / reduced effects devices. */
+.savior-overlay--reduced,
+.savior-overlay--reduced .savior-overlay__glow,
+.savior-overlay--reduced .savior-overlay__angel,
+.savior-overlay--reduced .savior-overlay__rays,
+.savior-overlay--reduced .savior-overlay__beam {
+  animation-duration: 2200ms;
+}
+
+.savior-overlay--reduced .savior-overlay__beam {
+  filter: none;
+}
+
+.savior-overlay--reduced .savior-overlay__wing--left,
+.savior-overlay--reduced .savior-overlay__wing--right,
+.savior-overlay--reduced .savior-overlay__halo {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .savior-overlay__rays,
+  .savior-overlay__feather,
+  .savior-overlay__sparkle {
+    display: none;
+  }
+
+  .savior-overlay__wing--left,
+  .savior-overlay__wing--right,
+  .savior-overlay__halo {
+    animation: none;
+  }
+}
+
+@keyframes savior-overlay-fade {
+  0%, 82% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes savior-glow {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+@keyframes savior-rays {
+  0% { opacity: 0; transform: rotate(0deg) scale(0.6); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: rotate(28deg) scale(1.05); }
+}
+
+@keyframes savior-beam {
+  0% { opacity: 0; }
+  12% { opacity: 1; }
+  75% { opacity: 0.7; }
+  100% { opacity: 0; }
+}
+
+@keyframes savior-angel {
+  0% { opacity: 0; transform: translate(-50%, -3rem) scale(0.85); }
+  22% { opacity: 1; transform: translate(-50%, 0.4rem) scale(1.04); }
+  35% { transform: translate(-50%, 0) scale(1); }
+  80% { opacity: 1; transform: translate(-50%, -0.3rem) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -2.2rem) scale(0.96); }
+}
+
+@keyframes savior-halo-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-0.25rem); }
+}
+
+@keyframes savior-wing-left {
+  0% { transform: rotate(8deg); }
+  100% { transform: rotate(-14deg); }
+}
+
+@keyframes savior-wing-right {
+  0% { transform: rotate(-8deg); }
+  100% { transform: rotate(14deg); }
+}
+
+@keyframes savior-feather {
+  0% { opacity: 0; transform: translate(0, 0) rotate(0deg); }
+  10% { opacity: 0.95; }
+  85% { opacity: 0.8; }
+  100% { opacity: 0; transform: translate(var(--drift, 0), 105vh) rotate(var(--spin, 180deg)); }
+}
+
+@keyframes savior-sparkle {
+  0% { opacity: 0; transform: scale(0.2) rotate(0deg); }
+  40% { opacity: 1; transform: scale(1.3) rotate(45deg); }
+  100% { opacity: 0; transform: scale(0.4) rotate(90deg); }
+}

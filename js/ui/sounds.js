@@ -4,7 +4,8 @@ const BASE_VOLUMES = {
   ditto: 0.42,
   select: 0.52,
   wallHit: 0.56,
-  cornerHit: 0.64
+  cornerHit: 0.64,
+  savior: 0.32
 };
 
 function clamp01(value) {
@@ -123,6 +124,50 @@ export function createUiSounds({
     safePlay(cornerHitAudio, { muted });
   }
 
+  let saviorContext = null;
+
+  // Soft synthesized "heavenly" major chord + shimmer (no audio file needed).
+  function playSavior() {
+    if (muted || isReducedEffectsEnabled() || masterVolume <= 0) return;
+    if (typeof window === 'undefined') return;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (typeof AudioCtx !== 'function') return;
+
+    try {
+      if (!saviorContext) saviorContext = new AudioCtx();
+      const ctx = saviorContext;
+      if (ctx.state === 'suspended' && typeof ctx.resume === 'function') {
+        ctx.resume().catch(() => {});
+      }
+
+      const now = ctx.currentTime;
+      const master = ctx.createGain();
+      const peak = BASE_VOLUMES.savior * masterVolume;
+      master.gain.setValueAtTime(0.0001, now);
+      master.gain.exponentialRampToValueAtTime(peak, now + 0.35);
+      master.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+      master.connect(ctx.destination);
+
+      // C major add9 (C5 E5 G5 C6 D6), staggered like a harp swell.
+      [523.25, 659.25, 783.99, 1046.5, 1174.66].forEach((freq, index) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const start = now + index * 0.09;
+        osc.type = index % 2 === 0 ? 'sine' : 'triangle';
+        osc.frequency.setValueAtTime(freq, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.exponentialRampToValueAtTime(0.22, start + 0.18);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 2.4);
+        osc.connect(gain);
+        gain.connect(master);
+        osc.start(start);
+        osc.stop(start + 2.5);
+      });
+    } catch {
+      // Ignore Web Audio failures.
+    }
+  }
+
   function setMuted(nextMuted) {
     muted = Boolean(nextMuted);
   }
@@ -146,6 +191,7 @@ export function createUiSounds({
     playSelect,
     playWallHit,
     playCornerHit,
+    playSavior,
     setMuted,
     getMuted,
     setMasterVolume,

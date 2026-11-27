@@ -4,6 +4,9 @@ import {
   transitionFlow,
   isGroupPenaltyPending
 } from '../../../logic/flowMachine.js';
+import { DRAW_TWISTS, rollsGroupPenaltySavior } from '../../../logic/savior.js';
+import { resolveRng } from '../../../utils/rng.js';
+import { getForcedDrawTwist } from '../../../dev/cardTestMode.js';
 
 function clearGroupPending(state) {
   const clearPending = transitionFlow(state, FLOW_TRANSITIONS.CLEAR_PENDING_PENALTY);
@@ -18,8 +21,32 @@ export function createPenaltyGroupQueueFlow({
   playerName,
   syncBackgroundScene,
   rollPenaltyCard,
-  applyDrinkEvent
+  applyDrinkEvent,
+  openActionScreen = null,
+  onSaviorTriggered = null
 }) {
+  function rollGroupPenaltySavior() {
+    const roll = resolveRng(state?.rng).nextFloat();
+    if (getForcedDrawTwist() === DRAW_TWISTS.SAVIOR) return true;
+    return rollsGroupPenaltySavior(roll);
+  }
+
+  function blessPlayer(targetIndex) {
+    const name = playerName(targetIndex);
+    log(`Savior! ${name} is saved and skips their Penalty card.`, { kind: 'savior' });
+
+    if (typeof onSaviorTriggered === 'function') {
+      onSaviorTriggered({ playerIndex: targetIndex, everybody: false, cardData: 'Penalty Card' });
+    }
+    if (typeof openActionScreen === 'function') {
+      openActionScreen(
+        'Savior',
+        `An angel descends! ${name} is saved and does not have to take a Penalty card. Everybody else still takes theirs.`,
+        { variant: 'savior', closeLabel: 'Amen' }
+      );
+    }
+  }
+
   function currentGroupPenaltyTargetIndex() {
     const group = state.penaltyGroup;
     if (!group?.active || !Array.isArray(group.queue)) return null;
@@ -78,6 +105,16 @@ export function createPenaltyGroupQueueFlow({
     while (!state.penaltyShown && isGroupPenaltyPending(state)) {
       const targetIndex = currentGroupPenaltyTargetIndex();
       if (!Number.isInteger(targetIndex)) {
+        const done = advanceGroupPenaltyQueue({ announceNext: false });
+        if (done) return { done: true, shown: false };
+        continue;
+      }
+
+      // Savior: this player skips their own penalty, the rest of the queue continues.
+      if (rollGroupPenaltySavior()) {
+        blessPlayer(targetIndex);
+        // Same path as a Shield block: leave pending, then queue the next player.
+        clearGroupPending(state);
         const done = advanceGroupPenaltyQueue({ announceNext: false });
         if (done) return { done: true, shown: false };
         continue;

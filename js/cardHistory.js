@@ -16,7 +16,8 @@ const HISTORY_CARD_KINDS = new Set([
   'social',
   'crowd',
   'special',
-  'ditto'
+  'ditto',
+  'savior'
 ]);
 
 function normalizeMessage(message) {
