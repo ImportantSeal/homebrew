@@ -246,6 +246,11 @@ export function createCardHandlers({
         const p = currentPlayer();
         log(`${p.name} confirmed Ditto card.`);
 
+        // Notes from Ditto triggers (Ditto Bait / Ditto Magnet) shown with the result.
+        const dittoNotes = Array.isArray(state.dittoPending?.[index]?.notes)
+          ? state.dittoPending[index].notes
+          : [];
+
         // Pass applyDrinkEvent so Ditto drink outcomes can trigger Drink Buddy too.
         const dittoInfo = runDittoEffect(
           state,
@@ -256,7 +261,8 @@ export function createCardHandlers({
           applyDrinkEvent
         );
         if (dittoInfo?.message) {
-          openActionScreen(dittoInfo.title || "Ditto", dittoInfo.message, { variant: "ditto" });
+          const dittoMessage = [dittoInfo.message, ...dittoNotes].join(" ");
+          openActionScreen(dittoInfo.title || "Ditto", dittoMessage, { variant: "ditto" });
         }
 
         state.dittoActive[index] = false;

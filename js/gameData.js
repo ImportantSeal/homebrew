@@ -35,16 +35,16 @@ export const gameData = {
     {
       name: "Challenge",
       subcategories: [
-        { name: "Dare", instruction: "Dare someone." },
+        { name: "Dare", instruction: "Dare someone. They do it or drink 3." },
         { name: "Truth or Penalty", instruction: "Ask any player: 'Truth or Penalty?'" },
-        { name: "Compliment", instruction: "Everyone compliments you; the worst one drinks 3." },
-        { name: "Would You Rather", instruction: "Ask someone Would You Rather." },
+        { name: "Compliment", instruction: "Everyone compliments you. You pick the worst one; they drink 3." },
+        { name: "Would You Rather", instruction: "Ask someone Would You Rather. Others guess their answer first; wrong guessers drink 1." },
         { name: "Rock, Paper, Scissors", instruction: "Play R,P,S against someone; loser drinks three." },
         { name: "This or That", instruction: "You pick two options and ask one player to choose immediately. If they hesitate, they drink 2." },
         { name: "Most Likely To", instruction: "Say 'Most likely to...'. Count to three and point; the most-voted player drinks 1." },
         { name: "Staring Contest", instruction: "Pick an opponent. First to blink takes a shot." },
-        { name: "Hot Take", instruction: "Share one hot take." },
-        { name: "Riddle Me", instruction: "Ask a riddle. If solved, you drink one; if not, the group drinks one." },
+        { name: "Hot Take", instruction: "Share one hot take. Vote: if the majority disagrees, drink 2; otherwise give 2." },
+        { name: "Riddle Me", instruction: "Ask a riddle. First correct solver gives 2. If nobody solves it, you drink 2." },
         { name: "Guess the Number", instruction: "Hold 1-5 fingers behind your back. Closest guess gives 1; exact guess gives 2." },
         { name: "No hands", instruction: "Take a shot without using your hands." },
         { name: "Biggest Red Flag", instruction: "Share one big red flag in relationships." },
@@ -61,10 +61,10 @@ export const gameData = {
         { name: "Annoying Trait", instruction: "Name one trait of yours that annoys other people." },
         { name: "Unreasonable Pet Peeve", instruction: "Name one everyday thing you irrationally hate." },
         { name: "5-Second Flex", instruction: "Name 3 things in a category in 5 seconds. Fail = drink 2." },
-        { name: "Reverse Compliment", instruction: "Compliment the player on your left. If they laugh or smile, they drink 1. If they keep a straight face, you drink 1." },
+        { name: "Reverse Compliment", instruction: "Compliment the player on your left. They decide who drinks 2: you or them." },
         { name: "One Breath Story", instruction: "Tell a short story in one breath. If you pause for air, drink 2." },
         { name: "Instant Nickname", instruction: "Give one player a nickname. If the group votes it weak, you drink 2." },
-        { name: "Two-Line Pitch", instruction: "Pitch yourself in exactly two sentences. If anyone says 'meh', drink 2." },
+        { name: "Two-Line Pitch", instruction: "Pitch yourself in exactly two sentences. If the majority says 'meh', drink 2." },
         {
           name: "Drinks Taken Guess",
           instruction: "Guess your own Drinks taken from Stats. Exact guess gives 3. Wrong guess drinks 2.",
@@ -79,7 +79,7 @@ export const gameData = {
         { name: "No Filter", instruction: "Say out loud the first thing that comes to mind. If you hesitate, drink 2." },
         { name: "Dating Resume", instruction: "Give a 15-second dating pitch for yourself." },
         { name: "Real or Fake Opinion", instruction: "State one opinion. Everyone guesses whether you truly mean it. Anyone who guesses wrong drinks 1. You drink 1 for each player who guessed correctly." },
-        { name: "Unnecessary Skill", instruction: "Share one useless skill you have. If anyone claims it is actually useful, you drink 1." },
+        { name: "Unnecessary Skill", instruction: "Share one useless skill. If the majority thinks it's actually useful, drink 2." },
         { name: "Deal or Steal", instruction: "Pick one player. You and that player secretly choose either 'Deal' or 'Steal' and reveal at the same time. If both choose Deal, both give 1 drink. If one chooses Steal and the other chooses Deal, the Steal player gives 3 drinks total. If both choose Steal, both drink 2." },
         { name: "Borrowed Talent", instruction: "Pick a player and name one of their skills you would borrow." },
         { name: "First Impression: Tonight", instruction: "Pick a player and describe the impression they would give if you met them for the first time tonight." },
@@ -101,12 +101,16 @@ export const gameData = {
         { name: "Body Snatcher", instruction: "Pick a player and ask one question that could prove they have not been replaced by an impostor." },
         { name: "One-Day Trip", instruction: "Name a place you have never visited and plan your first 24 hours there. Anyone who would join you drinks 1. If nobody would, drink 2." },
         { name: "One-Star Review", instruction: "Pick a player and review them as a roommate, coworker, or travel companion. They choose the category. If they disagree, drink 1." },
-        { name: "Character Build", instruction: "Give one player a character class, special ability, and weakness." },
+        { name: "Character Build", instruction: "Give a player a class, ability and weakness. They rate it: good = you give 2, bad = you drink 2." },
         { name: "Fake Sponsor", instruction: "Pick a player and name the brand that should sponsor them. Explain why. If they approve, give 2." },
-        { name: "Fortune Cookie", instruction: "Pick a player and give them a fortune for the rest of tonight." },
-        { name: "Useless Superpower", instruction: "Give one player a superpower with an inconvenient side effect. They decide whether to accept it." },
+        { name: "Fortune Cookie", instruction: "Give a player a fortune for tonight. They accept it and you give 1, or they reject it and you drink 2." },
+        { name: "Useless Superpower", instruction: "Give a player a superpower with a side effect. If they accept, you give 2. If not, you drink 2." },
         { name: "Exact Ten", instruction: "Close your eyes and say 'stop' when you think 10 seconds have passed. Another player times you. Within one second gives 2; otherwise, drink 2." },
         { name: "Sound Detective", instruction: "Close your eyes. A chosen player makes a sound using an object nearby. Identify the object or drink 2." },
+        { name: "Bluff Story", instruction: "Tell a short story, true or invented. Everyone votes. Each wrong voter drinks 2; each correct voter lets you drink 2." },
+        { name: "Which Hand", instruction: "Hide a small object in one hand. Pick a player to guess. Correct: you drink 3. Wrong: they drink 3." },
+        { name: "I Bet I Can", instruction: "Claim you can do something. Everyone bets yes or no, then you try. Losers of the bet drink 5." },
+        { name: "Prophecy", instruction: "Predict something that will happen in-game before your next turn. If it does, give 5. If not, drink 2." },
 
       ]
     }
@@ -144,12 +148,12 @@ export const gameData = {
       { name: "Waterfall", instruction: "Starting with you, everyone begins drinking; each person can stop only when the person to their right stops." },
       { name: "Trivia Master", instruction: "You ask a trivia question. Anyone who answers wrong drinks 1. The first player to answer correctly gives 3." },
       { name: "Group RPS",   instruction: "Play Rock, Paper, Scissors as a group. Replay ties or three-way results. Eliminate losing signs until one winner remains. The winner gives drinks equal to the player count." },
-      { name: "Categories", instruction: "Pick a category and go clockwise naming items; first repeat, pause, or miss drinks." },
+      { name: "Categories", instruction: "Pick a category and go clockwise naming items; first repeat, pause, or miss drinks 2." },
       { name: "This or That?", instruction: "You choose two options. Everyone picks one side at the same time; the minority side drinks 1 each." },
       { name: "Overrated / Underrated", instruction: "Pick a thing (not a person). Everyone votes: overrated or underrated. Minority drinks 2." },
-      { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks." },
+      { name: "Color Call", instruction: "Call out a color. Anyone not wearing that color drinks 1." },
       { name: "Reverse Waterfall", instruction: "Everyone starts drinking; you can stop anytime, but your right neighbor must stop after you." },
-      { name: "Last Letter Chain", instruction: "Pick a category; each item must start with the last letter of the previous; first repeat or miss drinks." },
+      { name: "Last Letter Chain", instruction: "Pick a category; each item must start with the last letter of the previous; first repeat or miss drinks 2." },
       { name: "Lowest Fingers", instruction: "Everyone secretly chooses 0–5 fingers. Reveal together. Lowest number drinks 2. Anyone who matches another player drinks 1 extra." },
       { name: "Glance & Sip", instruction: "Everyone looks at the same person (count to 3). Most looked-at drinks 3." },
       { name: "Show Most Recent Picture", instruction: "Everyone shows their most recent picture." },
@@ -161,7 +165,7 @@ export const gameData = {
       { name: "Name Length Ladder", instruction: "Compare first names only. Longest drinks 3. Shortest gives 1." },
       { name: "Birthday Roulette", instruction: "Nearest upcoming birthday gives 2. Farthest drinks 2." },
       { name: "Latest Google Search", instruction: "Everyone shows their most recent Google search." },
-      { name: "Five-Word Movie Pitch", instruction: "Describe a movie using exactly five words. The first correct guess gives 4 drinks. If nobody guesses, everyone drinks 1." },
+      { name: "Five-Word Movie Pitch", instruction: "Describe a movie in exactly five words. First correct guess gives 4. If nobody guesses, you drink 2." },
       { name: "Drinking Pot (d20)", instruction: "Everyone commits 1-6 drinks to the pot. Then everyone rolls a d20; the lowest roll drinks the entire pot. If there is a tie for lowest, tied players re-roll until one loser remains." },
       { name: "Share a Secret", instruction: "Everyone shares one secret. If your secret is voted lame, drink 1." },
       { name: "On your feet!", instruction: "Everyone stands up. Last one standing drinks 1." },
@@ -188,7 +192,7 @@ export const gameData = {
       { name: "Majority Rules", instruction: "Ask a yes/no question. Minority side drinks 2." },
       { name: "Silent Lineup", instruction: "Line up by birth month without speaking. If your group breaks silence, everyone drinks 1." },
       { name: "Lightning Category", instruction: "Pick a category. Go around fast; first blank, repeat, or long pause drinks 2." },
-      { name: "Common Ground", instruction: "Everyone quickly says one thing they did this week. Anyone with a unique answer drinks 1." },
+      { name: "Common Ground", instruction: "Everyone quickly says one thing they did this week. Anyone whose answer matches someone else's drinks 1." },
       { name: "Tempo Tap", instruction: "Start a table tap rhythm. First player to break rhythm drinks 2." },
       {
         name: "Stats Bounty",
@@ -205,10 +209,10 @@ export const gameData = {
       { name: "Different Taste", instruction: "Everyone names something they love but expect you to hate. Anyone whose choice you actually like drinks 1." },
       { name: "Fake Awards", instruction: "Everyone gives the player on their left an award based on tonight." },
       { name: "Finger Gun", instruction: "First player to point at someone and shout 'Bang!' shoots them. The target drinks 3." },
-
-
-
-
+      { name: "Count to Twenty", instruction: "Count to 20 as a group. Everyone who spoke at once drinks 3. (max 3 attempts)." },
+      { name: "Floor Is Lava", instruction: "Last player with feet off the floor drinks 4." },
+      { name: "Sacrifice", instruction: "The group has 10 seconds to agree on one player to drink 6. No agreement: everyone drinks 3." },
+      { name: "Highest Alone", instruction: "Everyone shows 1-5 fingers. Matching numbers drink 2. The highest unmatched number gives that many." },
 
     ]
   },
@@ -293,6 +297,16 @@ export const gameData = {
         effect: { type: EFFECT_TYPES.PINKY_RULE, turns: 6 }
       },
       {
+        name: "No Yes or No (5 Turns)",
+        instruction: "For 5 turns, nobody may say 'yes' or 'no'. Slip = drink 1.",
+        effect: { type: EFFECT_TYPES.NO_YES_NO, turns: 5 }
+      },
+      {
+        name: "Secret Rule (5 Turns)",
+        instruction: "Invent a hidden rule and write it down. For 5 turns, breakers drink 1. Whoever guesses the rule gives 3 and ends it.",
+        effect: { type: EFFECT_TYPES.SECRET_RULE, turns: 5 }
+      },
+      {
         name: "Table Referendum",
         instruction: "Group vote together: either everybody drinks 6 OR everybody takes a Penalty card.",
         action: ACTION_CODES.CHAOS_REFERENDUM_GROUP
@@ -345,6 +359,19 @@ export const gameData = {
         name: "Cursed Ball",
         instruction: "Drop one Plinko ball. Double only the Drink amount of its result; Give and shot amounts stay unchanged.",
         plinko: { mode: "cursed", dropLimit: 1, drinkMultiplier: 2 }
+      },
+      { name: "Lucky Seven", instruction: "Roll two d6. Total 7: give 7. Otherwise drink 2." },
+      { name: "Dice Duel", instruction: "Pick a player. Both roll a d20. Loser drinks the difference (max 8)." },
+      { name: "High Roller", instruction: "Everyone rolls a d6. Highest gives 3. Lowest drinks 3. Ties re-roll." },
+      {
+        name: "Stats Equalizer",
+        instruction: "Player(s) with the most Drinks taken give the difference to the player(s) with the fewest (max 6).",
+        leaderboardTopic: "drinks_taken_spread"
+      },
+      {
+        name: "Ditto Bait (4 Turns)",
+        instruction: "For the next 4 turns, whenever Ditto triggers for anyone, you give 6.",
+        effect: { type: EFFECT_TYPES.DITTO_BAIT, turns: 4 }
       },
       { name: "Call Your Shot", instruction: "Call heads or tails, then flip the coin. Correct call: give 3. Wrong call: drink 3." },
       { name: "Wheel Hijack", instruction: "Before spinning, any player may volunteer to take the result. If nobody volunteers, spin and double the result for yourself." },

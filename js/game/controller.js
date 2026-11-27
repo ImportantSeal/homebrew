@@ -648,6 +648,13 @@ function nextPlayer() {
   tickEffects(state, log);
 
   const p = currentPlayer();
+  if (p.dittoExtraTurn) {
+    log(`${p.name} hijacked this turn with Ditto and draws again.`);
+    delete p.dittoExtraTurn;
+    updateTurn();
+    return;
+  }
+
   if (p.extraLife) {
     log(`${p.name} uses Extra Life to keep their turn.`);
     delete p.extraLife;

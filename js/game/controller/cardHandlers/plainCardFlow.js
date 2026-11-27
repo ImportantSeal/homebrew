@@ -158,7 +158,10 @@ export function createPlainCardFlow({
         onDittoTriggered({ cardIndex: idx, cardData });
       }
 
-      onDittoActivated(state, state.currentPlayerIndex, log);
+      const dittoNotes = onDittoActivated(state, state.currentPlayerIndex, log);
+      if (Array.isArray(dittoNotes) && dittoNotes.length > 0 && state.dittoPending?.[idx]) {
+        state.dittoPending[idx] = { ...state.dittoPending[idx], notes: dittoNotes };
+      }
       replaceCardSelectionKind(state, state.currentPlayerIndex, selectedKind, 'ditto');
       setBaseBackgroundScene(state, 'ditto');
 

@@ -26,7 +26,10 @@ const EFFECT_TITLES = Object.freeze({
   [EFFECT_TYPES.EYE_CONTACT_RULE]: "Eye Contact Rule",
   [EFFECT_TYPES.INVISIBLE_MICROPHONE]: "Invisible Microphone",
   [EFFECT_TYPES.SLOW_MOTION]: "Slow Motion",
-  [EFFECT_TYPES.PINKY_RULE]: "Pinky Rule"
+  [EFFECT_TYPES.PINKY_RULE]: "Pinky Rule",
+  [EFFECT_TYPES.NO_YES_NO]: "No Yes or No",
+  [EFFECT_TYPES.SECRET_RULE]: "Secret Rule",
+  [EFFECT_TYPES.DITTO_BAIT]: "Ditto Bait"
 });
 
 export function getEffectTitle(type, fallback = "Effect") {

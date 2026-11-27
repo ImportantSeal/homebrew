@@ -4,9 +4,19 @@ import { randomFromArray } from '../utils/random.js';
 import { resolveRng } from '../utils/rng.js';
 import { getPlainCardSpec } from './cardSchema.js';
 import { getPenaltyDisplayValue, getPenaltySpec } from './penaltySchema.js';
+import { addEffect, createEffect } from './effects.js';
+import { EFFECT_TYPES } from './actionEffectRegistry.js';
+import { recordGiveDrinks } from '../stats.js';
 
 const ITEM_DITTO_TYPES = new Set(['LOSE_ONE_ITEM_ALL', 'STEAL_RANDOM_ITEM']);
 const TRAP_DITTO_TYPE = 'TRAP_CARD';
+const MIRROR_DITTO_TYPE = 'MIRROR_IMAGE';
+const CLONE_DITTO_TYPE = 'CLONE';
+const HIJACK_DITTO_TYPE = 'HIJACKED_TURN';
+const LINK_DITTO_TYPE = 'DITTO_LINK';
+const DITTO_LINK_TURNS = 3;
+// Ditto types that need the original (pre-Ditto) card to resolve.
+const SOURCE_CARD_DITTO_TYPES = new Set([TRAP_DITTO_TYPE, MIRROR_DITTO_TYPE, CLONE_DITTO_TYPE]);
 
 function logDitto(log, message) {
   if (typeof log === 'function') {
@@ -115,6 +125,165 @@ function runDittoTrap(state, cardIndex, ev, log, applyDrinkEvent) {
   return message;
 }
 
+// Shot-type amounts as a numeric drink count (for give stats).
+function drinkAmountToNumber(amount) {
+  if (typeof amount === 'number') return amount;
+  const text = String(amount || '').trim();
+  if (/^Shot\+Shotgun$/i.test(text)) return 3;
+  if (/^Shotgun$/i.test(text)) return 2;
+  if (/^Shot$/i.test(text)) return 1;
+  return 0;
+}
+
+function formatGiveLabel(amount) {
+  if (typeof amount === 'number') return `give ${amount}`;
+  return `pick a player to take a ${formatDrinkLabel(amount)}`;
+}
+
+function nextPlayerIndex(state) {
+  const count = state?.players?.length || 0;
+  if (count < 2) return null;
+  return (state.currentPlayerIndex + 1) % count;
+}
+
+/**
+ * Mirror Image: the original card flips.
+ * Drink X -> Give X, Give X -> Drink X, Drink A + Give B -> Drink B + Give A,
+ * Everybody drinks X -> everybody except you drinks X.
+ */
+function runDittoMirror(state, cardIndex, ev, log, applyDrinkEvent) {
+  const sourceCard = resolveTrapSourceCard(state, cardIndex, ev);
+  const spec = getPlainCardSpec(sourceCard);
+  const playerIndex = state.currentPlayerIndex;
+  const playerName = state.players?.[playerIndex]?.name ?? 'You';
+
+  if (spec.drink && spec.drink.scope === 'all') {
+    const message = `Mirror Image! The group drink reflects away from you. Everybody except ${playerName} ${formatEveryoneAction(spec.drink.amount)}.`;
+    logDitto(log, message);
+    state.players.forEach((_, idx) => {
+      if (idx === playerIndex) return;
+      applyDrinkEvent?.(state, idx, spec.drink.amount, 'Ditto mirror', log, { suppressSelfLog: true });
+    });
+    return message;
+  }
+
+  if (spec.drink && spec.give) {
+    const newDrink = spec.give.amount;
+    const newGive = spec.drink.amount;
+    const message = `Mirror Image! The card flips: ${formatDrinkLabel(newDrink)} and ${formatGiveLabel(newGive)}.`;
+    logDitto(log, message);
+    applyDrinkEvent?.(state, playerIndex, newDrink, 'Ditto mirror', log);
+    recordGiveDrinks(state, playerIndex, drinkAmountToNumber(newGive));
+    return message;
+  }
+
+  if (spec.drink) {
+    const message = `Mirror Image! The card flips: instead of drinking, ${formatGiveLabel(spec.drink.amount)}.`;
+    logDitto(log, message);
+    recordGiveDrinks(state, playerIndex, drinkAmountToNumber(spec.drink.amount));
+    return message;
+  }
+
+  if (spec.give) {
+    const message = `Mirror Image! The card flips: instead of giving, ${formatDrinkLabel(spec.give.amount)}.`;
+    logDitto(log, message);
+    applyDrinkEvent?.(state, playerIndex, spec.give.amount, 'Ditto mirror', log);
+    return message;
+  }
+
+  const message = 'The mirror cracks. Drink 2.';
+  logDitto(log, message);
+  applyDrinkEvent?.(state, playerIndex, 2, 'Ditto mirror', log);
+  return message;
+}
+
+/**
+ * Clone: the original card hits you AND the next player in turn order.
+ * Everybody drinks X -> everybody drinks it twice.
+ */
+function runDittoClone(state, cardIndex, ev, log, applyDrinkEvent) {
+  const sourceCard = resolveTrapSourceCard(state, cardIndex, ev);
+  const spec = getPlainCardSpec(sourceCard);
+  const playerIndex = state.currentPlayerIndex;
+  const playerName = state.players?.[playerIndex]?.name ?? 'You';
+
+  if (spec.drink && spec.drink.scope === 'all') {
+    const message = `Clone! The group drink happens twice. Everybody ${formatEveryoneAction(spec.drink.amount)}, two times.`;
+    logDitto(log, message);
+    applyEveryoneDrink(state, spec.drink.amount, 'Ditto clone', log, applyDrinkEvent);
+    applyEveryoneDrink(state, spec.drink.amount, 'Ditto clone', log, applyDrinkEvent);
+    return message;
+  }
+
+  const cloneIndex = nextPlayerIndex(state);
+  const targets = cloneIndex == null ? [playerIndex] : [playerIndex, cloneIndex];
+  const cloneName = cloneIndex == null ? null : (state.players?.[cloneIndex]?.name ?? 'Next player');
+
+  const parts = [];
+  if (spec.drink) parts.push(formatDrinkLabel(spec.drink.amount));
+  if (spec.give) parts.push(`Give ${spec.give.amount}`);
+  if (parts.length === 0) parts.push('Drink 2');
+  const cardText = parts.join(', ');
+
+  targets.forEach((idx) => {
+    if (spec.drink) applyDrinkEvent?.(state, idx, spec.drink.amount, 'Ditto clone', log);
+    if (spec.give) recordGiveDrinks(state, idx, spec.give.amount);
+    if (!spec.drink && !spec.give) applyDrinkEvent?.(state, idx, 2, 'Ditto clone', log);
+  });
+
+  const message = cloneName
+    ? `Clone! ${cardText} hits both ${playerName} and ${cloneName}.`
+    : `Clone! Nobody to clone onto. ${cardText}.`;
+  logDitto(log, message);
+  return message;
+}
+
+/**
+ * Hijacked Turn: the next player in turn order gets an extra turn
+ * (they keep their turn once when it ends; see controller nextPlayer).
+ */
+function runDittoHijack(state, log, applyDrinkEvent) {
+  const hijackerIndex = nextPlayerIndex(state);
+  if (hijackerIndex == null) {
+    const message = 'Ditto tried to hijack your turn, but nobody else is playing. Drink 2.';
+    logDitto(log, message);
+    applyDrinkEvent?.(state, state.currentPlayerIndex, 2, 'Ditto hijack', log);
+    return message;
+  }
+
+  const hijacker = state.players[hijackerIndex];
+  hijacker.dittoExtraTurn = true;
+  const message = `Hijacked Turn! Ditto steals your turn. ${hijacker.name} draws twice in a row.`;
+  logDitto(log, message);
+  return message;
+}
+
+/**
+ * Ditto Link: a random other player drinks whenever you drink for the next turns.
+ * Reuses the DRINK_BUDDY effect.
+ */
+function runDittoLink(state, log, applyDrinkEvent, rng) {
+  const sourceIndex = state.currentPlayerIndex;
+  const candidates = (state.players || [])
+    .map((_, idx) => idx)
+    .filter(idx => idx !== sourceIndex);
+  const targetIndex = randomFromArray(candidates, rng);
+
+  if (targetIndex == null) {
+    const message = 'Ditto found nobody to link with. Drink 2.';
+    logDitto(log, message);
+    applyDrinkEvent?.(state, sourceIndex, 2, 'Ditto link', log);
+    return message;
+  }
+
+  addEffect(state, createEffect(EFFECT_TYPES.DRINK_BUDDY, DITTO_LINK_TURNS, { sourceIndex, targetIndex, rng }));
+  const srcName = state.players[sourceIndex]?.name ?? 'You';
+  const tgtName = state.players[targetIndex]?.name ?? 'Someone';
+  const message = `Ditto Link! For the next ${DITTO_LINK_TURNS} turns, ${tgtName} drinks whenever ${srcName} drinks.`;
+  logDitto(log, message);
+  return message;
+}
+
 export function getDittoEventPool(state) {
   const pool = [
     { type: 'LOSE_ONE_ITEM_ALL' },
@@ -124,7 +293,11 @@ export function getDittoEventPool(state) {
     { type: 'SHOT' },
     { type: 'RANDOM_CHALLENGE' },
     { type: 'PENALTY_ALL' },
-    { type: TRAP_DITTO_TYPE }
+    { type: TRAP_DITTO_TYPE },
+    { type: MIRROR_DITTO_TYPE },
+    { type: CLONE_DITTO_TYPE },
+    { type: HIJACK_DITTO_TYPE },
+    { type: LINK_DITTO_TYPE }
   ];
 
   if (state?.includeItems) return pool;
@@ -155,7 +328,7 @@ export function activateDitto(state, cardElement, cardIndex, log, sourceCard = n
   cardElement.dataset.dittoTime = Date.now();
   const dittoPool = getDittoEventPool(state);
   const selectedEvent = randomFromArray(dittoPool, rng) || { type: 'DRINK_3' };
-  state.dittoPending[cardIndex] = selectedEvent.type === TRAP_DITTO_TYPE
+  state.dittoPending[cardIndex] = SOURCE_CARD_DITTO_TYPES.has(selectedEvent.type)
     ? { ...selectedEvent, sourceCard: originalCard }
     : selectedEvent;
 }
@@ -290,6 +463,27 @@ export function runDittoEffect(state, cardIndex, log, updateTurnOrder, renderIte
 
     case TRAP_DITTO_TYPE: {
       const message = runDittoTrap(state, cardIndex, ev, log, applyDrinkEvent);
+      return { title: infoTitle, message };
+    }
+
+    case MIRROR_DITTO_TYPE: {
+      const message = runDittoMirror(state, cardIndex, ev, log, applyDrinkEvent);
+      return { title: infoTitle, message };
+    }
+
+    case CLONE_DITTO_TYPE: {
+      const message = runDittoClone(state, cardIndex, ev, log, applyDrinkEvent);
+      return { title: infoTitle, message };
+    }
+
+    case HIJACK_DITTO_TYPE: {
+      const message = runDittoHijack(state, log, applyDrinkEvent);
+      updateTurnOrder();
+      return { title: infoTitle, message };
+    }
+
+    case LINK_DITTO_TYPE: {
+      const message = runDittoLink(state, log, applyDrinkEvent, rng);
       return { title: infoTitle, message };
     }
 

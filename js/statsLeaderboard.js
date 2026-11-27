@@ -72,8 +72,14 @@ const TOPIC_DEFINITIONS = {
   stats_overview: {
     label: 'Stats quickboard',
     buttonLabel: 'Show stats quickboard'
+  },
+  drinks_taken_spread: {
+    label: 'Drinks taken spread',
+    buttonLabel: 'Show most vs fewest drinks'
   }
 };
+
+const SPREAD_GIVE_CAP = 6;
 
 const PLAYER_STAT_DEFINITIONS = {
   player_drinks_taken: {
@@ -219,6 +225,19 @@ function buildOverviewMessage(snapshot) {
   return `Stats quickboard: ${parts.join(' | ')}.`;
 }
 
+function buildDrinksSpreadMessage(snapshot) {
+  const most = pickLeaders(snapshot, TOPIC_DEFINITIONS.drinks_taken_max);
+  const fewest = pickLeaders(snapshot, TOPIC_DEFINITIONS.drinks_taken_min);
+  if (!most || !fewest) return 'Drinks taken spread: no drinks taken yet.';
+
+  const difference = Math.max(0, most.value - fewest.value);
+  const giveAmount = Math.min(SPREAD_GIVE_CAP, difference);
+
+  return `Drinks taken spread: Most: ${joinNames(most.playerNames)} (${formatValue(most.value)}) | `
+    + `Fewest: ${joinNames(fewest.playerNames)} (${formatValue(fewest.value)}) | `
+    + `Difference: ${formatValue(difference)} -> give ${formatValue(giveAmount)} (max ${SPREAD_GIVE_CAP}).`;
+}
+
 export function normalizeStatsLeaderboardTopic(topic) {
   return normalizeTopic(topic);
 }
@@ -240,6 +259,10 @@ export function buildStatsLeaderboardMessage(stateObj, topic, options = {}) {
 
   if (normalized === 'stats_overview') {
     return buildOverviewMessage(snapshot);
+  }
+
+  if (normalized === 'drinks_taken_spread') {
+    return buildDrinksSpreadMessage(snapshot);
   }
 
   if (PLAYER_STAT_DEFINITIONS[normalized]) {

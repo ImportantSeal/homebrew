@@ -1,5 +1,5 @@
 // js/logic/effects.js
-import { recordDrinkTaken } from '../stats.js';
+import { recordDrinkTaken, recordGiveDrinks } from '../stats.js';
 import { EFFECT_TYPES } from './actionEffectRegistry.js';
 import { getEffectTitle } from './effectNames.js';
 import { systemRng } from '../utils/rng.js';
@@ -310,20 +310,37 @@ export function applyDrinkEvent(state, playerIndex, textOrAmount, reason, log, o
   }
 }
 
+const DITTO_BAIT_GIVE_AMOUNT = 6;
+
 /**
  * Trigger hook for "Ditto appeared for player X".
- * Used by DITTO_MAGNET.
+ * Used by DITTO_MAGNET and DITTO_BAIT.
+ * Returns notes (strings) to show on the Ditto result screen.
  */
 export function onDittoActivated(state, playerIndex, log) {
+  const notes = [];
   const player = state.players?.[playerIndex];
-  if (!player) return;
+  if (!player) return notes;
 
   const effects = Array.isArray(state.effects) ? state.effects : [];
+
+  // Ditto Bait: every active bait owner gives 6 whenever Ditto triggers for anyone.
+  effects
+    .filter(e => e && e.type === EFFECT_TYPES.DITTO_BAIT && (e.remainingTurns ?? 0) > 0)
+    .forEach(e => {
+      const owner = state.players?.[e.sourceIndex];
+      if (!owner) return;
+      recordGiveDrinks(state, e.sourceIndex, DITTO_BAIT_GIVE_AMOUNT);
+      const note = `Ditto Bait: ${owner.name} gives ${DITTO_BAIT_GIVE_AMOUNT}.`;
+      log?.(note);
+      notes.push(note);
+    });
+
   const magnets = effects.filter(
     e => e && e.type === EFFECT_TYPES.DITTO_MAGNET && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0
   );
 
-  if (magnets.length === 0) return;
+  if (magnets.length === 0) return notes;
 
   // One magnet = one shot. If you WANT stacking, remove the "only once" behavior.
   // We'll do: trigger once even if multiple magnets exist.
@@ -335,4 +352,6 @@ export function onDittoActivated(state, playerIndex, log) {
     e => !(e && e.type === EFFECT_TYPES.DITTO_MAGNET && e.targetIndex === playerIndex && (e.remainingTurns ?? 0) > 0)
   );
   log?.(`Ditto Magnet ended for ${player.name}.`);
+  notes.push(`Ditto Magnet: ${player.name} takes a Shot.`);
+  return notes;
 }

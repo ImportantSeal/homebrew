@@ -40,6 +40,9 @@ function effectIcon(type) {
     case EFFECT_TYPES.INVISIBLE_MICROPHONE: return "mic";
     case EFFECT_TYPES.SLOW_MOTION: return "SM";
     case EFFECT_TYPES.PINKY_RULE: return "PK";
+    case EFFECT_TYPES.NO_YES_NO: return "Y/N";
+    case EFFECT_TYPES.SECRET_RULE: return "\u{1F92B}";
+    case EFFECT_TYPES.DITTO_BAIT: return "\u{1FA9D}";
     default: return "\u2728";
   }
 }
@@ -144,6 +147,18 @@ function effectDescription(state, eff) {
     }
     case EFFECT_TYPES.PINKY_RULE:
       return "Everyone must raise their pinky while drinking. Fail means Drink 2.";
+    case EFFECT_TYPES.NO_YES_NO:
+      return "Nobody may say 'yes' or 'no'. Slip means Drink 1.";
+    case EFFECT_TYPES.SECRET_RULE: {
+      const src = state.players?.[eff.sourceIndex]?.name;
+      return src
+        ? `${src} set a hidden rule. Breakers drink 1. Whoever guesses it gives 3 and ends it (click Remove).`
+        : "A hidden rule is active. Breakers drink 1. Whoever guesses it gives 3 and ends it (click Remove).";
+    }
+    case EFFECT_TYPES.DITTO_BAIT: {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Someone";
+      return `Whenever Ditto triggers for anyone, ${src} gives 6.`;
+    }
     default:
       return "An effect is active.";
   }
@@ -219,7 +234,16 @@ function effectAppliesTo(state, eff) {
     case EFFECT_TYPES.NO_POINTING:
     case EFFECT_TYPES.EYE_CONTACT_RULE:
     case EFFECT_TYPES.PINKY_RULE:
+    case EFFECT_TYPES.NO_YES_NO:
       return "Applies to: Everyone";
+    case EFFECT_TYPES.SECRET_RULE: {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
+      return `Rule maker: ${src}`;
+    }
+    case EFFECT_TYPES.DITTO_BAIT: {
+      const src = state.players?.[eff.sourceIndex]?.name ?? "Player";
+      return `Bait owner: ${src}`;
+    }
     default:
       return "Applies to: \u2014";
   }
@@ -327,7 +351,8 @@ function createStatusEffectsSignature(state) {
       color: ensurePlayerColor(player, index),
       shield: Boolean(player?.shield),
       skipNextTurn: Boolean(player?.skipNextTurn),
-      extraLife: Boolean(player?.extraLife)
+      extraLife: Boolean(player?.extraLife),
+      dittoExtraTurn: Boolean(player?.dittoExtraTurn)
     }))
   });
 }
@@ -410,6 +435,14 @@ export function renderStatusEffects(state, options = {}) {
         row,
         "\u2764\uFE0F Extra Life",
         onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "extraLife", label: "Extra Life" }) : null
+      );
+      hasForPlayer = true;
+    }
+    if (p.dittoExtraTurn) {
+      addChip(
+        row,
+        "\u{1F501} Hijacked Turn (draws twice)",
+        onRemoveStatus ? () => onRemoveStatus({ playerIndex: idx, key: "dittoExtraTurn", label: "Hijacked Turn" }) : null
       );
       hasForPlayer = true;
     }
